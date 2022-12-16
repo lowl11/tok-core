@@ -27,7 +27,7 @@ type Configuration struct {
 	} `json:"user"`
 
 	Image struct {
-		BasePath string `json:"base_path"`
+		BasePath string `json:"base"`
 	} `json:"image"`
 }
 
