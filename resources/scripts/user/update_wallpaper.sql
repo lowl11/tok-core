@@ -1,3 +1,3 @@
 update users
-set wallpaper = :wallpaper
+set wallpaper = :path
 where username = :username;
