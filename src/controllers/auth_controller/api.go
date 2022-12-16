@@ -106,8 +106,12 @@ func (controller *Controller) LoginByCredentials(ctx echo.Context) error {
 	return controller.Ok(ctx, &models.ClientSessionGet{
 		Token:    sessionToken,
 		Username: user.Username,
-		Name:     user.Name,
-		BIO:      user.BIO,
+
+		Name: user.Name,
+		BIO:  user.BIO,
+
+		Avatar:    user.Avatar,
+		Wallpaper: user.Wallpaper,
 	})
 }
 
@@ -138,7 +142,11 @@ func (controller *Controller) LoginByToken(ctx echo.Context) error {
 	return controller.Ok(ctx, &models.ClientSessionGet{
 		Token:    model.Token,
 		Username: session.Username,
-		Name:     session.Name,
-		BIO:      session.BIO,
+
+		Name: session.Name,
+		BIO:  session.BIO,
+
+		Avatar:    session.Avatar,
+		Wallpaper: session.Wallpaper,
 	})
 }

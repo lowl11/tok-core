@@ -14,8 +14,12 @@ type ClientSessionCreate struct {
 }
 
 type ClientSessionGet struct {
-	Token    string  `json:"token"`
-	Username string  `json:"username"`
-	Name     *string `json:"name"`
-	BIO      *string `json:"bio"`
+	Token    string `json:"token"`
+	Username string `json:"username"`
+
+	Name *string `json:"name"`
+	BIO  *string `json:"bio"`
+
+	Avatar    *string `json:"avatar"`
+	Wallpaper *string `json:"wallpaper"`
 }
