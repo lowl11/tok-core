@@ -17,13 +17,13 @@ func (event *Event) UploadAvatar(avatar *models.ImageAvatar, username string) er
 		return err
 	}
 
-	profilePath := event.basePath + "/profile/"
+	profilePath := event.basePath + "/profile"
 	if err = folderapi.Create(profilePath, username); err != nil {
 		return err
 	}
 
 	usernamePath := profilePath + "/" + username
-	fileName := "avatar." + filepath.Ext(avatar.Name)
+	fileName := "avatar" + filepath.Ext(avatar.Name)
 	filePath := usernamePath + "/" + fileName
 
 	// delete if exist
@@ -46,13 +46,13 @@ func (event *Event) UploadWallpaper(wallpaper *models.ImageWallpaper, username s
 		return err
 	}
 
-	profilePath := event.basePath + "/profile/"
+	profilePath := event.basePath + "/profile"
 	if err = folderapi.Create(profilePath, username); err != nil {
 		return err
 	}
 
 	usernamePath := profilePath + "/" + username
-	fileName := "wallpaper." + filepath.Ext(wallpaper.Name)
+	fileName := "wallpaper" + filepath.Ext(wallpaper.Name)
 	filePath := usernamePath + "/" + fileName
 
 	// delete if exist
