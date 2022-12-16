@@ -17,4 +17,5 @@ type ClientSessionGet struct {
 	Token    string  `json:"token"`
 	Username string  `json:"username"`
 	Name     *string `json:"name"`
+	BIO      *string `json:"bio"`
 }

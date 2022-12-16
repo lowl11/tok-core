@@ -107,6 +107,7 @@ func (controller *Controller) LoginByCredentials(ctx echo.Context) error {
 		Token:    sessionToken,
 		Username: user.Username,
 		Name:     user.Name,
+		BIO:      user.BIO,
 	})
 }
 
@@ -138,5 +139,6 @@ func (controller *Controller) LoginByToken(ctx echo.Context) error {
 		Token:    model.Token,
 		Username: session.Username,
 		Name:     session.Name,
+		BIO:      session.BIO,
 	})
 }
