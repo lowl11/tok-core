@@ -91,7 +91,20 @@ func (controller *Controller) LoginByCredentials(ctx echo.Context) error {
 		return controller.Error(ctx, errors.LoginPassword.With(err))
 	}
 
+	// создание сессии
+	var sessionToken string
+	if sessionToken, err = controller.clientSession.Create(&models.ClientSessionCreate{
+		Username:  model.Username,
+		Name:      user.Name,
+		BIO:       user.BIO,
+		Avatar:    user.Avatar,
+		Wallpaper: user.Wallpaper,
+	}); err != nil {
+		return controller.Error(ctx, errors.SessionCreate.With(err))
+	}
+
 	return controller.Ok(ctx, &models.ClientSessionGet{
+		Token:    sessionToken,
 		Username: user.Username,
 		Name:     user.Name,
 	})
@@ -122,6 +135,7 @@ func (controller *Controller) LoginByToken(ctx echo.Context) error {
 	}
 
 	return controller.Ok(ctx, &models.ClientSessionGet{
+		Token:    model.Token,
 		Username: session.Username,
 		Name:     session.Name,
 	})

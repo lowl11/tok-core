@@ -9,7 +9,7 @@ type ClientSession struct {
 
 	// additional
 	Name *string `json:"name"`
-	BIO  string  `json:"bio"`
+	BIO  *string `json:"bio"`
 
 	// images
 	Avatar    *string `json:"avatar"`

@@ -6,7 +6,7 @@ type ClientSessionCreate struct {
 
 	// additional
 	Name *string `json:"name"`
-	BIO  string  `json:"bio"`
+	BIO  *string `json:"bio"`
 
 	// images
 	Avatar    *string `json:"avatar"`
@@ -14,6 +14,7 @@ type ClientSessionCreate struct {
 }
 
 type ClientSessionGet struct {
+	Token    string  `json:"token"`
 	Username string  `json:"username"`
 	Name     *string `json:"name"`
 }
