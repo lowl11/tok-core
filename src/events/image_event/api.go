@@ -27,7 +27,7 @@ func (event *Event) UploadAvatar(avatar *models.ImageAvatar, username string) er
 	filePath := usernamePath + "/" + fileName
 
 	// delete if exist
-	if !fileapi.Exist(filePath) {
+	if fileapi.Exist(filePath) {
 		if err = fileapi.Delete(filePath); err != nil {
 			return err
 		}
@@ -56,7 +56,7 @@ func (event *Event) UploadWallpaper(wallpaper *models.ImageWallpaper, username s
 	filePath := usernamePath + "/" + fileName
 
 	// delete if exist
-	if !fileapi.Exist(filePath) {
+	if fileapi.Exist(filePath) {
 		if err = fileapi.Delete(filePath); err != nil {
 			return err
 		}
