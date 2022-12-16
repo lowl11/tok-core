@@ -2,15 +2,18 @@ package repositories
 
 import (
 	"github.com/jmoiron/sqlx"
+	"time"
 	"tok-core/src/definition"
 	"tok-core/src/events"
-	"time"
+	"tok-core/src/repositories/auth_repository"
+	"tok-core/src/repositories/user_repository"
 
 	_ "github.com/lib/pq"
 )
 
 type ApiRepositories struct {
-	//
+	Auth *auth_repository.Repository
+	User *user_repository.Repository
 }
 
 func Get(apiEvents *events.ApiEvents) (*ApiRepositories, error) {
@@ -34,7 +37,9 @@ func Get(apiEvents *events.ApiEvents) (*ApiRepositories, error) {
 
 	logger.Info("Initialization database...")
 	defer logger.Info("Initialization database done!")
+
 	return &ApiRepositories{
-		//
+		Auth: auth_repository.Create(connection, apiEvents),
+		User: user_repository.Create(connection, apiEvents),
 	}, nil
 }
