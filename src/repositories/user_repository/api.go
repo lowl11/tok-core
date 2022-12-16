@@ -55,3 +55,55 @@ func (repository *Repository) UpdateProfile(username string, model *models.Profi
 
 	return nil
 }
+
+func (repository *Repository) UpdateAvatar(username, fileName string) error {
+	ctx, cancel := repository.Ctx()
+	defer cancel()
+
+	// entity
+	entity := &entities.ProfileAvatarUpdate{
+		Username: username,
+		Path:     "/var/www/images/profile/" + username + "/" + fileName,
+	}
+
+	// query
+	query := repository.Script("user", "update_avatar")
+
+	if err := repository.Transaction(repository.connection, func(tx *sqlx.Tx) error {
+		if _, err := tx.NamedExecContext(ctx, query, entity); err != nil {
+			return err
+		}
+
+		return nil
+	}); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (repository *Repository) UpdateWallpaper(username, fileName string) error {
+	ctx, cancel := repository.Ctx()
+	defer cancel()
+
+	// entity
+	entity := &entities.ProfileAvatarUpdate{
+		Username: username,
+		Path:     "/var/www/images/profile/" + username + "/" + fileName,
+	}
+
+	// query
+	query := repository.Script("user", "update_wallpaper")
+
+	if err := repository.Transaction(repository.connection, func(tx *sqlx.Tx) error {
+		if _, err := tx.NamedExecContext(ctx, query, entity); err != nil {
+			return err
+		}
+
+		return nil
+	}); err != nil {
+		return err
+	}
+
+	return nil
+}

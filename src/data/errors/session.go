@@ -12,6 +12,10 @@ var (
 		TechMessage:     "Create user session error",
 		BusinessMessage: "Возника техническая ошибка",
 	}
+	SessionUpdate = &models.Error{
+		TechMessage:     "Update user session error",
+		BusinessMessage: "Возника техническая ошибка",
+	}
 
 	SessionGet = &models.Error{
 		TechMessage:     "Get user session error",

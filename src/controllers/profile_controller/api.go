@@ -44,6 +44,7 @@ func (controller *Controller) Update(ctx echo.Context) error {
 func (controller *Controller) UploadAvatar(ctx echo.Context) error {
 	logger := definition.Logger
 	session := ctx.Get("client_session").(*entities.ClientSession)
+	token := ctx.Get("token").(string)
 
 	model := models.ImageAvatar{}
 	if err := ctx.Bind(&model); err != nil {
@@ -54,9 +55,20 @@ func (controller *Controller) UploadAvatar(ctx echo.Context) error {
 		return controller.Error(ctx, errors.ProfileAvatarValidate.With(err))
 	}
 
-	if err := controller.image.UploadAvatar(&model, session.Username); err != nil {
+	fileName, err := controller.image.UploadAvatar(&model, session.Username)
+	if err != nil {
 		logger.Error(err, "Upload profile avatar error")
 		return controller.Error(ctx, errors.ProfileAvatar.With(err))
+	}
+
+	if err = controller.userRepo.UpdateAvatar(session.Username, fileName); err != nil {
+		return controller.Error(ctx, errors.ProfileUpdate.With(err))
+	}
+
+	filePath := "/images/profile/" + session.Username + "/" + fileName
+	session.Avatar = &filePath
+	if err = controller.clientSession.Update(session, token); err != nil {
+		return controller.Error(ctx, errors.SessionUpdate.With(err))
 	}
 
 	return controller.Ok(ctx, "OK")
@@ -65,6 +77,7 @@ func (controller *Controller) UploadAvatar(ctx echo.Context) error {
 func (controller *Controller) UploadWallpaper(ctx echo.Context) error {
 	logger := definition.Logger
 	session := ctx.Get("client_session").(*entities.ClientSession)
+	token := ctx.Get("token").(string)
 
 	model := models.ImageWallpaper{}
 	if err := ctx.Bind(&model); err != nil {
@@ -75,9 +88,20 @@ func (controller *Controller) UploadWallpaper(ctx echo.Context) error {
 		return controller.Error(ctx, errors.ProfileWallpaperValidate.With(err))
 	}
 
-	if err := controller.image.UploadWallpaper(&model, session.Username); err != nil {
+	fileName, err := controller.image.UploadWallpaper(&model, session.Username)
+	if err != nil {
 		logger.Error(err, "Upload profile wallpaper error")
 		return controller.Error(ctx, errors.ProfileWallpaper.With(err))
+	}
+
+	if err = controller.userRepo.UpdateWallpaper(session.Username, fileName); err != nil {
+		return controller.Error(ctx, errors.ProfileUpdate.With(err))
+	}
+
+	filePath := "/images/profile/" + session.Username + "/" + fileName
+	session.Wallpaper = &filePath
+	if err = controller.clientSession.Update(session, token); err != nil {
+		return controller.Error(ctx, errors.SessionUpdate.With(err))
 	}
 
 	return controller.Ok(ctx, "OK")

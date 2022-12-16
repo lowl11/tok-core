@@ -7,23 +7,23 @@ import (
 	"tok-core/src/data/models"
 )
 
-func (event *Event) UploadAvatar(avatar *models.ImageAvatar, username string) error {
+func (event *Event) UploadAvatar(avatar *models.ImageAvatar, username string) (string, error) {
 	if err := event.validateImageName(avatar.Name); err != nil {
-		return err
+		return "", err
 	}
 
 	buffer, err := event.fromBase64(avatar.Buffer)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	if err = folderapi.Create(event.basePath, "profile"); err != nil {
-		return err
+		return "", err
 	}
 
 	profilePath := event.basePath + "/profile"
 	if err = folderapi.Create(profilePath, username); err != nil {
-		return err
+		return "", err
 	}
 
 	usernamePath := profilePath + "/" + username
@@ -33,30 +33,30 @@ func (event *Event) UploadAvatar(avatar *models.ImageAvatar, username string) er
 	// delete if exist
 	if fileapi.Exist(filePath) {
 		if err = fileapi.Delete(filePath); err != nil {
-			return err
+			return "", err
 		}
 	}
 
-	return fileapi.Create(filePath, buffer)
+	return fileName, fileapi.Create(filePath, buffer)
 }
 
-func (event *Event) UploadWallpaper(wallpaper *models.ImageWallpaper, username string) error {
+func (event *Event) UploadWallpaper(wallpaper *models.ImageWallpaper, username string) (string, error) {
 	if err := event.validateImageName(wallpaper.Name); err != nil {
-		return err
+		return "", err
 	}
 
 	buffer, err := event.fromBase64(wallpaper.Buffer)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	if err = folderapi.Create(event.basePath, "profile"); err != nil {
-		return err
+		return "", err
 	}
 
 	profilePath := event.basePath + "/profile"
 	if err = folderapi.Create(profilePath, username); err != nil {
-		return err
+		return "", err
 	}
 
 	usernamePath := profilePath + "/" + username
@@ -66,9 +66,9 @@ func (event *Event) UploadWallpaper(wallpaper *models.ImageWallpaper, username s
 	// delete if exist
 	if fileapi.Exist(filePath) {
 		if err = fileapi.Delete(filePath); err != nil {
-			return err
+			return "", err
 		}
 	}
 
-	return fileapi.Create(filePath, buffer)
+	return fileName, fileapi.Create(filePath, buffer)
 }
