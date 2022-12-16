@@ -13,5 +13,8 @@
 	},
 	"user": {
 		"crypt_key": "NGNhYjgzMDcxNjhhZjQ0NzBlMDliODJj"
+	},
+	"image": {
+		"base": "/var/www/images"
 	}
 }

@@ -25,6 +25,10 @@ type Configuration struct {
 	User struct {
 		CryptKey string `json:"crypt_key"`
 	} `json:"user"`
+
+	Image struct {
+		BasePath string `json:"base_path"`
+	} `json:"image"`
 }
 
 var Config Configuration

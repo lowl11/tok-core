@@ -13,3 +13,27 @@ func (controller *Controller) validateUpdate(model *models.ProfileUpdate) error 
 
 	return nil
 }
+
+func (controller *Controller) validateUploadAvatar(model *models.ImageAvatar) error {
+	if err := controller.RequiredField(model.Name, "name"); err != nil {
+		return err
+	}
+
+	if err := controller.RequiredField(model.Buffer, "buffer"); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (controller *Controller) validateUploadWallpaper(model *models.ImageWallpaper) error {
+	if err := controller.RequiredField(model.Name, "name"); err != nil {
+		return err
+	}
+
+	if err := controller.RequiredField(model.Buffer, "buffer"); err != nil {
+		return err
+	}
+
+	return nil
+}

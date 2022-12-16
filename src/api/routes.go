@@ -55,4 +55,6 @@ func setProfile(server *echo.Echo, controller *profile_controller.Controller) {
 
 	setMiddlewaresPublic(group)
 	group.POST("/update", controller.Update)
+	group.POST("/avatar", controller.UploadAvatar)
+	group.POST("/wallpaper", controller.UploadWallpaper)
 }
