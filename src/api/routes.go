@@ -3,7 +3,8 @@ package api
 import (
 	"github.com/labstack/echo/v4"
 	"tok-core/src/controllers"
-	"tok-core/src/controllers/user_controller"
+	"tok-core/src/controllers/auth_controller"
+	"tok-core/src/controllers/profile_controller"
 	"tok-core/src/definition"
 	"tok-core/src/events"
 	"tok-core/src/middlewares"
@@ -36,14 +37,21 @@ func setRoutes(server *echo.Echo) {
 	server.RouteNotFound("*", apiControllers.Static.RouteNotFound)
 
 	// эндпоинты
-	setUser(server, apiControllers.User)
+	setAuth(server, apiControllers.Auth)
+	setProfile(server, apiControllers.Profile)
 }
 
-func setUser(server *echo.Echo, controller *user_controller.Controller) {
-	group := server.Group("/api/v1/user")
+func setAuth(server *echo.Echo, controller *auth_controller.Controller) {
+	group := server.Group("/api/v1/auth")
 
 	group.POST("/signup", controller.Signup)
 
 	group.POST("/login/credentials", controller.LoginByCredentials)
 	group.POST("/login/token", controller.LoginByToken)
+}
+
+func setProfile(server *echo.Echo, controller *profile_controller.Controller) {
+	group := server.Group("/api/v1/profile")
+
+	group.POST("/update", controller.Update)
 }

@@ -1,4 +1,4 @@
-package user_controller
+package auth_controller
 
 import (
 	"errors"

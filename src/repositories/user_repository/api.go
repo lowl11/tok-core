@@ -1,6 +1,10 @@
 package user_repository
 
-import "tok-core/src/data/entities"
+import (
+	"github.com/jmoiron/sqlx"
+	"tok-core/src/data/entities"
+	"tok-core/src/data/models"
+)
 
 func (repository *Repository) GetByUsername(username string) (*entities.UserGet, error) {
 	ctx, cancel := repository.Ctx()
@@ -23,4 +27,31 @@ func (repository *Repository) GetByUsername(username string) (*entities.UserGet,
 	}
 
 	return nil, nil
+}
+
+func (repository *Repository) UpdateProfile(username string, model *models.ProfileUpdate) error {
+	ctx, cancel := repository.Ctx()
+	defer cancel()
+
+	// entity
+	entity := &entities.ProfileUpdate{
+		Username: username,
+		Name:     model.Name,
+		BIO:      model.BIO,
+	}
+
+	// query
+	query := repository.Script("user", "update")
+
+	if err := repository.Transaction(repository.connection, func(tx *sqlx.Tx) error {
+		if _, err := tx.NamedExecContext(ctx, query, entity); err != nil {
+			return err
+		}
+
+		return nil
+	}); err != nil {
+		return err
+	}
+
+	return nil
 }
