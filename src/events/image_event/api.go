@@ -8,6 +8,10 @@ import (
 )
 
 func (event *Event) UploadAvatar(avatar *models.ImageAvatar, username string) error {
+	if err := event.validateImageName(avatar.Name); err != nil {
+		return err
+	}
+
 	buffer, err := event.fromBase64(avatar.Buffer)
 	if err != nil {
 		return err
@@ -37,6 +41,10 @@ func (event *Event) UploadAvatar(avatar *models.ImageAvatar, username string) er
 }
 
 func (event *Event) UploadWallpaper(wallpaper *models.ImageWallpaper, username string) error {
+	if err := event.validateImageName(wallpaper.Name); err != nil {
+		return err
+	}
+
 	buffer, err := event.fromBase64(wallpaper.Buffer)
 	if err != nil {
 		return err
