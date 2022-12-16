@@ -63,7 +63,7 @@ func (repository *Repository) UpdateAvatar(username, fileName string) error {
 	// entity
 	entity := &entities.ProfileAvatarUpdate{
 		Username: username,
-		Path:     "/var/www/images/profile/" + username + "/" + fileName,
+		Path:     "/images/profile/" + username + "/" + fileName,
 	}
 
 	// query
@@ -89,7 +89,7 @@ func (repository *Repository) UpdateWallpaper(username, fileName string) error {
 	// entity
 	entity := &entities.ProfileWallpaperUpdate{
 		Username: username,
-		Path:     "/var/www/images/profile/" + username + "/" + fileName,
+		Path:     "/images/profile/" + username + "/" + fileName,
 	}
 
 	// query
