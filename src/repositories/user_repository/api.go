@@ -87,7 +87,7 @@ func (repository *Repository) UpdateWallpaper(username, fileName string) error {
 	defer cancel()
 
 	// entity
-	entity := &entities.ProfileAvatarUpdate{
+	entity := &entities.ProfileWallpaperUpdate{
 		Username: username,
 		Path:     "/var/www/images/profile/" + username + "/" + fileName,
 	}
