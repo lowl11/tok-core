@@ -3,8 +3,15 @@
 		"port": ":8080"
 	},
 	"database": {
-		"connection": "host=185.22.67.118 port=5432 user=testuser password=qwerty dbname=learnstest sslmode=disable",
-    	"max_connections": 30,
-    	"lifetime": 5
+		"connection": "host=185.22.67.118 port=5432 user=testuser password=qwerty dbname=toktest sslmode=disable",
+		"max_connections": 30,
+		"lifetime": 5
+	},
+	"redis": {
+		"address": "185.22.67.118:6379",
+		"password": "PKhqpdv6NZmuZXpf"
+	},
+	"user": {
+		"crypt_key": "NGNhYjgzMDcxNjhhZjQ0NzBlMDliODJj"
 	}
 }

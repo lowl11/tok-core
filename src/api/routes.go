@@ -6,6 +6,7 @@ import (
 	"tok-core/src/controllers/user_controller"
 	"tok-core/src/definition"
 	"tok-core/src/events"
+	"tok-core/src/middlewares"
 	"tok-core/src/repositories"
 )
 
@@ -17,6 +18,9 @@ func setRoutes(server *echo.Echo) {
 	if err != nil {
 		logger.Fatal(err, "Initializing events error")
 	}
+
+	// проставить клиентские сессии глобально
+	middlewares.SetClientSession(apiEvents.ClientSession)
 
 	// репозитории
 	apiRepositories, err := repositories.Get(apiEvents)
@@ -38,6 +42,8 @@ func setRoutes(server *echo.Echo) {
 func setUser(server *echo.Echo, controller *user_controller.Controller) {
 	group := server.Group("/api/v1/user")
 
-	group.POST("/signup", controller.SignUp)
-	group.POST("/login", controller.Login)
+	group.POST("/signup", controller.Signup)
+
+	group.POST("/login/credentials", controller.LoginByCredentials)
+	group.POST("/login/token", controller.LoginByToken)
 }

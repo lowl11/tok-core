@@ -15,6 +15,6 @@ type ApiControllers struct {
 func Get(apiRepositories *repositories.ApiRepositories, apiEvents *events.ApiEvents) *ApiControllers {
 	return &ApiControllers{
 		Static: static_controller.Create(),
-		User:   user_controller.Create(apiRepositories),
+		User:   user_controller.Create(apiRepositories, apiEvents),
 	}
 }

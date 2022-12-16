@@ -16,6 +16,15 @@ type Configuration struct {
 		MaxConnections int    `json:"max_connections"`
 		Lifetime       int    `json:"lifetime"`
 	} `json:"database"`
+
+	Redis struct {
+		Address  string `json:"address"`
+		Password string `json:"password"`
+	} `json:"redis"`
+
+	User struct {
+		CryptKey string `json:"crypt_key"`
+	} `json:"user"`
 }
 
 var Config Configuration
