@@ -53,5 +53,6 @@ func setAuth(server *echo.Echo, controller *auth_controller.Controller) {
 func setProfile(server *echo.Echo, controller *profile_controller.Controller) {
 	group := server.Group("/api/v1/profile")
 
+	setMiddlewaresPublic(group)
 	group.POST("/update", controller.Update)
 }

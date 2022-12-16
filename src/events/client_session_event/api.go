@@ -62,3 +62,19 @@ func (event *Event) Get(token string) (*entities.ClientSession, error) {
 
 	return &entityGet, nil
 }
+
+func (event *Event) Update(session *entities.ClientSession, token string) error {
+	ctx, cancel := event.ctx()
+	defer cancel()
+
+	sessionInBytes, err := json.Marshal(session)
+	if err != nil {
+		return err
+	}
+
+	if err = event.client.Set(ctx, sessionPrefix+token, sessionInBytes, time.Hour*24*7).Err(); err != nil {
+		return err
+	}
+
+	return nil
+}

@@ -7,12 +7,8 @@ import (
 
 func Session(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(ctx echo.Context) error {
-		// чтение и проверка токена
-		token := ctx.Request().Header.Get("token")
-		if token == "" {
-			ctx.Error(errors.New("token is required"))
-			return nil
-		}
+		// чтение токена
+		token := ctx.Get("token").(string)
 
 		// получить сессию с redis
 		session, err := clientSession.Get(token)

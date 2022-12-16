@@ -14,5 +14,6 @@ func setMiddlewaresToGroup(group *echo.Group) {
 }
 
 func setMiddlewaresPublic(group *echo.Group) {
+	group.Use(middlewares.Token)
 	group.Use(middlewares.Session)
 }

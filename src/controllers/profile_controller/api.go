@@ -11,6 +11,7 @@ import (
 func (controller *Controller) Update(ctx echo.Context) error {
 	logger := definition.Logger
 	session := ctx.Get("client_session").(*entities.ClientSession)
+	token := ctx.Get("token").(string)
 
 	// привязка модели
 	model := models.ProfileUpdate{}
@@ -19,7 +20,7 @@ func (controller *Controller) Update(ctx echo.Context) error {
 	}
 
 	// валидация модели
-	if err := controller.validateProfileUpdate(&model); err != nil {
+	if err := controller.validateUpdate(&model); err != nil {
 		return controller.Error(ctx, errors.ProfileUpdateValidate.With(err))
 	}
 
@@ -27,6 +28,14 @@ func (controller *Controller) Update(ctx echo.Context) error {
 	if err := controller.userRepo.UpdateProfile(session.Username, &model); err != nil {
 		logger.Error(err, "Update profile info error")
 		return controller.Error(ctx, errors.ProfileUpdate.With(err))
+	}
+
+	// изменить данные из сессии
+	session.BIO = &model.BIO
+	session.Name = &model.Name
+
+	if err := controller.clientSession.Update(session, token); err != nil {
+		return controller.Error(ctx, errors.SessionCreate.With(err))
 	}
 
 	return controller.Ok(ctx, "OK")
