@@ -20,14 +20,32 @@ func (event *Event) DeleteByToken(token string) error {
 	ctx, cancel := event.ctx()
 	defer cancel()
 
-	return event.client.Del(ctx, sessionPrefix+"*_"+token).Err()
+	keys, err := event.client.Keys(ctx, sessionPrefix+"*_"+token).Result()
+	if err != nil {
+		return err
+	}
+
+	if len(keys) == 0 {
+		return nil
+	}
+
+	return event.client.Del(ctx, keys[0]).Err()
 }
 
 func (event *Event) DeleteByUsername(username string) error {
 	ctx, cancel := event.ctx()
 	defer cancel()
 
-	return event.client.Del(ctx, sessionPrefix+username+"_*").Err()
+	keys, err := event.client.Keys(ctx, sessionPrefix+username+"_*").Result()
+	if err != nil {
+		return err
+	}
+
+	if len(keys) == 0 {
+		return nil
+	}
+
+	return event.client.Del(ctx, keys[0]).Err()
 }
 
 func (event *Event) Create(session *models.ClientSessionCreate) (string, error) {
