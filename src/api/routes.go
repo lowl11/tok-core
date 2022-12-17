@@ -5,6 +5,7 @@ import (
 	"tok-core/src/controllers"
 	"tok-core/src/controllers/auth_controller"
 	"tok-core/src/controllers/profile_controller"
+	"tok-core/src/controllers/user_controller"
 	"tok-core/src/definition"
 	"tok-core/src/events"
 	"tok-core/src/middlewares"
@@ -39,6 +40,7 @@ func setRoutes(server *echo.Echo) {
 	// эндпоинты
 	setAuth(server, apiControllers.Auth)
 	setProfile(server, apiControllers.Profile)
+	setUser(server, apiControllers.User)
 }
 
 func setAuth(server *echo.Echo, controller *auth_controller.Controller) {
@@ -59,4 +61,11 @@ func setProfile(server *echo.Echo, controller *profile_controller.Controller) {
 	group.POST("/wallpaper", controller.UploadWallpaper)
 
 	group.POST("/subscribe", controller.Subscribe)
+}
+
+func setUser(server *echo.Echo, controller *user_controller.Controller) {
+	group := server.Group("/api/v1/user")
+
+	setMiddlewaresPublic(group)
+	group.GET("/info/:username", controller.Info)
 }

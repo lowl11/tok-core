@@ -27,3 +27,13 @@ type ClientSessionGet struct {
 
 	Subscriptions entities.ClientSessionSubscribes `json:"subscriptions"`
 }
+
+type UserInfoGet struct {
+	Name *string `json:"name"`
+	BIO  *string `json:"bio"`
+
+	Avatar    *string `json:"avatar"`
+	Wallpaper *string `json:"wallpaper"`
+
+	Subscriptions entities.ClientSessionSubscribes `json:"subscriptions"`
+}
