@@ -60,7 +60,7 @@ func (repo *Repository) ProfileSubscribersCount(username string) (int, error) {
 	ctx, cancel := repo.Ctx()
 	defer cancel()
 
-	query := repo.Script("subscribe", "profile_subscribes_count")
+	query := repo.Script("subscribe", "profile_subscribers_count")
 
 	var count int
 	if err := repo.connection.QueryRowxContext(ctx, query, username).Scan(&count); err != nil {

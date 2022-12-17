@@ -20,6 +20,9 @@ type ClientSession struct {
 }
 
 type ClientSessionSubscribes struct {
+	SubscriberCount   int `json:"subscriber_count"`
+	SubscriptionCount int `json:"subscription_count"`
+
 	Subscribers   []string `json:"subscribers"`
 	Subscriptions []string `json:"subscriptions"`
 }

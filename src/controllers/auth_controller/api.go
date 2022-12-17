@@ -126,6 +126,9 @@ func (controller *Controller) LoginByCredentials(ctx echo.Context) error {
 		Wallpaper: user.Wallpaper,
 
 		Subscriptions: entities.ClientSessionSubscribes{
+			SubscriberCount:   subscribers.Size(),
+			SubscriptionCount: subscriptions.Size(),
+
 			Subscribers: subscribers.Select(func(item entities.ProfileSubscriber) string {
 				return item.Username
 			}).Slice(),
@@ -158,6 +161,46 @@ func (controller *Controller) LoginByToken(ctx echo.Context) error {
 
 	if session == nil {
 		return controller.Error(ctx, errors.SessionNotFound)
+	}
+
+	subscriptionsCount, err := controller.subscriptRepo.ProfileSubscriptionsCount(session.Username)
+	if err != nil {
+		logger.Error(err, "Get profile subscriptions count error")
+		return controller.Error(ctx, errors.SubscriptionsGet.With(err))
+	}
+
+	subscribersCount, err := controller.subscriptRepo.ProfileSubscribersCount(session.Username)
+	if err != nil {
+		logger.Error(err, "Get profile subscribers count error")
+		return controller.Error(ctx, errors.SubscribersGet.With(err))
+	}
+
+	// если кол-во подписок (на кого) не совпадает
+	if len(session.Subscriptions.Subscriptions) != subscriptionsCount {
+		subscriptions, err := controller.subscriptRepo.ProfileSubscriptions(session.Username)
+		if err != nil {
+			logger.Error(err, "Get profile subscriptions error")
+			return controller.Error(ctx, errors.SubscriptionsGet.With(err))
+		}
+
+		session.Subscriptions.Subscriptions = subscriptions.Select(func(item entities.ProfileSubscription) string {
+			return item.Username
+		}).Slice()
+		session.Subscriptions.SubscriptionCount = len(session.Subscriptions.Subscriptions)
+	}
+
+	// если кол-во подписчиков (кто на него) не совпадает
+	if len(session.Subscriptions.Subscribers) != subscribersCount {
+		subscribers, err := controller.subscriptRepo.ProfileSubscribers(session.Username)
+		if err != nil {
+			logger.Error(err, "Get profile subscribers error")
+			return controller.Error(ctx, errors.SubscriptionsGet.With(err))
+		}
+
+		session.Subscriptions.Subscribers = subscribers.Select(func(item entities.ProfileSubscriber) string {
+			return item.Username
+		}).Slice()
+		session.Subscriptions.SubscriberCount = len(session.Subscriptions.Subscribers)
 	}
 
 	return controller.Ok(ctx, &models.ClientSessionGet{
