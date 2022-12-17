@@ -1,6 +1,7 @@
 package image_event
 
 import (
+	"github.com/google/uuid"
 	"github.com/lowl11/lazyfile/fileapi"
 	"github.com/lowl11/lazyfile/folderapi"
 	"path/filepath"
@@ -27,7 +28,7 @@ func (event *Event) UploadAvatar(avatar *models.ImageAvatar, username string) (s
 	}
 
 	usernamePath := profilePath + "/" + username
-	fileName := "avatar" + filepath.Ext(avatar.Name)
+	fileName := "avatar_" + uuid.New().String() + filepath.Ext(avatar.Name)
 	filePath := usernamePath + "/" + fileName
 
 	// delete if exist
@@ -60,7 +61,7 @@ func (event *Event) UploadWallpaper(wallpaper *models.ImageWallpaper, username s
 	}
 
 	usernamePath := profilePath + "/" + username
-	fileName := "wallpaper" + filepath.Ext(wallpaper.Name)
+	fileName := "wallpaper_" + uuid.New().String() + filepath.Ext(wallpaper.Name)
 	filePath := usernamePath + "/" + fileName
 
 	// delete if exist
