@@ -32,6 +32,32 @@ func (repo *Repository) ProfileSubscribe(profileLogin, subscriberLogin string) e
 	return nil
 }
 
+func (repo *Repository) ProfileUnsubscribe(profileLogin, subscriberLogin string) error {
+	ctx, cancel := repo.Ctx()
+	defer cancel()
+
+	// entity
+	entity := &entities.ProfileUnsubscribe{
+		ProfileLogin:   profileLogin,
+		SubscribeLogin: subscriberLogin,
+	}
+
+	// query
+	query := repo.Script("subscribe", "unsubscribe")
+
+	if err := repo.Transaction(repo.connection, func(tx *sqlx.Tx) error {
+		if _, err := tx.NamedExecContext(ctx, query, entity); err != nil {
+			return err
+		}
+
+		return nil
+	}); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (repo *Repository) ProfileSubscribers(username string) (*type_list.TypeList[entities.ProfileSubscriber, string], error) {
 	ctx, cancel := repo.Ctx()
 	defer cancel()

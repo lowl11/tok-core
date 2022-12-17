@@ -17,6 +17,10 @@ var (
 		TechMessage:     "Subscribe to user of profile error",
 		BusinessMessage: "Произошла ошибка",
 	}
+	UnsubscribeOfProfile = &models.Error{
+		TechMessage:     "Unsubscribe to user of profile error",
+		BusinessMessage: "Произошла ошибка",
+	}
 	SubscribersGet = &models.Error{
 		TechMessage:     "Get profile subscribers error",
 		BusinessMessage: "Произошла ошибка",

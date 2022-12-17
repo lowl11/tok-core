@@ -60,6 +60,58 @@ func (controller *Controller) Subscribe(ctx echo.Context) error {
 	return controller.Ok(ctx, "OK")
 }
 
+func (controller *Controller) Unsubscribe(ctx echo.Context) error {
+	logger := definition.Logger
+	session := ctx.Get("client_session").(*entities.ClientSession)
+	token := ctx.Get("token").(string)
+
+	model := models.ProfileSubscribe{}
+	if err := ctx.Bind(&model); err != nil {
+		return controller.Error(ctx, errors.SubscribeOfProfileBind.With(err))
+	}
+
+	if err := controller.validateSubscribeProfile(&model); err != nil {
+		return controller.Error(ctx, errors.SubscribeOfProfileValidate.With(err))
+	}
+
+	// сохранить подписку в БД
+	if err := controller.subscriptRepo.ProfileUnsubscribe(session.Username, model.Username); err != nil {
+		logger.Error(err, "Profile unsubscribe error")
+		return controller.Error(ctx, errors.UnsubscribeOfProfile.With(err))
+	}
+
+	// обновить сессию в профиле
+	session.Subscriptions.Subscriptions = append(session.Subscriptions.Subscriptions, model.Username)
+
+	// обновить сессию другому пользователю на которого профиль подписался
+	anotherSession, err := controller.clientSession.GetByUsername(model.Username)
+	if err != nil && err.Error() != "session not found" {
+		return controller.Error(ctx, errors.SessionGet.With(err))
+	}
+
+	// вдруг у другого пользователя нет сессии
+	if anotherSession != nil {
+		anotherSession.Subscriptions.Subscribers = append(anotherSession.Subscriptions.Subscribers, session.Username)
+	}
+
+	// обновляем сессию профиля
+	if err = controller.clientSession.Update(session, token); err != nil {
+		logger.Error(err, "Update session error")
+		return controller.Error(ctx, errors.SessionUpdate.With(err))
+	}
+
+	// вдруг у другого пользователя нет сессии
+	if anotherSession != nil {
+		// обновляем сессию другого на кого подписались
+		if err = controller.clientSession.Update(anotherSession, token); err != nil {
+			logger.Error(err, "Update session error")
+			return controller.Error(ctx, errors.SessionUpdate.With(err))
+		}
+	}
+
+	return controller.Ok(ctx, "OK")
+}
+
 func (controller *Controller) Update(ctx echo.Context) error {
 	logger := definition.Logger
 	session := ctx.Get("client_session").(*entities.ClientSession)

@@ -98,3 +98,24 @@ func (controller *Controller) Info(ctx echo.Context) error {
 		},
 	})
 }
+
+func (controller *Controller) Subscriptions(ctx echo.Context) error {
+	// username
+	// name
+	// avatar
+	// subscribed?
+	return controller.Ok(ctx, "OK")
+}
+
+func (controller *Controller) Subscribers(ctx echo.Context) error {
+	// username
+	// name
+	// avatar
+	// subscribed?
+	return controller.Ok(ctx, "OK")
+}
+
+func (controller *Controller) Search(ctx echo.Context) error {
+	// query
+	return controller.Ok(ctx, "OK")
+}

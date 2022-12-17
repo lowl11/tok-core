@@ -61,6 +61,7 @@ func setProfile(server *echo.Echo, controller *profile_controller.Controller) {
 	group.POST("/wallpaper", controller.UploadWallpaper)
 
 	group.POST("/subscribe", controller.Subscribe)
+	group.POST("/unsubscribe", controller.Unsubscribe)
 }
 
 func setUser(server *echo.Echo, controller *user_controller.Controller) {
@@ -68,4 +69,7 @@ func setUser(server *echo.Echo, controller *user_controller.Controller) {
 
 	setMiddlewaresPublic(group)
 	group.GET("/info/:username", controller.Info)
+	group.GET("/subscribers/:username", controller.Subscribers)
+	group.GET("/subscriptions/:username", controller.Subscriptions)
+	group.GET("/search", controller.Search)
 }
