@@ -14,8 +14,16 @@ func Token(next echo.HandlerFunc) echo.HandlerFunc {
 			return nil
 		}
 
-		// записать ее в контекст
+		// чтение и проверка логина
+		username := ctx.Request().Header.Get("username")
+		if token == "" {
+			ctx.Error(errors.New("username is required"))
+			return nil
+		}
+
+		// записать их в контекст
 		ctx.Set("token", token)
+		ctx.Set("username", username)
 
 		if err := next(ctx); err != nil {
 			ctx.Error(err)

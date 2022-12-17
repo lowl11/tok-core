@@ -2,6 +2,7 @@ package auth_controller
 
 import (
 	"github.com/labstack/echo/v4"
+	"tok-core/src/data/entities"
 	"tok-core/src/data/errors"
 	"tok-core/src/data/models"
 	"tok-core/src/definition"
@@ -103,6 +104,17 @@ func (controller *Controller) LoginByCredentials(ctx echo.Context) error {
 		return controller.Error(ctx, errors.SessionCreate.With(err))
 	}
 
+	// получить список подписок и подписчиков
+	subscribers, err := controller.subscriptRepo.ProfileSubscribers(model.Username)
+	if err != nil {
+		return controller.Error(ctx, errors.SubscribersGet.With(err))
+	}
+
+	subscriptions, err := controller.subscriptRepo.ProfileSubscriptions(model.Username)
+	if err != nil {
+		return controller.Error(ctx, errors.SubscriptionsGet.With(err))
+	}
+
 	return controller.Ok(ctx, &models.ClientSessionGet{
 		Token:    sessionToken,
 		Username: user.Username,
@@ -112,6 +124,15 @@ func (controller *Controller) LoginByCredentials(ctx echo.Context) error {
 
 		Avatar:    user.Avatar,
 		Wallpaper: user.Wallpaper,
+
+		Subscriptions: entities.ClientSessionSubscribes{
+			Subscribers: subscribers.Select(func(item entities.ProfileSubscriber) string {
+				return item.Username
+			}).Slice(),
+			Subscriptions: subscriptions.Select(func(item entities.ProfileSubscription) string {
+				return item.Username
+			}).Slice(),
+		},
 	})
 }
 
@@ -129,7 +150,7 @@ func (controller *Controller) LoginByToken(ctx echo.Context) error {
 		return controller.Error(ctx, errors.LoginValidate.With(err))
 	}
 
-	session, err := controller.clientSession.Get(model.Token)
+	session, err := controller.clientSession.GetByToken(model.Token)
 	if err != nil {
 		logger.Error(err, "Get client session error")
 		return controller.Error(ctx, errors.SessionGet.With(err))
@@ -148,5 +169,7 @@ func (controller *Controller) LoginByToken(ctx echo.Context) error {
 
 		Avatar:    session.Avatar,
 		Wallpaper: session.Wallpaper,
+
+		Subscriptions: session.Subscriptions,
 	})
 }

@@ -14,4 +14,12 @@ type ClientSession struct {
 	// images
 	Avatar    *string `json:"avatar"`
 	Wallpaper *string `json:"wallpaper"`
+
+	// subscriptions
+	Subscriptions ClientSessionSubscribes `json:"subscriptions"`
+}
+
+type ClientSessionSubscribes struct {
+	Subscribers   []string `json:"subscribers"`
+	Subscriptions []string `json:"subscriptions"`
 }

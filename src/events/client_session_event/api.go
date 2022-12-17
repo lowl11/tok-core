@@ -32,19 +32,86 @@ func (event *Event) Create(session *models.ClientSessionCreate) (string, error) 
 	}
 
 	// записываем в redis
-	if err = event.client.Set(ctx, sessionPrefix+token, entityInBytes, time.Hour*24*7).Err(); err != nil {
+	if err = event.client.Set(ctx, sessionPrefix+session.Username+"_"+token, entityInBytes, time.Hour*24*7).Err(); err != nil {
 		return "", err
 	}
 
 	return token, nil
 }
 
-func (event *Event) Get(token string) (*entities.ClientSession, error) {
+func (event *Event) Get(token, username string) (*entities.ClientSession, error) {
 	ctx, cancel := event.ctx()
 	defer cancel()
 
 	// получить сессию в байтах
-	sessionInBytes, err := event.client.Get(ctx, sessionPrefix+token).Bytes()
+	sessionInBytes, err := event.client.Get(ctx, sessionPrefix+username+"_"+token).Bytes()
+	if err != nil {
+		return nil, err
+	}
+
+	// вдруг записался NULL
+	if sessionInBytes == nil {
+		return nil, errors.New("session not found")
+	}
+
+	// парсим байты в структуру
+	entityGet := entities.ClientSession{}
+	if err = json.Unmarshal(sessionInBytes, &entityGet); err != nil {
+		return nil, err
+	}
+
+	return &entityGet, nil
+}
+
+func (event *Event) GetByUsername(username string) (*entities.ClientSession, error) {
+	ctx, cancel := event.ctx()
+	defer cancel()
+
+	keys, err := event.client.Keys(ctx, sessionPrefix+username+"_*").Result()
+	if err != nil {
+		return nil, err
+	}
+
+	if len(keys) == 0 {
+		return nil, errors.New("session not found")
+	}
+
+	// получить сессию в байтах
+	sessionInBytes, err := event.client.Get(ctx, keys[0]).Bytes()
+	if err != nil {
+		return nil, err
+	}
+
+	// вдруг записался NULL
+	if sessionInBytes == nil {
+		return nil, errors.New("session not found")
+	}
+
+	// парсим байты в структуру
+	entityGet := entities.ClientSession{}
+	if err = json.Unmarshal(sessionInBytes, &entityGet); err != nil {
+		return nil, err
+	}
+
+	return &entityGet, nil
+}
+
+func (event *Event) GetByToken(token string) (*entities.ClientSession, error) {
+	ctx, cancel := event.ctx()
+	defer cancel()
+
+	// найти ключ
+	keys, err := event.client.Keys(ctx, sessionPrefix+"*_"+token).Result()
+	if err != nil {
+		return nil, err
+	}
+
+	if len(keys) == 0 {
+		return nil, errors.New("session not found")
+	}
+
+	// получить сессию в байтах
+	sessionInBytes, err := event.client.Get(ctx, keys[0]).Bytes()
 	if err != nil {
 		return nil, err
 	}
@@ -72,7 +139,7 @@ func (event *Event) Update(session *entities.ClientSession, token string) error 
 		return err
 	}
 
-	if err = event.client.Set(ctx, sessionPrefix+token, sessionInBytes, time.Hour*24*7).Err(); err != nil {
+	if err = event.client.Set(ctx, sessionPrefix+session.Username+"_"+token, sessionInBytes, time.Hour*24*7).Err(); err != nil {
 		return err
 	}
 

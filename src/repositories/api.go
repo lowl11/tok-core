@@ -6,14 +6,16 @@ import (
 	"tok-core/src/definition"
 	"tok-core/src/events"
 	"tok-core/src/repositories/auth_repository"
+	"tok-core/src/repositories/subscription_repository"
 	"tok-core/src/repositories/user_repository"
 
 	_ "github.com/lib/pq"
 )
 
 type ApiRepositories struct {
-	Auth *auth_repository.Repository
-	User *user_repository.Repository
+	Auth         *auth_repository.Repository
+	User         *user_repository.Repository
+	Subscription *subscription_repository.Repository
 }
 
 func Get(apiEvents *events.ApiEvents) (*ApiRepositories, error) {
@@ -39,7 +41,8 @@ func Get(apiEvents *events.ApiEvents) (*ApiRepositories, error) {
 	defer logger.Info("Initialization database done!")
 
 	return &ApiRepositories{
-		Auth: auth_repository.Create(connection, apiEvents),
-		User: user_repository.Create(connection, apiEvents),
+		Auth:         auth_repository.Create(connection, apiEvents),
+		User:         user_repository.Create(connection, apiEvents),
+		Subscription: subscription_repository.Create(connection, apiEvents),
 	}, nil
 }

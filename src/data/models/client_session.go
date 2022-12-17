@@ -1,5 +1,7 @@
 package models
 
+import "tok-core/src/data/entities"
+
 type ClientSessionCreate struct {
 	// main
 	Username string `json:"username"`
@@ -22,4 +24,6 @@ type ClientSessionGet struct {
 
 	Avatar    *string `json:"avatar"`
 	Wallpaper *string `json:"wallpaper"`
+
+	Subscriptions entities.ClientSessionSubscribes `json:"subscriptions"`
 }

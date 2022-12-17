@@ -2,6 +2,14 @@ package profile_controller
 
 import "tok-core/src/data/models"
 
+func (controller *Controller) validateSubscribeProfile(model *models.ProfileSubscribe) error {
+	if err := controller.RequiredField(model.Username, "username"); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (controller *Controller) validateUpdate(model *models.ProfileUpdate) error {
 	if err := controller.RequiredField(model.Name, "name"); err != nil {
 		return err
