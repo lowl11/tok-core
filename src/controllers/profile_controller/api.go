@@ -175,7 +175,7 @@ func (controller *Controller) UploadAvatar(ctx echo.Context) error {
 		return controller.Error(ctx, errors.SessionUpdate.With(err))
 	}
 
-	return controller.Ok(ctx, "OK")
+	return controller.Ok(ctx, filePath)
 }
 
 func (controller *Controller) UploadWallpaper(ctx echo.Context) error {
@@ -208,5 +208,5 @@ func (controller *Controller) UploadWallpaper(ctx echo.Context) error {
 		return controller.Error(ctx, errors.SessionUpdate.With(err))
 	}
 
-	return controller.Ok(ctx, "OK")
+	return controller.Ok(ctx, filePath)
 }
