@@ -92,6 +92,11 @@ func (controller *Controller) LoginByCredentials(ctx echo.Context) error {
 		return controller.Error(ctx, errors.LoginPassword.With(err))
 	}
 
+	// удаление всех сессий с таким логином
+	if err = controller.clientSession.DeleteByUsername(model.Username); err != nil {
+		return controller.Error(ctx, errors.SessionDelete.With(err))
+	}
+
 	// создание сессии
 	var sessionToken string
 	if sessionToken, err = controller.clientSession.Create(&models.ClientSessionCreate{

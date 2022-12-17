@@ -9,6 +9,27 @@ import (
 	"tok-core/src/data/models"
 )
 
+func (event *Event) Delete(token, username string) error {
+	ctx, cancel := event.ctx()
+	defer cancel()
+
+	return event.client.Del(ctx, sessionPrefix+username+"_"+token).Err()
+}
+
+func (event *Event) DeleteByToken(token string) error {
+	ctx, cancel := event.ctx()
+	defer cancel()
+
+	return event.client.Del(ctx, sessionPrefix+"*_"+token).Err()
+}
+
+func (event *Event) DeleteByUsername(username string) error {
+	ctx, cancel := event.ctx()
+	defer cancel()
+
+	return event.client.Del(ctx, sessionPrefix+username+"_*").Err()
+}
+
 func (event *Event) Create(session *models.ClientSessionCreate) (string, error) {
 	ctx, cancel := event.ctx()
 	defer cancel()
