@@ -5,6 +5,7 @@ import (
 	"github.com/lowl11/lazyfile/fileapi"
 	"github.com/lowl11/lazyfile/folderapi"
 	"path/filepath"
+	"strings"
 	"tok-core/src/data/models"
 )
 
@@ -38,8 +39,18 @@ func (event *Event) UploadAvatar(avatar *models.ImageAvatar, username string) (s
 
 	// delete if exist
 	if fileapi.Exist(filePath) {
-		if err = fileapi.Delete(filePath); err != nil {
+		// удаляем остальные файлы
+		objects, err := folderapi.Objects(usernamePath)
+		if err != nil {
 			return "", err
+		}
+
+		for _, obj := range objects {
+			if obj.Name != fileName && strings.Contains(obj.Name, "avatar_") {
+				if err = fileapi.Delete(obj.Path); err != nil {
+					return "", err
+				}
+			}
 		}
 	}
 
@@ -76,8 +87,18 @@ func (event *Event) UploadWallpaper(wallpaper *models.ImageWallpaper, username s
 
 	// delete if exist
 	if fileapi.Exist(filePath) {
-		if err = fileapi.Delete(filePath); err != nil {
+		// удаляем остальные файлы
+		objects, err := folderapi.Objects(usernamePath)
+		if err != nil {
 			return "", err
+		}
+
+		for _, obj := range objects {
+			if obj.Name != fileName && strings.Contains(obj.Name, "wallpaper_") {
+				if err = fileapi.Delete(obj.Path); err != nil {
+					return "", err
+				}
+			}
 		}
 	}
 
