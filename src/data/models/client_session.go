@@ -29,6 +29,8 @@ type ClientSessionGet struct {
 }
 
 type UserInfoGet struct {
+	MySubscription bool `json:"my_subscription"`
+
 	Name *string `json:"name"`
 	BIO  *string `json:"bio"`
 

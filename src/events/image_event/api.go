@@ -18,6 +18,11 @@ func (event *Event) UploadAvatar(avatar *models.ImageAvatar, username string) (s
 		return "", err
 	}
 
+	//resizedBuffer, err := image_resize.DoAvatar(avatar.Name, buffer)
+	//if err != nil {
+	//	return "", err
+	//}
+
 	if err = folderapi.Create(event.basePath, "profile"); err != nil {
 		return "", err
 	}
@@ -50,6 +55,11 @@ func (event *Event) UploadWallpaper(wallpaper *models.ImageWallpaper, username s
 	if err != nil {
 		return "", err
 	}
+
+	//resizedBuffer, err := image_resize.DoWallpaper(wallpaper.Name, buffer)
+	//if err != nil {
+	//	return "", err
+	//}
 
 	if err = folderapi.Create(event.basePath, "profile"); err != nil {
 		return "", err
