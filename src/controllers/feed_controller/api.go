@@ -2,13 +2,43 @@ package feed_controller
 
 import (
 	"github.com/labstack/echo/v4"
+	"tok-core/src/data/entities"
 	"tok-core/src/data/errors"
 	"tok-core/src/data/models"
 	"tok-core/src/definition"
 )
 
 func (controller *Controller) Main(ctx echo.Context) error {
-	return controller.Ok(ctx, "OK")
+	logger := definition.Logger
+	session := ctx.Get("client_session").(*entities.ClientSession)
+
+	// список подписок из сессии
+	subscriptions := session.Subscriptions.Subscriptions
+
+	// посты с массивом юзернеймов из подписок
+	posts, err := controller.postRepo.GetByUsernameList(subscriptions)
+	if err != nil {
+		logger.Error(err, "Get posts list by username list error")
+		return controller.Error(ctx, errors.PostsGetByUsernameList.With(err))
+	}
+
+	list := make([]models.PostGet, 0, len(posts))
+	for _, item := range posts {
+		list = append(list, models.PostGet{
+			AuthorUsername: item.AuthorUsername,
+			AuthorName:     item.AuthorName,
+			AuthorAvatar:   item.AuthorAvatar,
+
+			CategoryCode: item.CategoryCode,
+			CategoryName: item.CategoryName,
+
+			Text:      item.Text,
+			Picture:   item.Picture,
+			CreatedAt: item.CreatedAt,
+		})
+	}
+
+	return controller.Ok(ctx, list)
 }
 
 func (controller *Controller) User(ctx echo.Context) error {

@@ -39,6 +39,10 @@ var (
 		TechMessage:     "Get posts list by username error",
 		BusinessMessage: "Произошла ошибка",
 	}
+	PostsGetByUsernameList = &models.Error{
+		TechMessage:     "Get posts list by username list error",
+		BusinessMessage: "Произошла ошибка",
+	}
 	PostsGetByCategory = &models.Error{
 		TechMessage:     "Get posts list by category error",
 		BusinessMessage: "Произошла ошибка",

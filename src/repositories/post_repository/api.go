@@ -60,6 +60,30 @@ func (repo *Repository) GetByUsername(username string) ([]entities.PostGet, erro
 	return list, nil
 }
 
+func (repo *Repository) GetByUsernameList(usernameList []string) ([]entities.PostGet, error) {
+	ctx, cancel := repo.Ctx()
+	defer cancel()
+
+	query := repo.Script("post", "get_by_username_list")
+
+	rows, err := repo.connection.QueryxContext(ctx, query, usernameList)
+	if err != nil {
+		return nil, err
+	}
+	defer repo.CloseRows(rows)
+
+	list := make([]entities.PostGet, 0)
+	for rows.Next() {
+		item := entities.PostGet{}
+		if err = rows.StructScan(&item); err != nil {
+			return nil, err
+		}
+		list = append(list, item)
+	}
+
+	return list, nil
+}
+
 func (repo *Repository) GetByCategory(categoryCode string) ([]entities.PostGet, error) {
 	ctx, cancel := repo.Ctx()
 	defer cancel()
