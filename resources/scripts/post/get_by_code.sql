@@ -1,7 +1,7 @@
 select
     post.author_username,
-    u.name auhtor_name,
-    u.avatar auhtor_avatar,
+    u.name author_name,
+    u.avatar author_avatar,
 
     category.code category_code,
     category.name category_name,
