@@ -90,10 +90,14 @@ func setFeed(server *echo.Echo, controller *feed_controller.Controller) {
 	group := server.Group("/api/v1/feed")
 
 	setMiddlewaresPublic(group)
+	group.GET("/get/main", controller.Main)
+	group.GET("/get/user", controller.User)
+	group.GET("/get/category", controller.Category)
 }
 
 func setPost(server *echo.Echo, controller *post_controller.Controller) {
 	group := server.Group("/api/v1/post")
 
 	setMiddlewaresPublic(group)
+	group.POST("/add", controller.Add)
 }
