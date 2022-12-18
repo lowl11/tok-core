@@ -13,6 +13,6 @@ func initServer() {
 
 	Server.Use(middleware.CORSWithConfig(middleware.DefaultCORSConfig))
 	Server.Use(middleware.Secure())
-	Server.Use(middleware.Recover())
+	Server.Use(middleware.RecoverWithConfig(middleware.DefaultRecoverConfig))
 	Server.Use(middlewares.Timeout())
 }
