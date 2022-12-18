@@ -22,8 +22,19 @@ func (controller *Controller) Subscribe(ctx echo.Context) error {
 		return controller.Error(ctx, errors.SubscribeOfProfileValidate.With(err))
 	}
 
+	// проверить существует ли подписка
+	exist, err := controller.subscriptRepo.Exist(session.Username, model.Username)
+	if err != nil {
+		return controller.Error(ctx, errors.SubscribersExist.With(err))
+	}
+
+	// если подписка уже существует
+	if exist {
+		return controller.Error(ctx, errors.SubscriptionExist)
+	}
+
 	// сохранить подписку в БД
-	if err := controller.subscriptRepo.ProfileSubscribe(session.Username, model.Username); err != nil {
+	if err = controller.subscriptRepo.ProfileSubscribe(session.Username, model.Username); err != nil {
 		logger.Error(err, "Profile subscribe error")
 		return controller.Error(ctx, errors.SubscribeOfProfile.With(err))
 	}

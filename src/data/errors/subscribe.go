@@ -3,6 +3,11 @@ package errors
 import "tok-core/src/data/models"
 
 var (
+	SubscriptionExist = &models.Error{
+		TechMessage:     "Subscription already exist",
+		BusinessMessage: "Произошла ошибка",
+	}
+
 	SubscribeOfProfileBind = &models.Error{
 		TechMessage:     "Bind subscribe to user of profile model error",
 		BusinessMessage: "Произошла ошибка",
@@ -23,6 +28,10 @@ var (
 	}
 	SubscribersGet = &models.Error{
 		TechMessage:     "Get profile subscribers error",
+		BusinessMessage: "Произошла ошибка",
+	}
+	SubscribersExist = &models.Error{
+		TechMessage:     "Getting subscription exist error",
 		BusinessMessage: "Произошла ошибка",
 	}
 	SubscriptionsGet = &models.Error{

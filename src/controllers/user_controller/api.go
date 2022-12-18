@@ -1,6 +1,7 @@
 package user_controller
 
 import (
+	"fmt"
 	"github.com/labstack/echo/v4"
 	"github.com/lowl11/lazy-collection/array"
 	"tok-core/src/data/entities"
@@ -46,6 +47,8 @@ func (controller *Controller) Info(ctx echo.Context) error {
 			logger.Error(err, "Get subscribers error")
 			return controller.Error(ctx, errors.SubscribersGet.With(err))
 		}
+
+		fmt.Println("subscriptions", session.Subscriptions.Subscriptions)
 
 		return controller.Ok(ctx, &models.UserInfoGet{
 			MySubscription: array.NewWithList[string](session.Subscriptions.Subscriptions...).ContainsFunc(func(item string) bool {
@@ -112,6 +115,7 @@ func (controller *Controller) Info(ctx echo.Context) error {
 func (controller *Controller) Subscriptions(ctx echo.Context) error {
 	logger := definition.Logger
 
+	//session := ctx.Get("client_session").(*entities.ClientSession)
 	username := ctx.Param("username")
 
 	subscriptions, err := controller.subscriptRepo.ProfileSubscriptions(username)

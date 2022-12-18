@@ -6,6 +6,21 @@ import (
 	"tok-core/src/data/entities"
 )
 
+func (repo *Repository) Exist(profileUsername, subscriberUsername string) (bool, error) {
+	ctx, cancel := repo.Ctx()
+	defer cancel()
+
+	query := repo.Script("subscribe", "exist")
+
+	rows, err := repo.connection.QueryxContext(ctx, query, profileUsername, subscriberUsername)
+	if err != nil {
+		return false, err
+	}
+	defer repo.CloseRows(rows)
+
+	return rows.Next(), nil
+}
+
 func (repo *Repository) ProfileSubscribe(profileUsername, subscriberUsername string) error {
 	ctx, cancel := repo.Ctx()
 	defer cancel()
