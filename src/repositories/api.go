@@ -6,6 +6,8 @@ import (
 	"tok-core/src/definition"
 	"tok-core/src/events"
 	"tok-core/src/repositories/auth_repository"
+	"tok-core/src/repositories/post_category_repository"
+	"tok-core/src/repositories/post_repository"
 	"tok-core/src/repositories/subscription_repository"
 	"tok-core/src/repositories/user_repository"
 
@@ -16,6 +18,9 @@ type ApiRepositories struct {
 	Auth         *auth_repository.Repository
 	User         *user_repository.Repository
 	Subscription *subscription_repository.Repository
+
+	PostCategory *post_category_repository.Repository
+	Post         *post_repository.Repository
 }
 
 func Get(apiEvents *events.ApiEvents) (*ApiRepositories, error) {
@@ -44,5 +49,8 @@ func Get(apiEvents *events.ApiEvents) (*ApiRepositories, error) {
 		Auth:         auth_repository.Create(connection, apiEvents),
 		User:         user_repository.Create(connection, apiEvents),
 		Subscription: subscription_repository.Create(connection, apiEvents),
+
+		PostCategory: post_category_repository.Create(connection, apiEvents),
+		Post:         post_repository.Create(connection, apiEvents),
 	}, nil
 }

@@ -4,6 +4,8 @@ import (
 	"github.com/labstack/echo/v4"
 	"tok-core/src/controllers"
 	"tok-core/src/controllers/auth_controller"
+	"tok-core/src/controllers/feed_controller"
+	"tok-core/src/controllers/post_controller"
 	"tok-core/src/controllers/profile_controller"
 	"tok-core/src/controllers/user_controller"
 	"tok-core/src/definition"
@@ -41,6 +43,9 @@ func setRoutes(server *echo.Echo) {
 	setAuth(server, apiControllers.Auth)
 	setProfile(server, apiControllers.Profile)
 	setUser(server, apiControllers.User)
+
+	setFeed(server, apiControllers.Feed)
+	setPost(server, apiControllers.Post)
 }
 
 func setAuth(server *echo.Echo, controller *auth_controller.Controller) {
@@ -79,4 +84,16 @@ func setUser(server *echo.Echo, controller *user_controller.Controller) {
 	group.GET("/subscribers/:username", controller.Subscribers)
 	group.GET("/subscriptions/:username", controller.Subscriptions)
 	group.GET("/search", controller.Search)
+}
+
+func setFeed(server *echo.Echo, controller *feed_controller.Controller) {
+	group := server.Group("/api/v1/feed")
+
+	setMiddlewaresPublic(group)
+}
+
+func setPost(server *echo.Echo, controller *post_controller.Controller) {
+	group := server.Group("/api/v1/post")
+
+	setMiddlewaresPublic(group)
 }

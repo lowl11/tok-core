@@ -2,6 +2,8 @@ package controllers
 
 import (
 	"tok-core/src/controllers/auth_controller"
+	"tok-core/src/controllers/feed_controller"
+	"tok-core/src/controllers/post_controller"
 	"tok-core/src/controllers/profile_controller"
 	"tok-core/src/controllers/static_controller"
 	"tok-core/src/controllers/user_controller"
@@ -18,13 +20,19 @@ type ApiControllers struct {
 	User    *user_controller.Controller
 
 	// feed flow
+	Feed *feed_controller.Controller
+	Post *post_controller.Controller
 }
 
 func Get(apiRepositories *repositories.ApiRepositories, apiEvents *events.ApiEvents) *ApiControllers {
 	return &ApiControllers{
-		Static:  static_controller.Create(),
+		Static: static_controller.Create(),
+
 		Auth:    auth_controller.Create(apiRepositories, apiEvents),
 		Profile: profile_controller.Create(apiRepositories, apiEvents),
 		User:    user_controller.Create(apiRepositories, apiEvents),
+
+		Feed: feed_controller.Create(apiRepositories, apiEvents),
+		Post: post_controller.Create(apiRepositories, apiEvents),
 	}
 }
