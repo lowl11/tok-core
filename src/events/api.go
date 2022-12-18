@@ -1,36 +1,57 @@
 package events
 
 import (
+	"context"
+	"github.com/go-redis/redis/v8"
+	"time"
 	"tok-core/src/definition"
 	"tok-core/src/events/client_session_event"
+	"tok-core/src/events/feed_event"
 	"tok-core/src/events/image_event"
 	"tok-core/src/events/script_event"
 )
 
 type ApiEvents struct {
-	Script        *script_event.Event
+	Script *script_event.Event
+	Image  *image_event.Event
+
 	ClientSession *client_session_event.Event
-	Image         *image_event.Event
+	Feed          *feed_event.Event
 }
 
 func Get() (*ApiEvents, error) {
 	config := definition.Config
+
+	// redis connection
+	client := redis.NewClient(&redis.Options{
+		Addr:     config.Redis.Address,
+		Password: config.Redis.Password,
+		DB:       0, // default database
+	})
+
+	// ping redis
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
+	defer cancel()
+
+	if err := client.Ping(ctx).Err(); err != nil {
+		return nil, err
+	}
 
 	script, err := script_event.Create()
 	if err != nil {
 		return nil, err
 	}
 
-	clientSession, err := client_session_event.Create(config.Redis.Address, config.Redis.Password)
-	if err != nil {
-		return nil, err
-	}
-
 	image := image_event.Create(config.Image.BasePath)
 
+	clientSession := client_session_event.Create(client)
+	feed := feed_event.Create(client)
+
 	return &ApiEvents{
-		Script:        script,
+		Script: script,
+		Image:  image,
+
 		ClientSession: clientSession,
-		Image:         image,
+		Feed:          feed,
 	}, nil
 }

@@ -1,8 +1,6 @@
-package client_session_event
+package feed_event
 
-import (
-	"github.com/go-redis/redis/v8"
-)
+import "github.com/go-redis/redis/v8"
 
 type Event struct {
 	client *redis.Client
