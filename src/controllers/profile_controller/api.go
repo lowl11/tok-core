@@ -112,15 +112,15 @@ func (controller *Controller) Unsubscribe(ctx echo.Context) error {
 	session.Subscriptions.Subscriptions = profileList.Slice()
 
 	// обновить сессию другому пользователю на которого профиль подписался
-	anotherSession, _, err := controller.clientSession.GetByUsername(model.Username)
+	anotherSession, anotherToken, err := controller.clientSession.GetByUsername(model.Username)
 	if err != nil && err.Error() != "session not found" {
 		return controller.Error(ctx, errors.SessionGet.With(err))
 	}
 
 	// вдруг у другого пользователя нет сессии
 	if anotherSession != nil {
-		userList := array.NewWithList[string](session.Subscriptions.Subscriptions...)
-		userRemoveIndex := userList.IndexOf(session.Username)
+		userList := array.NewWithList[string](anotherSession.Subscriptions.Subscriptions...)
+		userRemoveIndex := userList.IndexOf(anotherSession.Username)
 		if userRemoveIndex > -1 {
 			userList.Remove(userRemoveIndex)
 		}
@@ -136,7 +136,7 @@ func (controller *Controller) Unsubscribe(ctx echo.Context) error {
 	// вдруг у другого пользователя нет сессии
 	if anotherSession != nil {
 		// обновляем сессию другого на кого подписались
-		if err = controller.clientSession.Update(anotherSession, token); err != nil {
+		if err = controller.clientSession.Update(anotherSession, anotherToken); err != nil {
 			logger.Error(err, "Update session error")
 			return controller.Error(ctx, errors.SessionUpdate.With(err))
 		}
