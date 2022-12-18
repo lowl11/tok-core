@@ -2,7 +2,6 @@ package user_controller
 
 import (
 	"github.com/labstack/echo/v4"
-	"github.com/lowl11/lazy-collection/array"
 	"tok-core/src/data/entities"
 	"tok-core/src/data/errors"
 	"tok-core/src/data/models"
@@ -48,9 +47,9 @@ func (controller *Controller) Info(ctx echo.Context) error {
 		}
 
 		return controller.Ok(ctx, &models.UserInfoGet{
-			MySubscription: array.NewWithList[string](session.Subscriptions.Subscriptions...).ContainsFunc(func(item string) bool {
-				return item == username
-			}),
+			MySubscription: subscribers.Single(func(item entities.ProfileSubscriber) bool {
+				return item.Username == session.Username
+			}) != nil,
 
 			Name: user.Name,
 			BIO:  user.BIO,
@@ -85,9 +84,9 @@ func (controller *Controller) Info(ctx echo.Context) error {
 	}
 
 	return controller.Ok(ctx, models.UserInfoGet{
-		MySubscription: array.NewWithList[string](session.Subscriptions.Subscriptions...).ContainsFunc(func(item string) bool {
-			return item == username
-		}),
+		MySubscription: subscribers.Single(func(item entities.ProfileSubscriber) bool {
+			return item.Username == session.Username
+		}) != nil,
 
 		Name: userSession.Name,
 		BIO:  userSession.BIO,
