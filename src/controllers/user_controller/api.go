@@ -150,6 +150,7 @@ func (controller *Controller) Subscriptions(ctx echo.Context) error {
 func (controller *Controller) Subscribers(ctx echo.Context) error {
 	logger := definition.Logger
 
+	session := ctx.Get("client_session").(*entities.ClientSession)
 	username := ctx.Param("username")
 
 	subscribers, err := controller.subscriptRepo.ProfileSubscribers(username)
@@ -158,6 +159,8 @@ func (controller *Controller) Subscribers(ctx echo.Context) error {
 		return controller.Error(ctx, errors.SubscribersGet.With(err))
 	}
 
+	mySubscriptions := array.NewWithList[string](session.Subscriptions.Subscriptions...)
+
 	list := make([]models.UserSubscriber, 0, subscribers.Size())
 	for subscribers.Next() {
 		item := subscribers.Value()
@@ -165,7 +168,7 @@ func (controller *Controller) Subscribers(ctx echo.Context) error {
 			Username:   item.Username,
 			Name:       item.Name,
 			Avatar:     item.Avatar,
-			Subscribed: false, // TODO
+			Subscribed: mySubscriptions.Contains(item.Username),
 		})
 	}
 
