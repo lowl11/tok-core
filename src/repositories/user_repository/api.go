@@ -6,6 +6,30 @@ import (
 	"tok-core/src/data/models"
 )
 
+func (repository *Repository) Search(searchQuery string) ([]entities.UserGet, error) {
+	ctx, cancel := repository.Ctx()
+	defer cancel()
+
+	query := repository.Script("user", "search")
+
+	rows, err := repository.connection.QueryxContext(ctx, query, searchQuery)
+	if err != nil {
+		return nil, err
+	}
+	defer repository.CloseRows(rows)
+
+	list := make([]entities.UserGet, 0)
+	for rows.Next() {
+		item := entities.UserGet{}
+		if err = rows.StructScan(&item); err != nil {
+			return nil, err
+		}
+		list = append(list, item)
+	}
+
+	return list, nil
+}
+
 func (repository *Repository) GetByUsername(username string) (*entities.UserGet, error) {
 	ctx, cancel := repository.Ctx()
 	defer cancel()
