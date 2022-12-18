@@ -110,19 +110,53 @@ func (controller *Controller) Info(ctx echo.Context) error {
 }
 
 func (controller *Controller) Subscriptions(ctx echo.Context) error {
-	// username
-	// name
-	// avatar
-	// subscribed?
-	return controller.Ok(ctx, "OK")
+	logger := definition.Logger
+
+	username := ctx.Param("username")
+
+	subscriptions, err := controller.subscriptRepo.ProfileSubscriptions(username)
+	if err != nil {
+		logger.Error(err, "Get subscriptions error")
+		return controller.Error(ctx, errors.SubscriptionsGet.With(err))
+	}
+
+	list := make([]models.UserSubscriptions, 0, subscriptions.Size())
+	for subscriptions.Next() {
+		item := subscriptions.Value()
+		list = append(list, models.UserSubscriptions{
+			Username:   item.Username,
+			Name:       item.Name,
+			Avatar:     item.Avatar,
+			Subscribed: false, // TODO
+		})
+	}
+
+	return controller.Ok(ctx, list)
 }
 
 func (controller *Controller) Subscribers(ctx echo.Context) error {
-	// username
-	// name
-	// avatar
-	// subscribed?
-	return controller.Ok(ctx, "OK")
+	logger := definition.Logger
+
+	username := ctx.Param("username")
+
+	subscribers, err := controller.subscriptRepo.ProfileSubscribers(username)
+	if err != nil {
+		logger.Error(err, "Get subscribers error")
+		return controller.Error(ctx, errors.SubscribersGet.With(err))
+	}
+
+	list := make([]models.UserSubscriber, 0, subscribers.Size())
+	for subscribers.Next() {
+		item := subscribers.Value()
+		list = append(list, models.UserSubscriber{
+			Username:   item.Username,
+			Name:       item.Name,
+			Avatar:     item.Avatar,
+			Subscribed: false, // TODO
+		})
+	}
+
+	return controller.Ok(ctx, list)
 }
 
 func (controller *Controller) Search(ctx echo.Context) error {
