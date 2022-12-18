@@ -2,6 +2,7 @@ package auth_repository
 
 import (
 	"github.com/jmoiron/sqlx"
+	"strings"
 	"tok-core/src/data/entities"
 	"tok-core/src/data/models"
 )
@@ -12,8 +13,8 @@ func (repo *Repository) Signup(model *models.Signup, encryptedPassword string) e
 
 	// entity
 	entity := &entities.Signup{
-		Username: model.Username,
-		Password: encryptedPassword,
+		Username: strings.ToLower(strings.TrimSpace(model.Username)),
+		Password: strings.ToLower(strings.TrimSpace(encryptedPassword)),
 	}
 
 	// query
@@ -38,8 +39,8 @@ func (repo *Repository) Login(username, encryptedPassword string) (*entities.Use
 
 	// entity
 	entity := &entities.Login{
-		Username: username,
-		Password: encryptedPassword,
+		Username: strings.ToLower(strings.TrimSpace(username)),
+		Password: strings.ToLower(strings.TrimSpace(encryptedPassword)),
 	}
 
 	// query
