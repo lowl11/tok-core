@@ -65,10 +65,17 @@ func setProfile(server *echo.Echo, controller *profile_controller.Controller) {
 }
 
 func setUser(server *echo.Echo, controller *user_controller.Controller) {
+	// part access group
+	partGroup := server.Group("/api/v1/user")
+	setMiddlewaresPublicPart(partGroup)
+
+	partGroup.GET("/info/:username", controller.Info)
+
+	// full access group
+
 	group := server.Group("/api/v1/user")
 
 	setMiddlewaresPublic(group)
-	group.GET("/info/:username", controller.Info)
 	group.GET("/subscribers/:username", controller.Subscribers)
 	group.GET("/subscriptions/:username", controller.Subscriptions)
 	group.GET("/search", controller.Search)

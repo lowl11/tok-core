@@ -46,10 +46,15 @@ func (controller *Controller) Info(ctx echo.Context) error {
 			return controller.Error(ctx, errors.SubscribersGet.With(err))
 		}
 
-		return controller.Ok(ctx, &models.UserInfoGet{
-			MySubscription: subscribers.Single(func(item entities.ProfileSubscriber) bool {
+		var mySubscription bool
+		if session != nil {
+			mySubscription = subscribers.Single(func(item entities.ProfileSubscriber) bool {
 				return item.Username == session.Username
-			}) != nil,
+			}) != nil
+		}
+
+		return controller.Ok(ctx, &models.UserInfoGet{
+			MySubscription: mySubscription,
 
 			Name: user.Name,
 			BIO:  user.BIO,
@@ -83,10 +88,15 @@ func (controller *Controller) Info(ctx echo.Context) error {
 		return controller.Error(ctx, errors.SubscribersGet.With(err))
 	}
 
-	return controller.Ok(ctx, models.UserInfoGet{
-		MySubscription: subscribers.Single(func(item entities.ProfileSubscriber) bool {
+	var mySubscription bool
+	if session != nil {
+		mySubscription = subscribers.Single(func(item entities.ProfileSubscriber) bool {
 			return item.Username == session.Username
-		}) != nil,
+		}) != nil
+	}
+
+	return controller.Ok(ctx, models.UserInfoGet{
+		MySubscription: mySubscription,
 
 		Name: userSession.Name,
 		BIO:  userSession.BIO,

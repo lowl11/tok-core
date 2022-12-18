@@ -33,3 +33,24 @@ func Token(next echo.HandlerFunc) echo.HandlerFunc {
 		return nil
 	}
 }
+
+func TokenPart(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(ctx echo.Context) error {
+		// чтение и проверка токена
+		token := ctx.Request().Header.Get("token")
+
+		// чтение и проверка логина
+		username := ctx.Request().Header.Get("username")
+
+		// записать их в контекст
+		ctx.Set("token", token)
+		ctx.Set("username", username)
+
+		if err := next(ctx); err != nil {
+			ctx.Error(err)
+			return nil
+		}
+
+		return nil
+	}
+}
