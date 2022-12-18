@@ -2,6 +2,7 @@ package profile_controller
 
 import (
 	"github.com/labstack/echo/v4"
+	"github.com/lowl11/lazy-collection/array"
 	"tok-core/src/data/entities"
 	"tok-core/src/data/errors"
 	"tok-core/src/data/models"
@@ -92,7 +93,9 @@ func (controller *Controller) Unsubscribe(ctx echo.Context) error {
 	}
 
 	// обновить сессию в профиле
-	session.Subscriptions.Subscriptions = append(session.Subscriptions.Subscriptions, model.Username)
+	profileList := array.NewWithList[string](session.Subscriptions.Subscriptions...)
+	profileList.Remove(profileList.IndexOf(model.Username))
+	session.Subscriptions.Subscriptions = profileList.Slice()
 
 	// обновить сессию другому пользователю на которого профиль подписался
 	anotherSession, err := controller.clientSession.GetByUsername(model.Username)
@@ -102,7 +105,9 @@ func (controller *Controller) Unsubscribe(ctx echo.Context) error {
 
 	// вдруг у другого пользователя нет сессии
 	if anotherSession != nil {
-		anotherSession.Subscriptions.Subscribers = append(anotherSession.Subscriptions.Subscribers, session.Username)
+		userList := array.NewWithList[string](session.Subscriptions.Subscriptions...)
+		userList.Remove(userList.IndexOf(session.Username))
+		anotherSession.Subscriptions.Subscribers = userList.Slice()
 	}
 
 	// обновляем сессию профиля
