@@ -54,7 +54,7 @@ func SessionPart(next echo.HandlerFunc) echo.HandlerFunc {
 				return nil
 			}
 		} else if username != "" && token == "" {
-			session, err = clientSession.GetByUsername(username)
+			session, _, err = clientSession.GetByUsername(username)
 			if err != nil {
 				ctx.Error(errors.New("get session error"))
 				return nil

@@ -14,11 +14,13 @@ func (controller *Controller) Subscribe(ctx echo.Context) error {
 	session := ctx.Get("client_session").(*entities.ClientSession)
 	token := ctx.Get("token").(string)
 
+	// привязка модели
 	model := models.ProfileSubscribe{}
 	if err := ctx.Bind(&model); err != nil {
 		return controller.Error(ctx, errors.SubscribeOfProfileBind.With(err))
 	}
 
+	// валидация модели
 	if err := controller.validateSubscribeProfile(&model); err != nil {
 		return controller.Error(ctx, errors.SubscribeOfProfileValidate.With(err))
 	}
@@ -44,7 +46,7 @@ func (controller *Controller) Subscribe(ctx echo.Context) error {
 	session.Subscriptions.Subscriptions = append(session.Subscriptions.Subscriptions, model.Username)
 
 	// обновить сессию другому пользователю на которого профиль подписался
-	anotherSession, err := controller.clientSession.GetByUsername(model.Username)
+	anotherSession, anotherToken, err := controller.clientSession.GetByUsername(model.Username)
 	if err != nil && err.Error() != "session not found" {
 		return controller.Error(ctx, errors.SessionGet.With(err))
 	}
@@ -63,7 +65,7 @@ func (controller *Controller) Subscribe(ctx echo.Context) error {
 	// вдруг у другого пользователя нет сессии
 	if anotherSession != nil {
 		// обновляем сессию другого на кого подписались
-		if err = controller.clientSession.Update(anotherSession, token); err != nil {
+		if err = controller.clientSession.Update(anotherSession, anotherToken); err != nil {
 			logger.Error(err, "Update session error")
 			return controller.Error(ctx, errors.SessionUpdate.With(err))
 		}
@@ -86,19 +88,31 @@ func (controller *Controller) Unsubscribe(ctx echo.Context) error {
 		return controller.Error(ctx, errors.SubscribeOfProfileValidate.With(err))
 	}
 
+	exist, err := controller.subscriptRepo.Exist(session.Username, model.Username)
+	if err != nil {
+		return controller.Error(ctx, errors.SubscribersExist.With(err))
+	}
+
+	if !exist {
+		return controller.Error(ctx, errors.SubscriptionNotExist)
+	}
+
 	// сохранить подписку в БД
-	if err := controller.subscriptRepo.ProfileUnsubscribe(session.Username, model.Username); err != nil {
+	if err = controller.subscriptRepo.ProfileUnsubscribe(session.Username, model.Username); err != nil {
 		logger.Error(err, "Profile unsubscribe error")
 		return controller.Error(ctx, errors.UnsubscribeOfProfile.With(err))
 	}
 
 	// обновить сессию в профиле
 	profileList := array.NewWithList[string](session.Subscriptions.Subscriptions...)
-	profileList.Remove(profileList.IndexOf(model.Username))
+	removeIndex := profileList.IndexOf(model.Username)
+	if removeIndex > -1 {
+		profileList.Remove(removeIndex)
+	}
 	session.Subscriptions.Subscriptions = profileList.Slice()
 
 	// обновить сессию другому пользователю на которого профиль подписался
-	anotherSession, err := controller.clientSession.GetByUsername(model.Username)
+	anotherSession, _, err := controller.clientSession.GetByUsername(model.Username)
 	if err != nil && err.Error() != "session not found" {
 		return controller.Error(ctx, errors.SessionGet.With(err))
 	}
@@ -106,7 +120,10 @@ func (controller *Controller) Unsubscribe(ctx echo.Context) error {
 	// вдруг у другого пользователя нет сессии
 	if anotherSession != nil {
 		userList := array.NewWithList[string](session.Subscriptions.Subscriptions...)
-		userList.Remove(userList.IndexOf(session.Username))
+		userRemoveIndex := userList.IndexOf(session.Username)
+		if userRemoveIndex > -1 {
+			userList.Remove(userRemoveIndex)
+		}
 		anotherSession.Subscriptions.Subscribers = userList.Slice()
 	}
 

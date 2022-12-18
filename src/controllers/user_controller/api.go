@@ -17,7 +17,7 @@ func (controller *Controller) Info(ctx echo.Context) error {
 	username := ctx.Param("username")
 
 	// получить сессию заданного пользователя
-	userSession, err := controller.clientSession.GetByUsername(username)
+	userSession, _, err := controller.clientSession.GetByUsername(username)
 	if err != nil && err.Error() != "session not found" {
 		logger.Error(err, "Get user session error")
 		return controller.Error(ctx, errors.SessionGet.With(err))

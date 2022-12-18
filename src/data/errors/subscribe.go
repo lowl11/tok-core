@@ -7,6 +7,10 @@ var (
 		TechMessage:     "Subscription already exist",
 		BusinessMessage: "Произошла ошибка",
 	}
+	SubscriptionNotExist = &models.Error{
+		TechMessage:     "Already unsubscribed",
+		BusinessMessage: "Произошла ошибка",
+	}
 
 	SubscribeOfProfileBind = &models.Error{
 		TechMessage:     "Bind subscribe to user of profile model error",

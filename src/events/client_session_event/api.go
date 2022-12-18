@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/google/uuid"
+	"strings"
 	"time"
 	"tok-core/src/data/entities"
 	"tok-core/src/data/models"
@@ -102,37 +103,43 @@ func (event *Event) Get(token, username string) (*entities.ClientSession, error)
 	return &entityGet, nil
 }
 
-func (event *Event) GetByUsername(username string) (*entities.ClientSession, error) {
+func (event *Event) GetByUsername(username string) (*entities.ClientSession, string, error) {
 	ctx, cancel := event.ctx()
 	defer cancel()
 
 	keys, err := event.client.Keys(ctx, sessionPrefix+username+"_*").Result()
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 
 	if len(keys) == 0 {
-		return nil, errors.New("session not found")
+		return nil, "", errors.New("session not found")
 	}
 
 	// получить сессию в байтах
 	sessionInBytes, err := event.client.Get(ctx, keys[0]).Bytes()
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 
 	// вдруг записался NULL
 	if sessionInBytes == nil {
-		return nil, errors.New("session not found")
+		return nil, "", errors.New("session not found")
 	}
 
 	// парсим байты в структуру
 	entityGet := entities.ClientSession{}
 	if err = json.Unmarshal(sessionInBytes, &entityGet); err != nil {
-		return nil, err
+		return nil, "", err
 	}
 
-	return &entityGet, nil
+	// prepare token
+	token := keys[0]
+	token = strings.ReplaceAll(token, sessionPrefix, "")
+	token = strings.ReplaceAll(token, username, "")
+	token = strings.ReplaceAll(token, "_", "")
+
+	return &entityGet, token, nil
 }
 
 func (event *Event) GetByToken(token string) (*entities.ClientSession, error) {
