@@ -181,7 +181,7 @@ func (controller *Controller) LoginByToken(ctx echo.Context) error {
 	}
 
 	// если кол-во подписок (на кого) не совпадает
-	if len(session.Subscriptions.Subscriptions) != subscriptionsCount {
+	if session.Subscriptions.SubscriptionCount != subscriptionsCount {
 		subscriptions, err := controller.subscriptRepo.ProfileSubscriptions(session.Username)
 		if err != nil {
 			logger.Error(err, "Get profile subscriptions error")
@@ -195,7 +195,7 @@ func (controller *Controller) LoginByToken(ctx echo.Context) error {
 	}
 
 	// если кол-во подписчиков (кто на него) не совпадает
-	if len(session.Subscriptions.Subscribers) != subscribersCount {
+	if session.Subscriptions.SubscriberCount != subscribersCount {
 		subscribers, err := controller.subscriptRepo.ProfileSubscribers(session.Username)
 		if err != nil {
 			logger.Error(err, "Get profile subscribers error")
