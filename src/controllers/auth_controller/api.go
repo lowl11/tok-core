@@ -180,6 +180,8 @@ func (controller *Controller) LoginByToken(ctx echo.Context) error {
 		return controller.Error(ctx, errors.SubscribersGet.With(err))
 	}
 
+	var sessionUpdate bool
+
 	// если кол-во подписок (на кого) не совпадает
 	if session.Subscriptions.SubscriptionCount != subscriptionsCount {
 		subscriptions, err := controller.subscriptRepo.ProfileSubscriptions(session.Username)
@@ -192,6 +194,7 @@ func (controller *Controller) LoginByToken(ctx echo.Context) error {
 			return item.Username
 		}).Slice()
 		session.Subscriptions.SubscriptionCount = len(session.Subscriptions.Subscriptions)
+		sessionUpdate = true
 	}
 
 	// если кол-во подписчиков (кто на него) не совпадает
@@ -206,6 +209,14 @@ func (controller *Controller) LoginByToken(ctx echo.Context) error {
 			return item.Username
 		}).Slice()
 		session.Subscriptions.SubscriberCount = len(session.Subscriptions.Subscribers)
+		sessionUpdate = true
+	}
+
+	if sessionUpdate {
+		if err = controller.clientSession.Update(session, model.Token); err != nil {
+			logger.Error(err, "Session update error")
+			return controller.Error(ctx, errors.SessionUpdate.With(err))
+		}
 	}
 
 	return controller.Ok(ctx, &models.ClientSessionGet{
