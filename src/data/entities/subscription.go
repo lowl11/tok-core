@@ -1,13 +1,13 @@
 package entities
 
 type ProfileSubscribe struct {
-	ProfileLogin   string `db:"profile_login"`
-	SubscribeLogin string `db:"subscriber_login"`
+	ProfileUsername   string `db:"profile_username"`
+	SubscribeUsername string `db:"subscriber_username"`
 }
 
 type ProfileUnsubscribe struct {
-	ProfileLogin   string `db:"profile_login"`
-	SubscribeLogin string `db:"subscriber_login"`
+	ProfileUsername   string `db:"profile_username"`
+	SubscribeUsername string `db:"subscriber_username"`
 }
 
 type ProfileSubscriber struct {

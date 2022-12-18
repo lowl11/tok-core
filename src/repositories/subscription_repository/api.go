@@ -6,14 +6,14 @@ import (
 	"tok-core/src/data/entities"
 )
 
-func (repo *Repository) ProfileSubscribe(profileLogin, subscriberLogin string) error {
+func (repo *Repository) ProfileSubscribe(profileUsername, subscriberUsername string) error {
 	ctx, cancel := repo.Ctx()
 	defer cancel()
 
 	// entity
 	entity := &entities.ProfileSubscribe{
-		ProfileLogin:   profileLogin,
-		SubscribeLogin: subscriberLogin,
+		ProfileUsername:   profileUsername,
+		SubscribeUsername: subscriberUsername,
 	}
 
 	// query
@@ -32,14 +32,14 @@ func (repo *Repository) ProfileSubscribe(profileLogin, subscriberLogin string) e
 	return nil
 }
 
-func (repo *Repository) ProfileUnsubscribe(profileLogin, subscriberLogin string) error {
+func (repo *Repository) ProfileUnsubscribe(profileUsername, subscriberUsername string) error {
 	ctx, cancel := repo.Ctx()
 	defer cancel()
 
 	// entity
 	entity := &entities.ProfileUnsubscribe{
-		ProfileLogin:   profileLogin,
-		SubscribeLogin: subscriberLogin,
+		ProfileUsername:   profileUsername,
+		SubscribeUsername: subscriberUsername,
 	}
 
 	// query
