@@ -1,2 +1,2 @@
-insert into posts (author_username, text, picture, category_code)
-values (:author_username, :text, :picture, :category_code);
+insert into posts (code, author_username, text, picture, category_code)
+values (:code, :author_username, :text, :picture, :category_code);
