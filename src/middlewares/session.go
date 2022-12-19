@@ -1,9 +1,10 @@
 package middlewares
 
 import (
-	"errors"
 	"github.com/labstack/echo/v4"
+	"net/http"
 	"tok-core/src/data/entities"
+	"tok-core/src/data/models"
 )
 
 func Session(next echo.HandlerFunc) echo.HandlerFunc {
@@ -15,8 +16,12 @@ func Session(next echo.HandlerFunc) echo.HandlerFunc {
 		// получить сессию с redis
 		session, err := clientSession.Get(token, username)
 		if err != nil {
-			ctx.Error(errors.New("get session error"))
-			return nil
+			errorObject := &models.Response{
+				Status:       "ERROR",
+				Message:      "Произошла ошибка",
+				InnerMessage: "Get session error",
+			}
+			return ctx.JSON(http.StatusUnauthorized, errorObject)
 		}
 
 		// записать ее в контекст
@@ -44,20 +49,32 @@ func SessionPart(next echo.HandlerFunc) echo.HandlerFunc {
 		if token != "" && username != "" {
 			session, err = clientSession.Get(token, username)
 			if err != nil {
-				ctx.Error(errors.New("get session error"))
-				return nil
+				errorObject := &models.Response{
+					Status:       "ERROR",
+					Message:      "Произошла ошибка",
+					InnerMessage: "Get session error",
+				}
+				return ctx.JSON(http.StatusUnauthorized, errorObject)
 			}
 		} else if token != "" && username == "" {
 			session, err = clientSession.GetByToken(token)
 			if err != nil {
-				ctx.Error(errors.New("get session error"))
-				return nil
+				errorObject := &models.Response{
+					Status:       "ERROR",
+					Message:      "Произошла ошибка",
+					InnerMessage: "Get session error",
+				}
+				return ctx.JSON(http.StatusUnauthorized, errorObject)
 			}
 		} else if username != "" && token == "" {
 			session, _, err = clientSession.GetByUsername(username)
 			if err != nil {
-				ctx.Error(errors.New("get session error"))
-				return nil
+				errorObject := &models.Response{
+					Status:       "ERROR",
+					Message:      "Произошла ошибка",
+					InnerMessage: "Get session error",
+				}
+				return ctx.JSON(http.StatusUnauthorized, errorObject)
 			}
 		}
 

@@ -1,8 +1,9 @@
 package middlewares
 
 import (
-	"errors"
 	"github.com/labstack/echo/v4"
+	"net/http"
+	"tok-core/src/data/models"
 )
 
 func Token(next echo.HandlerFunc) echo.HandlerFunc {
@@ -10,15 +11,23 @@ func Token(next echo.HandlerFunc) echo.HandlerFunc {
 		// чтение и проверка токена
 		token := ctx.Request().Header.Get("token")
 		if token == "" {
-			ctx.Error(errors.New("token is required"))
-			return nil
+			errorObject := &models.Response{
+				Status:       "ERROR",
+				Message:      "Произошла ошибка",
+				InnerMessage: "Token is required",
+			}
+			return ctx.JSON(http.StatusUnauthorized, errorObject)
 		}
 
 		// чтение и проверка логина
 		username := ctx.Request().Header.Get("username")
 		if token == "" {
-			ctx.Error(errors.New("username is required"))
-			return nil
+			errorObject := &models.Response{
+				Status:       "ERROR",
+				Message:      "Произошла ошибка",
+				InnerMessage: "Token is required",
+			}
+			return ctx.JSON(http.StatusUnauthorized, errorObject)
 		}
 
 		// записать их в контекст

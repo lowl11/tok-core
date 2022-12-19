@@ -25,3 +25,27 @@ func (repo *Repository) GetAll() ([]entities.PostCategoryGet, error) {
 
 	return list, nil
 }
+
+func (repo *Repository) Search(searchQuery string) ([]entities.PostCategoryGet, error) {
+	ctx, cancel := repo.Ctx()
+	defer cancel()
+
+	query := repo.Script("post_category", "search")
+
+	rows, err := repo.connection.QueryxContext(ctx, query, searchQuery)
+	if err != nil {
+		return nil, err
+	}
+	defer repo.CloseRows(rows)
+
+	list := make([]entities.PostCategoryGet, 0)
+	for rows.Next() {
+		item := entities.PostCategoryGet{}
+		if err = rows.StructScan(&item); err != nil {
+			return nil, err
+		}
+		list = append(list, item)
+	}
+
+	return list, nil
+}
