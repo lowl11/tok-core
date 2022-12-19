@@ -8,10 +8,69 @@ import (
 	"tok-core/src/data/models"
 	"tok-core/src/definition"
 	"tok-core/src/services/query_corrector"
+	"tok-core/src/services/search_sorter"
 )
 
 func (controller *Controller) Smart(ctx echo.Context) error {
-	return controller.Ok(ctx, "OK")
+	logger := definition.Logger
+	session := ctx.Get("client_session").(*entities.ClientSession)
+
+	// связка модели
+	model := models.SearchSmart{}
+	if err := ctx.Bind(&model); err != nil {
+		return controller.Error(ctx, errors.SearchSmartBind.With(err))
+	}
+
+	// валидация модели
+	if err := controller.validateSmart(&model); err != nil {
+		return controller.Error(ctx, errors.SearchSmartValidate.With(err))
+	}
+
+	// обработка поискового запроса клиента
+	model.Query = query_corrector.Correct(model.Query)
+
+	// получаем пользователей
+	// поиск пользователей по запросу клиента
+	users, err := controller.userRepo.Search(model.Query)
+	if err != nil {
+		logger.Error(err, "Search users error")
+		return controller.Error(ctx, errors.SearchUser.With(err))
+	}
+
+	// определяем подписан ли клиент на список пользователей
+	mySubscriptions := array.NewWithList[string](session.Subscriptions.Subscriptions...)
+
+	// обработка списка пользователей постов для клиента
+	userList := make([]models.SearchUserGet, 0, len(users))
+	for _, user := range users {
+		userList = append(userList, models.SearchUserGet{
+			Username:   user.Username,
+			Name:       user.Name,
+			Avatar:     user.Avatar,
+			Subscribed: mySubscriptions.Contains(user.Username),
+		})
+	}
+
+	// получить список категорий постов
+	categories, err := controller.postCategoryRepo.Search(model.Query)
+	if err != nil {
+		logger.Error(err, "Search categories error")
+		return controller.Error(ctx, errors.SearchCategory.With(err))
+	}
+
+	// обработка списка категорий постов для клиента
+	categoryList := make([]models.SearchCategoryGet, 0, len(categories))
+	for _, item := range categories {
+		categoryList = append(categoryList, models.SearchCategoryGet{
+			Code: item.Code,
+			Name: item.Name,
+		})
+	}
+
+	// сортировка и компановка двух листов в один
+	list := search_sorter.SortSmart(userList, categoryList)
+
+	return controller.Ok(ctx, list)
 }
 
 func (controller *Controller) User(ctx echo.Context) error {
@@ -43,9 +102,9 @@ func (controller *Controller) User(ctx echo.Context) error {
 	mySubscriptions := array.NewWithList[string](session.Subscriptions.Subscriptions...)
 
 	// обработка списка пользователей постов для клиента
-	list := make([]models.UserSearch, 0, len(users))
+	list := make([]models.SearchUserGet, 0, len(users))
 	for _, user := range users {
-		list = append(list, models.UserSearch{
+		list = append(list, models.SearchUserGet{
 			Username:   user.Username,
 			Name:       user.Name,
 			Avatar:     user.Avatar,
