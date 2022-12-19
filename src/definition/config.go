@@ -36,14 +36,20 @@ var Logger logapi.ILogger
 
 func Init() {
 	Config = Configuration{}
+
+	// определение окружения (прод или нет)
 	isProduction := os.Getenv("env") == "production"
 
+	// создание логгера
 	logger := logapi.New().File("info", "logs")
 
+	// чтение конфигов
 	if err := confapi.Read(&Config, isProduction); err != nil {
 		logger.Fatal(err, "Reading config error")
 	}
 
 	Logger = logger
+
+	// создание объекта сервера
 	initServer()
 }

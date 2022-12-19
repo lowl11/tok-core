@@ -8,9 +8,11 @@ import (
 
 var Server *echo.Echo
 
+// initServer создание объекта сервера
 func initServer() {
 	Server = echo.New()
 
+	// общие миддлы
 	Server.Use(middleware.CORSWithConfig(middleware.DefaultCORSConfig))
 	Server.Use(middleware.Secure())
 	Server.Use(middleware.RecoverWithConfig(middleware.DefaultRecoverConfig))

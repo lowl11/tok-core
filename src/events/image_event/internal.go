@@ -13,10 +13,12 @@ var (
 	)
 )
 
+// fromBase64 конвертация из base64 в байты
 func (event *Event) fromBase64(buffer string) ([]byte, error) {
 	return base64.StdEncoding.DecodeString(buffer)
 }
 
+// validateImageName валидация на расширение файла
 func (event *Event) validateImageName(name string) error {
 	fileExtension := filepath.Ext(name)
 	if extensions.Single(func(item string) bool { return item == fileExtension }) == nil {

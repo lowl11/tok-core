@@ -10,45 +10,64 @@ import (
 	"tok-core/src/data/models"
 )
 
+/*
+	Delete удаление сессии по токену и юзернейму
+*/
 func (event *Event) Delete(token, username string) error {
 	ctx, cancel := event.ctx()
 	defer cancel()
 
+	// удаление сессии
 	return event.client.Del(ctx, sessionPrefix+username+"_"+token).Err()
 }
 
+/*
+	DeleteByToken удаление сессии по токену
+*/
 func (event *Event) DeleteByToken(token string) error {
 	ctx, cancel := event.ctx()
 	defer cancel()
 
+	// сначала получаем совпадающие ключи
 	keys, err := event.client.Keys(ctx, sessionPrefix+"*_"+token).Result()
 	if err != nil {
 		return err
 	}
 
+	// сессии нет если не нашли ключи
 	if len(keys) == 0 {
 		return nil
 	}
 
+	// удаление сессии
 	return event.client.Del(ctx, keys[0]).Err()
 }
 
+/*
+	DeleteByUsername удаление сессии по юзернейму
+*/
 func (event *Event) DeleteByUsername(username string) error {
 	ctx, cancel := event.ctx()
 	defer cancel()
 
+	// сначала получаем совпадающие ключи
 	keys, err := event.client.Keys(ctx, sessionPrefix+username+"_*").Result()
 	if err != nil {
 		return err
 	}
 
+	// сессии нет если не нашли ключи
 	if len(keys) == 0 {
 		return nil
 	}
 
+	// удаление сессии
 	return event.client.Del(ctx, keys[0]).Err()
 }
 
+/*
+	Create создание сессии
+*/
 func (event *Event) Create(session *models.ClientSessionCreate) (string, error) {
 	ctx, cancel := event.ctx()
 	defer cancel()
@@ -56,7 +75,7 @@ func (event *Event) Create(session *models.ClientSessionCreate) (string, error) 
 	// создаем токен
 	token := uuid.New().String()
 
-	// сбор
+	// сбор сущности сессии
 	entity := &entities.ClientSession{
 		Username:  session.Username,
 		Name:      session.Name,
@@ -79,6 +98,9 @@ func (event *Event) Create(session *models.ClientSessionCreate) (string, error) 
 	return token, nil
 }
 
+/*
+	Get получение сессии по токену и юзернейму
+*/
 func (event *Event) Get(token, username string) (*entities.ClientSession, error) {
 	ctx, cancel := event.ctx()
 	defer cancel()
@@ -103,15 +125,20 @@ func (event *Event) Get(token, username string) (*entities.ClientSession, error)
 	return &entityGet, nil
 }
 
+/*
+	GetByUsername получение сессии по юзернейму
+*/
 func (event *Event) GetByUsername(username string) (*entities.ClientSession, string, error) {
 	ctx, cancel := event.ctx()
 	defer cancel()
 
+	// находим подходящие ключи
 	keys, err := event.client.Keys(ctx, sessionPrefix+username+"_*").Result()
 	if err != nil {
 		return nil, "", err
 	}
 
+	// ошибка если ключи не найдены (значит сессии нет)
 	if len(keys) == 0 {
 		return nil, "", errors.New("session not found")
 	}
@@ -133,7 +160,7 @@ func (event *Event) GetByUsername(username string) (*entities.ClientSession, str
 		return nil, "", err
 	}
 
-	// prepare token
+	// парсим токен
 	token := keys[0]
 	token = strings.ReplaceAll(token, sessionPrefix, "")
 	token = strings.ReplaceAll(token, username, "")
@@ -142,16 +169,20 @@ func (event *Event) GetByUsername(username string) (*entities.ClientSession, str
 	return &entityGet, token, nil
 }
 
+/*
+	GetByToken получение сессии по токену
+*/
 func (event *Event) GetByToken(token string) (*entities.ClientSession, error) {
 	ctx, cancel := event.ctx()
 	defer cancel()
 
-	// найти ключ
+	// ищем подходящие ключи
 	keys, err := event.client.Keys(ctx, sessionPrefix+"*_"+token).Result()
 	if err != nil {
 		return nil, err
 	}
 
+	// ошибка если не нашли ключи (значит сессии нет)
 	if len(keys) == 0 {
 		return nil, errors.New("session not found")
 	}
@@ -176,15 +207,20 @@ func (event *Event) GetByToken(token string) (*entities.ClientSession, error) {
 	return &entityGet, nil
 }
 
+/*
+	Update обновление существующей сессии
+*/
 func (event *Event) Update(session *entities.ClientSession, token string) error {
 	ctx, cancel := event.ctx()
 	defer cancel()
 
+	// парсим сессию в байты
 	sessionInBytes, err := json.Marshal(session)
 	if err != nil {
 		return err
 	}
 
+	// обновляем сессию в redis
 	if err = event.client.Set(ctx, sessionPrefix+session.Username+"_"+token, sessionInBytes, time.Hour*24*7).Err(); err != nil {
 		return err
 	}

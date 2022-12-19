@@ -9,11 +9,21 @@ import (
 	"tok-core/src/data/models"
 )
 
+/*
+	UploadAvatar загрузка аватара
+	Изображение принимается в base 64, далее конвертируется в байты
+	Создается папка profile если такой нет
+	Далее создается папка с названием юзернейма пользователя если ее нет
+	Удаляются остальные файлы с именем avatar_
+	Создается новый файл
+*/
 func (event *Event) UploadAvatar(avatar *models.ImageAvatar, username string) (string, error) {
+	// валидируем расширение файла
 	if err := event.validateImageName(avatar.Name); err != nil {
 		return "", err
 	}
 
+	// конвертация из base64 в байты
 	buffer, err := event.fromBase64(avatar.Buffer)
 	if err != nil {
 		return "", err
@@ -24,15 +34,18 @@ func (event *Event) UploadAvatar(avatar *models.ImageAvatar, username string) (s
 	//	return "", err
 	//}
 
+	// создается папка /profile если ее нет
 	if err = folderapi.Create(event.basePath, "profile"); err != nil {
 		return "", err
 	}
 
+	// создается папка /profile/<username> если ее нет
 	profilePath := event.basePath + "/profile"
 	if err = folderapi.Create(profilePath, username); err != nil {
 		return "", err
 	}
 
+	// генерируем название и путь к файлу
 	usernamePath := profilePath + "/" + username
 	fileName := "avatar_" + uuid.New().String() + filepath.Ext(avatar.Name)
 	filePath := usernamePath + "/" + fileName
@@ -51,14 +64,25 @@ func (event *Event) UploadAvatar(avatar *models.ImageAvatar, username string) (s
 		}
 	}
 
+	// создаем файл
 	return fileName, fileapi.Create(filePath, buffer)
 }
 
+/*
+	UploadWallpaper загрузка фона
+	Изображение принимается в base 64, далее конвертируется в байты
+	Создается папка profile если такой нет
+	Далее создается папка с названием юзернейма пользователя если ее нет
+	Удаляются остальные файлы с именем wallpaper_
+	Создается новый файл
+*/
 func (event *Event) UploadWallpaper(wallpaper *models.ImageWallpaper, username string) (string, error) {
+	// валидируем расширение файла
 	if err := event.validateImageName(wallpaper.Name); err != nil {
 		return "", err
 	}
 
+	// конвертация из base64 в байты
 	buffer, err := event.fromBase64(wallpaper.Buffer)
 	if err != nil {
 		return "", err
@@ -69,15 +93,18 @@ func (event *Event) UploadWallpaper(wallpaper *models.ImageWallpaper, username s
 	//	return "", err
 	//}
 
+	// создается папка /profile если ее нет
 	if err = folderapi.Create(event.basePath, "profile"); err != nil {
 		return "", err
 	}
 
+	// создается папка /profile/<username> если ее нет
 	profilePath := event.basePath + "/profile"
 	if err = folderapi.Create(profilePath, username); err != nil {
 		return "", err
 	}
 
+	// генерируем название и путь к файлу
 	usernamePath := profilePath + "/" + username
 	fileName := "wallpaper_" + uuid.New().String() + filepath.Ext(wallpaper.Name)
 	filePath := usernamePath + "/" + fileName
@@ -96,5 +123,6 @@ func (event *Event) UploadWallpaper(wallpaper *models.ImageWallpaper, username s
 		}
 	}
 
+	// создаем файл
 	return fileName, fileapi.Create(filePath, buffer)
 }
