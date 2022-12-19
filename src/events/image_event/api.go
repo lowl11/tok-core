@@ -37,19 +37,16 @@ func (event *Event) UploadAvatar(avatar *models.ImageAvatar, username string) (s
 	fileName := "avatar_" + uuid.New().String() + filepath.Ext(avatar.Name)
 	filePath := usernamePath + "/" + fileName
 
-	// delete if exist
-	if fileapi.Exist(filePath) {
-		// удаляем остальные файлы
-		objects, err := folderapi.Objects(usernamePath)
-		if err != nil {
-			return "", err
-		}
+	// удаляем остальные файлы
+	objects, err := folderapi.Objects(usernamePath)
+	if err != nil {
+		return "", err
+	}
 
-		for _, obj := range objects {
-			if obj.Name != fileName && strings.Contains(obj.Name, "avatar_") {
-				if err = fileapi.Delete(obj.Path); err != nil {
-					return "", err
-				}
+	for _, obj := range objects {
+		if obj.Name != fileName && strings.Contains(obj.Name, "avatar_") {
+			if err = fileapi.Delete(obj.Path); err != nil {
+				return "", err
 			}
 		}
 	}
@@ -85,19 +82,16 @@ func (event *Event) UploadWallpaper(wallpaper *models.ImageWallpaper, username s
 	fileName := "wallpaper_" + uuid.New().String() + filepath.Ext(wallpaper.Name)
 	filePath := usernamePath + "/" + fileName
 
-	// delete if exist
-	if fileapi.Exist(filePath) {
-		// удаляем остальные файлы
-		objects, err := folderapi.Objects(usernamePath)
-		if err != nil {
-			return "", err
-		}
+	// удаляем остальные файлы
+	objects, err := folderapi.Objects(usernamePath)
+	if err != nil {
+		return "", err
+	}
 
-		for _, obj := range objects {
-			if obj.Name != fileName && strings.Contains(obj.Name, "wallpaper_") {
-				if err = fileapi.Delete(obj.Path); err != nil {
-					return "", err
-				}
+	for _, obj := range objects {
+		if obj.Name != fileName && strings.Contains(obj.Name, "wallpaper_") {
+			if err = fileapi.Delete(obj.Path); err != nil {
+				return "", err
 			}
 		}
 	}
