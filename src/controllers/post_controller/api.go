@@ -9,20 +9,28 @@ import (
 	"tok-core/src/definition"
 )
 
+/*
+	Add создание нового поста
+*/
 func (controller *Controller) Add(ctx echo.Context) error {
 	logger := definition.Logger
 	session := ctx.Get("client_session").(*entities.ClientSession)
 
+	// связка модели
 	model := models.PostAdd{}
 	if err := ctx.Bind(&model); err != nil {
 		return controller.Error(ctx, errors.PostCreateBind.With(err))
 	}
 
+	// валидация модели
 	if err := controller.validatePostCreate(&model); err != nil {
 		return controller.Error(ctx, errors.PostCreateValidate.With(err))
 	}
 
+	// создание кода поста
 	postCode := uuid.New().String()
+
+	// создание поста
 	if err := controller.postRepo.Create(&model, session.Username, postCode); err != nil {
 		logger.Error(err, "Create post error")
 		return controller.Error(ctx, errors.PostCreate.With(err))
@@ -31,15 +39,20 @@ func (controller *Controller) Add(ctx echo.Context) error {
 	return controller.Ok(ctx, postCode)
 }
 
+/*
+	Categories возвращает список всех категорий
+*/
 func (controller *Controller) Categories(ctx echo.Context) error {
 	logger := definition.Logger
 
+	// получение списка всех категорий
 	categories, err := controller.postCategoryRepo.GetAll()
 	if err != nil {
 		logger.Error(err, "Get all post categories error")
 		return controller.Error(ctx, errors.PostCategoryGetList.With(err))
 	}
 
+	// обработка списка категорий для клиента
 	list := make([]models.PostCategoryGet, 0, len(categories))
 	for _, item := range categories {
 		list = append(list, models.PostCategoryGet{

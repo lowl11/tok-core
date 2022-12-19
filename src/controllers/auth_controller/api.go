@@ -9,6 +9,10 @@ import (
 	"tok-core/src/services/string_encryptor"
 )
 
+/*
+	Signup регистрация новой учетной записи
+	После заведения пользователя в БД сразу создает сессию и позволяет авторизоваться по выданному токену
+*/
 func (controller *Controller) Signup(ctx echo.Context) error {
 	logger := definition.Logger
 	config := definition.Config
@@ -40,11 +44,12 @@ func (controller *Controller) Signup(ctx echo.Context) error {
 		return controller.Error(ctx, errors.Signup.With(err))
 	}
 
-	// создать сессию в Redis
+	// создать модель сессии
 	sessionModel := &models.ClientSessionCreate{
 		Username: model.Username,
 	}
 
+	// создать сессию в Redis
 	var userToken string
 	if userToken, err = controller.clientSession.Create(sessionModel); err != nil {
 		logger.Error(err, "Create user session error")
@@ -54,6 +59,10 @@ func (controller *Controller) Signup(ctx echo.Context) error {
 	return controller.Ok(ctx, userToken)
 }
 
+/*
+	LoginByCredentials вторизация с юзернеймом и паролем
+	Возвращает: сгенерированный токен сессии по которому можно будет в дальнейшем авторизовываться
+*/
 func (controller *Controller) LoginByCredentials(ctx echo.Context) error {
 	logger := definition.Logger
 	config := definition.Config
@@ -76,6 +85,7 @@ func (controller *Controller) LoginByCredentials(ctx echo.Context) error {
 		return controller.Error(ctx, errors.UserGet.With(err))
 	}
 
+	// если пользователь не найден
 	if user == nil {
 		return controller.Error(ctx, errors.UserNotFound)
 	}
@@ -109,17 +119,19 @@ func (controller *Controller) LoginByCredentials(ctx echo.Context) error {
 		return controller.Error(ctx, errors.SessionCreate.With(err))
 	}
 
-	// получить список подписок и подписчиков
+	// получить список подписчиков сессии
 	subscribers, err := controller.subscriptRepo.ProfileSubscribers(model.Username)
 	if err != nil {
 		return controller.Error(ctx, errors.SubscribersGet.With(err))
 	}
 
+	// получить список подписок сесссии
 	subscriptions, err := controller.subscriptRepo.ProfileSubscriptions(model.Username)
 	if err != nil {
 		return controller.Error(ctx, errors.SubscriptionsGet.With(err))
 	}
 
+	// обработка данных для клиента
 	return controller.Ok(ctx, &models.ClientSessionGet{
 		Token:    sessionToken,
 		Username: user.Username,
@@ -144,6 +156,9 @@ func (controller *Controller) LoginByCredentials(ctx echo.Context) error {
 	})
 }
 
+/*
+	LoginByToken авторизация по токену сессии
+*/
 func (controller *Controller) LoginByToken(ctx echo.Context) error {
 	logger := definition.Logger
 
@@ -158,32 +173,38 @@ func (controller *Controller) LoginByToken(ctx echo.Context) error {
 		return controller.Error(ctx, errors.LoginValidate.With(err))
 	}
 
+	// получение сессии по токену
 	session, err := controller.clientSession.GetByToken(model.Token)
 	if err != nil {
 		logger.Error(err, "Get client session error")
 		return controller.Error(ctx, errors.SessionGet.With(err))
 	}
 
+	// если сессия не найдена
 	if session == nil {
 		return controller.Error(ctx, errors.SessionNotFound)
 	}
 
+	// кол-во подписок сессии
 	subscriptionsCount, err := controller.subscriptRepo.ProfileSubscriptionsCount(session.Username)
 	if err != nil {
 		logger.Error(err, "Get profile subscriptions count error")
 		return controller.Error(ctx, errors.SubscriptionsGet.With(err))
 	}
 
+	// кол-во подписчиков сессии
 	subscribersCount, err := controller.subscriptRepo.ProfileSubscribersCount(session.Username)
 	if err != nil {
 		logger.Error(err, "Get profile subscribers count error")
 		return controller.Error(ctx, errors.SubscribersGet.With(err))
 	}
 
+	// нужно ли обновлять сессию
 	var sessionUpdate bool
 
 	// если кол-во подписок (на кого) не совпадает
 	if session.Subscriptions.SubscriptionCount != subscriptionsCount {
+		// получаем список подписок сессии
 		subscriptions, err := controller.subscriptRepo.ProfileSubscriptions(session.Username)
 		if err != nil {
 			logger.Error(err, "Get profile subscriptions error")
@@ -199,6 +220,7 @@ func (controller *Controller) LoginByToken(ctx echo.Context) error {
 
 	// если кол-во подписчиков (кто на него) не совпадает
 	if session.Subscriptions.SubscriberCount != subscribersCount {
+		// получение списка подписчиков сессии
 		subscribers, err := controller.subscriptRepo.ProfileSubscribers(session.Username)
 		if err != nil {
 			logger.Error(err, "Get profile subscribers error")
@@ -212,13 +234,16 @@ func (controller *Controller) LoginByToken(ctx echo.Context) error {
 		sessionUpdate = true
 	}
 
+	// провряем нужно ли обновить сессию
 	if sessionUpdate {
+		// обновляем сессию
 		if err = controller.clientSession.Update(session, model.Token); err != nil {
 			logger.Error(err, "Session update error")
 			return controller.Error(ctx, errors.SessionUpdate.With(err))
 		}
 	}
 
+	// обработка данных для клиента
 	return controller.Ok(ctx, &models.ClientSessionGet{
 		Token:    model.Token,
 		Username: session.Username,

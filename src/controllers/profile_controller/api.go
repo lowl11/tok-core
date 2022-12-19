@@ -9,6 +9,12 @@ import (
 	"tok-core/src/definition"
 )
 
+/*
+	Subscribe подписка профиля на "кого-то"
+	Проверка на существование подписки
+	Создается запись в БД "кто на кого"
+	Обнолвение сессии у того кто подписался и тому на кого подписались
+*/
 func (controller *Controller) Subscribe(ctx echo.Context) error {
 	logger := definition.Logger
 	session := ctx.Get("client_session").(*entities.ClientSession)
@@ -74,30 +80,40 @@ func (controller *Controller) Subscribe(ctx echo.Context) error {
 	return controller.Ok(ctx, "OK")
 }
 
+/*
+	Unsubscribe отписка от пользователя
+	Проверка на существование подписки
+	Удаление записи в БД "кто на кого"
+	Обнолвение сессии у того кто отписался и тому от кого отписались
+*/
 func (controller *Controller) Unsubscribe(ctx echo.Context) error {
 	logger := definition.Logger
 	session := ctx.Get("client_session").(*entities.ClientSession)
 	token := ctx.Get("token").(string)
 
+	// привязка модели
 	model := models.ProfileSubscribe{}
 	if err := ctx.Bind(&model); err != nil {
 		return controller.Error(ctx, errors.SubscribeOfProfileBind.With(err))
 	}
 
+	// валидация модели
 	if err := controller.validateSubscribeProfile(&model); err != nil {
 		return controller.Error(ctx, errors.SubscribeOfProfileValidate.With(err))
 	}
 
+	// проверка на существование подписки
 	exist, err := controller.subscriptRepo.Exist(session.Username, model.Username)
 	if err != nil {
 		return controller.Error(ctx, errors.SubscribersExist.With(err))
 	}
 
+	// ошибка если не существует
 	if !exist {
 		return controller.Error(ctx, errors.SubscriptionNotExist)
 	}
 
-	// сохранить подписку в БД
+	// удалить подписку из БД
 	if err = controller.subscriptRepo.ProfileUnsubscribe(session.Username, model.Username); err != nil {
 		logger.Error(err, "Profile unsubscribe error")
 		return controller.Error(ctx, errors.UnsubscribeOfProfile.With(err))
@@ -145,6 +161,11 @@ func (controller *Controller) Unsubscribe(ctx echo.Context) error {
 	return controller.Ok(ctx, "OK")
 }
 
+/*
+	Update изменение "Имени" и "Био"
+	Изменяется запись в БД
+	Обновляется сессия
+*/
 func (controller *Controller) Update(ctx echo.Context) error {
 	logger := definition.Logger
 	session := ctx.Get("client_session").(*entities.ClientSession)
@@ -171,6 +192,7 @@ func (controller *Controller) Update(ctx echo.Context) error {
 	session.BIO = &model.BIO
 	session.Name = &model.Name
 
+	// обновление сессии
 	if err := controller.clientSession.Update(session, token); err != nil {
 		return controller.Error(ctx, errors.SessionCreate.With(err))
 	}
@@ -178,30 +200,41 @@ func (controller *Controller) Update(ctx echo.Context) error {
 	return controller.Ok(ctx, "OK")
 }
 
+/*
+	UploadAvatar Загрузка аватара профиля
+	Есть валидация на расширения
+	Удаляются соседние файлы если они есть
+	Обновляется сессия
+*/
 func (controller *Controller) UploadAvatar(ctx echo.Context) error {
 	logger := definition.Logger
 	session := ctx.Get("client_session").(*entities.ClientSession)
 	token := ctx.Get("token").(string)
 
+	// привязка модели
 	model := models.ImageAvatar{}
 	if err := ctx.Bind(&model); err != nil {
 		return controller.Error(ctx, errors.ProfileAvatarBind.With(err))
 	}
 
+	// валидация модели
 	if err := controller.validateUploadAvatar(&model); err != nil {
 		return controller.Error(ctx, errors.ProfileAvatarValidate.With(err))
 	}
 
+	// загрузка изображения
 	fileName, err := controller.image.UploadAvatar(&model, session.Username)
 	if err != nil {
 		logger.Error(err, "Upload profile avatar error")
 		return controller.Error(ctx, errors.ProfileAvatar.With(err))
 	}
 
+	// обновление пути к аватару в БД
 	if err = controller.userRepo.UpdateAvatar(session.Username, fileName); err != nil {
 		return controller.Error(ctx, errors.ProfileUpdate.With(err))
 	}
 
+	// обновление пути к аватару в сессии пользователя
 	filePath := "/images/profile/" + session.Username + "/" + fileName
 	session.Avatar = &filePath
 	if err = controller.clientSession.Update(session, token); err != nil {
@@ -211,30 +244,41 @@ func (controller *Controller) UploadAvatar(ctx echo.Context) error {
 	return controller.Ok(ctx, filePath)
 }
 
+/*
+	UploadWallpaper Загрузка фона профиля
+	Есть валидация на расширения
+	Удаляются соседние файлы если они есть
+	Обновляется сессия
+*/
 func (controller *Controller) UploadWallpaper(ctx echo.Context) error {
 	logger := definition.Logger
 	session := ctx.Get("client_session").(*entities.ClientSession)
 	token := ctx.Get("token").(string)
 
+	// привязка модели
 	model := models.ImageWallpaper{}
 	if err := ctx.Bind(&model); err != nil {
 		return controller.Error(ctx, errors.ProfileWallpaperBind.With(err))
 	}
 
+	// валидация модели
 	if err := controller.validateUploadWallpaper(&model); err != nil {
 		return controller.Error(ctx, errors.ProfileWallpaperValidate.With(err))
 	}
 
+	// загрузка фона
 	fileName, err := controller.image.UploadWallpaper(&model, session.Username)
 	if err != nil {
 		logger.Error(err, "Upload profile wallpaper error")
 		return controller.Error(ctx, errors.ProfileWallpaper.With(err))
 	}
 
+	// обновление пути к фону в БД
 	if err = controller.userRepo.UpdateWallpaper(session.Username, fileName); err != nil {
 		return controller.Error(ctx, errors.ProfileUpdate.With(err))
 	}
 
+	// обновление пути к фону в сессии пользователя
 	filePath := "/images/profile/" + session.Username + "/" + fileName
 	session.Wallpaper = &filePath
 	if err = controller.clientSession.Update(session, token); err != nil {

@@ -8,6 +8,9 @@ import (
 	"tok-core/src/definition"
 )
 
+/*
+	Main лента на главной странице
+*/
 func (controller *Controller) Main(ctx echo.Context) error {
 	logger := definition.Logger
 	session := ctx.Get("client_session").(*entities.ClientSession)
@@ -22,6 +25,7 @@ func (controller *Controller) Main(ctx echo.Context) error {
 		return controller.Error(ctx, errors.PostsGetByUsernameList.With(err))
 	}
 
+	// обработка списка постов для клиента
 	list := make([]models.PostGet, 0, len(posts))
 	for _, item := range posts {
 		list = append(list, models.PostGet{
@@ -42,10 +46,13 @@ func (controller *Controller) Main(ctx echo.Context) error {
 	return controller.Ok(ctx, list)
 }
 
+/*
+	User лента на странице пользователя
+*/
 func (controller *Controller) User(ctx echo.Context) error {
 	logger := definition.Logger
 
-	// query
+	// чтение параметра логина пользователя
 	username := ctx.Param("username")
 	if username == "" {
 		return controller.Error(ctx, errors.PostsGetByUsernameParam)
@@ -58,6 +65,7 @@ func (controller *Controller) User(ctx echo.Context) error {
 		return controller.Error(ctx, errors.PostsGetByUsername.With(err))
 	}
 
+	// обработка списка постов для клиента
 	list := make([]models.PostGet, 0, len(posts))
 	for _, item := range posts {
 		list = append(list, models.PostGet{
@@ -78,10 +86,13 @@ func (controller *Controller) User(ctx echo.Context) error {
 	return controller.Ok(ctx, list)
 }
 
+/*
+	Category лента на странице категории
+*/
 func (controller *Controller) Category(ctx echo.Context) error {
 	logger := definition.Logger
 
-	// query
+	// чтение параметра кода категории
 	categoryCode := ctx.Param("category_code")
 	if categoryCode == "" {
 		return controller.Error(ctx, errors.PostsGetByCategoryParam)
@@ -94,6 +105,7 @@ func (controller *Controller) Category(ctx echo.Context) error {
 		return controller.Error(ctx, errors.PostsGetByCategory.With(err))
 	}
 
+	// обработка списка постов для клиента
 	list := make([]models.PostGet, 0, len(posts))
 	for _, item := range posts {
 		list = append(list, models.PostGet{
@@ -114,24 +126,31 @@ func (controller *Controller) Category(ctx echo.Context) error {
 	return controller.Ok(ctx, list)
 }
 
+/*
+	Single страница одного поста
+*/
 func (controller *Controller) Single(ctx echo.Context) error {
 	logger := definition.Logger
 
+	// чтение параметра кода поста
 	code := ctx.Param("code")
 	if code == "" {
 		return controller.Error(ctx, errors.PostsGetBySingleParam)
 	}
 
+	// получение списка постов
 	post, err := controller.postRepo.GetByCode(code)
 	if err != nil {
 		logger.Error(err, "Get post by code error")
 		return controller.Error(ctx, errors.PostsGetByCode.With(err))
 	}
 
+	// если пост не найден
 	if post == nil {
 		return controller.Error(ctx, errors.PostNotFound)
 	}
 
+	// обработка поста для клиента
 	return controller.Ok(ctx, &models.PostGet{
 		AuthorUsername: post.AuthorUsername,
 		AuthorName:     post.AuthorName,

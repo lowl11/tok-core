@@ -11,6 +11,10 @@ import (
 	"tok-core/src/services/search_sorter"
 )
 
+/*
+	Smart поиск по нескольким типам данных
+	Комбинируются несколько типов данных и отдаются клиенту в перемешке
+*/
 func (controller *Controller) Smart(ctx echo.Context) error {
 	logger := definition.Logger
 	session := ctx.Get("client_session").(*entities.ClientSession)
@@ -73,6 +77,9 @@ func (controller *Controller) Smart(ctx echo.Context) error {
 	return controller.Ok(ctx, list)
 }
 
+/*
+	User поиск пользователей
+*/
 func (controller *Controller) User(ctx echo.Context) error {
 	logger := definition.Logger
 	session := ctx.Get("client_session").(*entities.ClientSession)
@@ -115,6 +122,9 @@ func (controller *Controller) User(ctx echo.Context) error {
 	return controller.Ok(ctx, list)
 }
 
+/*
+	Category поиск по категориям
+*/
 func (controller *Controller) Category(ctx echo.Context) error {
 	logger := definition.Logger
 

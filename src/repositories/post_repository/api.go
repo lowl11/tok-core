@@ -10,7 +10,7 @@ func (repo *Repository) Create(model *models.PostAdd, author, code string) error
 	ctx, cancel := repo.Ctx()
 	defer cancel()
 
-	// entity
+	// сущность БД
 	entity := &entities.PostCreate{
 		CategoryCode:   model.CategoryCode,
 		AuthorUsername: author,
@@ -20,7 +20,7 @@ func (repo *Repository) Create(model *models.PostAdd, author, code string) error
 		Code:    code,
 	}
 
-	// query
+	// скрипт
 	query := repo.Script("post", "create")
 
 	if err := repo.Transaction(repo.connection, func(tx *sqlx.Tx) error {
@@ -40,6 +40,7 @@ func (repo *Repository) GetByUsername(username string) ([]entities.PostGet, erro
 	ctx, cancel := repo.Ctx()
 	defer cancel()
 
+	// скрипт
 	query := repo.Script("post", "get_by_username")
 
 	rows, err := repo.connection.QueryxContext(ctx, query, username)
@@ -64,6 +65,7 @@ func (repo *Repository) GetByUsernameList(usernameList []string) ([]entities.Pos
 	ctx, cancel := repo.Ctx()
 	defer cancel()
 
+	// скрипт
 	query := repo.Script("post", "get_by_username_list")
 
 	rows, err := repo.connection.QueryxContext(ctx, query, usernameList)
@@ -88,6 +90,7 @@ func (repo *Repository) GetByCategory(categoryCode string) ([]entities.PostGet, 
 	ctx, cancel := repo.Ctx()
 	defer cancel()
 
+	// скрипт
 	query := repo.Script("post", "get_by_category")
 
 	rows, err := repo.connection.QueryxContext(ctx, query, categoryCode)
@@ -112,6 +115,7 @@ func (repo *Repository) GetByCode(code string) (*entities.PostGet, error) {
 	ctx, cancel := repo.Ctx()
 	defer cancel()
 
+	// скрипт
 	query := repo.Script("post", "get_by_code")
 
 	rows, err := repo.connection.QueryxContext(ctx, query, code)
