@@ -14,7 +14,7 @@ import (
 	Delete удаление сессии по токену и юзернейму
 */
 func (event *Event) Delete(token, username string) error {
-	ctx, cancel := event.ctx()
+	ctx, cancel := event.Ctx()
 	defer cancel()
 
 	// удаление сессии
@@ -25,7 +25,7 @@ func (event *Event) Delete(token, username string) error {
 	DeleteByToken удаление сессии по токену
 */
 func (event *Event) DeleteByToken(token string) error {
-	ctx, cancel := event.ctx()
+	ctx, cancel := event.Ctx()
 	defer cancel()
 
 	// сначала получаем совпадающие ключи
@@ -47,7 +47,7 @@ func (event *Event) DeleteByToken(token string) error {
 	DeleteByUsername удаление сессии по юзернейму
 */
 func (event *Event) DeleteByUsername(username string) error {
-	ctx, cancel := event.ctx()
+	ctx, cancel := event.Ctx()
 	defer cancel()
 
 	// сначала получаем совпадающие ключи
@@ -69,7 +69,7 @@ func (event *Event) DeleteByUsername(username string) error {
 	Create создание сессии
 */
 func (event *Event) Create(session *models.ClientSessionCreate) (string, error) {
-	ctx, cancel := event.ctx()
+	ctx, cancel := event.Ctx()
 	defer cancel()
 
 	// создаем токен
@@ -102,7 +102,7 @@ func (event *Event) Create(session *models.ClientSessionCreate) (string, error) 
 	Get получение сессии по токену и юзернейму
 */
 func (event *Event) Get(token, username string) (*entities.ClientSession, error) {
-	ctx, cancel := event.ctx()
+	ctx, cancel := event.Ctx()
 	defer cancel()
 
 	// получить сессию в байтах
@@ -129,7 +129,7 @@ func (event *Event) Get(token, username string) (*entities.ClientSession, error)
 	GetByUsername получение сессии по юзернейму
 */
 func (event *Event) GetByUsername(username string) (*entities.ClientSession, string, error) {
-	ctx, cancel := event.ctx()
+	ctx, cancel := event.Ctx()
 	defer cancel()
 
 	// находим подходящие ключи
@@ -173,7 +173,7 @@ func (event *Event) GetByUsername(username string) (*entities.ClientSession, str
 	GetByToken получение сессии по токену
 */
 func (event *Event) GetByToken(token string) (*entities.ClientSession, error) {
-	ctx, cancel := event.ctx()
+	ctx, cancel := event.Ctx()
 	defer cancel()
 
 	// ищем подходящие ключи
@@ -211,7 +211,7 @@ func (event *Event) GetByToken(token string) (*entities.ClientSession, error) {
 	Update обновление существующей сессии
 */
 func (event *Event) Update(session *entities.ClientSession, token string) error {
-	ctx, cancel := event.ctx()
+	ctx, cancel := event.Ctx()
 	defer cancel()
 
 	// парсим сессию в байты
