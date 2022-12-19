@@ -32,6 +32,7 @@ func (controller *Controller) Main(ctx echo.Context) error {
 			CategoryCode: item.CategoryCode,
 			CategoryName: item.CategoryName,
 
+			Code:      item.Code,
 			Text:      item.Text,
 			Picture:   item.Picture,
 			CreatedAt: item.CreatedAt,
@@ -67,6 +68,7 @@ func (controller *Controller) User(ctx echo.Context) error {
 			CategoryCode: item.CategoryCode,
 			CategoryName: item.CategoryName,
 
+			Code:      item.Code,
 			Text:      item.Text,
 			Picture:   item.Picture,
 			CreatedAt: item.CreatedAt,
@@ -102,6 +104,7 @@ func (controller *Controller) Category(ctx echo.Context) error {
 			CategoryCode: item.CategoryCode,
 			CategoryName: item.CategoryName,
 
+			Code:      item.Code,
 			Text:      item.Text,
 			Picture:   item.Picture,
 			CreatedAt: item.CreatedAt,
@@ -137,6 +140,7 @@ func (controller *Controller) Single(ctx echo.Context) error {
 		CategoryCode: post.CategoryCode,
 		CategoryName: post.CategoryName,
 
+		Code:      post.Code,
 		Text:      post.Text,
 		Picture:   post.Picture,
 		CreatedAt: post.CreatedAt,
