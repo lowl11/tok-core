@@ -5,6 +5,7 @@ import (
 	"tok-core/src/controllers/feed_controller"
 	"tok-core/src/controllers/post_controller"
 	"tok-core/src/controllers/profile_controller"
+	"tok-core/src/controllers/search_controller"
 	"tok-core/src/controllers/static_controller"
 	"tok-core/src/controllers/user_controller"
 	"tok-core/src/events"
@@ -22,6 +23,9 @@ type ApiControllers struct {
 	// feed flow
 	Feed *feed_controller.Controller
 	Post *post_controller.Controller
+
+	// search
+	Search *search_controller.Controller
 }
 
 func Get(apiRepositories *repositories.ApiRepositories, apiEvents *events.ApiEvents) *ApiControllers {
@@ -34,5 +38,7 @@ func Get(apiRepositories *repositories.ApiRepositories, apiEvents *events.ApiEve
 
 		Feed: feed_controller.Create(apiRepositories, apiEvents),
 		Post: post_controller.Create(apiRepositories, apiEvents),
+
+		Search: search_controller.Create(apiRepositories, apiEvents),
 	}
 }

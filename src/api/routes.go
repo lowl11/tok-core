@@ -7,6 +7,7 @@ import (
 	"tok-core/src/controllers/feed_controller"
 	"tok-core/src/controllers/post_controller"
 	"tok-core/src/controllers/profile_controller"
+	"tok-core/src/controllers/search_controller"
 	"tok-core/src/controllers/user_controller"
 	"tok-core/src/definition"
 	"tok-core/src/events"
@@ -46,6 +47,7 @@ func setRoutes(server *echo.Echo) {
 
 	setFeed(server, apiControllers.Feed)
 	setPost(server, apiControllers.Post)
+	setSearch(server, apiControllers.Search)
 }
 
 func setAuth(server *echo.Echo, controller *auth_controller.Controller) {
@@ -83,7 +85,6 @@ func setUser(server *echo.Echo, controller *user_controller.Controller) {
 	setMiddlewaresPublic(group)
 	group.GET("/subscribers/:username", controller.Subscribers)
 	group.GET("/subscriptions/:username", controller.Subscriptions)
-	group.GET("/search", controller.Search)
 }
 
 func setFeed(server *echo.Echo, controller *feed_controller.Controller) {
@@ -104,4 +105,13 @@ func setPost(server *echo.Echo, controller *post_controller.Controller) {
 
 	categoryGroup := group.Group("/category")
 	categoryGroup.GET("/get", controller.Categories)
+}
+
+func setSearch(server *echo.Echo, controller *search_controller.Controller) {
+	group := server.Group("/api/v1/search")
+
+	setMiddlewaresPublic(group)
+	group.POST("/user", controller.User)
+	group.POST("/category", controller.Category)
+	group.POST("/smart", controller.Smart)
 }

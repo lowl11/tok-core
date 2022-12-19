@@ -174,29 +174,3 @@ func (controller *Controller) Subscribers(ctx echo.Context) error {
 
 	return controller.Ok(ctx, list)
 }
-
-func (controller *Controller) Search(ctx echo.Context) error {
-	session := ctx.Get("client_session").(*entities.ClientSession)
-
-	// query
-	query := ctx.QueryParam("query")
-
-	users, err := controller.userRepo.Search(query)
-	if err != nil {
-		return controller.Error(ctx, errors.UserSearch.With(err))
-	}
-
-	mySubscriptions := array.NewWithList[string](session.Subscriptions.Subscriptions...)
-
-	list := make([]models.UserSearch, 0, len(users))
-	for _, user := range users {
-		list = append(list, models.UserSearch{
-			Username:   user.Username,
-			Name:       user.Name,
-			Avatar:     user.Avatar,
-			Subscribed: mySubscriptions.Contains(user.Username),
-		})
-	}
-
-	return controller.Ok(ctx, list)
-}
