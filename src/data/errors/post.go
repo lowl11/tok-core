@@ -35,6 +35,10 @@ var (
 		TechMessage:     "Create post error",
 		BusinessMessage: "Произошла ошибка",
 	}
+	PostCreateUploadPicture = &models.Error{
+		TechMessage:     "Upload picture to created post error",
+		BusinessMessage: "Произошла ошибка при загрузке изображения",
+	}
 	PostsGetByUsername = &models.Error{
 		TechMessage:     "Get posts list by username error",
 		BusinessMessage: "Произошла ошибка",

@@ -30,8 +30,21 @@ func (controller *Controller) Add(ctx echo.Context) error {
 	// создание кода поста
 	postCode := uuid.New().String()
 
+	// загружаем изображение поста если оно есть
+	var picturePath string
+	if model.Picture != nil {
+		if uploadedPicturePath, err := controller.image.UploadPostPicture(&models.PostPicture{
+			Name:   model.Picture.Name,
+			Buffer: model.Picture.Buffer,
+		}, session.Username, postCode); err != nil {
+			return controller.Error(ctx, errors.PostCreateUploadPicture.With(err))
+		} else {
+			picturePath = uploadedPicturePath
+		}
+	}
+
 	// создание поста
-	if err := controller.postRepo.Create(&model, session.Username, postCode); err != nil {
+	if err := controller.postRepo.Create(&model, session.Username, postCode, picturePath); err != nil {
 		logger.Error(err, "Create post error")
 		return controller.Error(ctx, errors.PostCreate.With(err))
 	}

@@ -5,8 +5,11 @@ import "time"
 type PostAdd struct {
 	CategoryCode string `json:"category_code"`
 
-	Text    string  `json:"text"`
-	Picture *string `json:"picture"`
+	Text    string `json:"text"`
+	Picture *struct {
+		Name   string `json:"name"`
+		Buffer string `json:"buffer"`
+	} `json:"picture"`
 }
 
 type PostGet struct {

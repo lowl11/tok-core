@@ -9,3 +9,8 @@ type ImageWallpaper struct {
 	Name   string `json:"Name"`
 	Buffer string `json:"buffer"`
 }
+
+type PostPicture struct {
+	Name   string `json:"Name"`
+	Buffer string `json:"buffer"`
+}

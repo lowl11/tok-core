@@ -3,13 +3,20 @@ package post_repository
 import (
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
+	"path/filepath"
 	"tok-core/src/data/entities"
 	"tok-core/src/data/models"
 )
 
-func (repo *Repository) Create(model *models.PostAdd, author, code string) error {
+func (repo *Repository) Create(model *models.PostAdd, author, code, uploadedPicturePath string) error {
 	ctx, cancel := repo.Ctx()
 	defer cancel()
+
+	var picturePath *string
+	if model.Picture != nil {
+		newPostPicture := "/images/post/" + author + "/post_" + code + "/post_picture" + filepath.Ext(uploadedPicturePath)
+		picturePath = &newPostPicture
+	}
 
 	// сущность БД
 	entity := &entities.PostCreate{
@@ -17,7 +24,7 @@ func (repo *Repository) Create(model *models.PostAdd, author, code string) error
 		AuthorUsername: author,
 
 		Text:    model.Text,
-		Picture: model.Picture,
+		Picture: picturePath,
 		Code:    code,
 	}
 
