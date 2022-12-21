@@ -8,6 +8,10 @@ var (
 		BusinessMessage: "Категория публикации не найдена",
 	}
 
+	PostCategoryCreate = &models.Error{
+		TechMessage:     "Create post category error",
+		BusinessMessage: "Произошла ошибка при создании категории",
+	}
 	PostCategoryGetList = &models.Error{
 		TechMessage:     "Post categories error",
 		BusinessMessage: "Произошла ошибка",

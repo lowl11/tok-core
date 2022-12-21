@@ -43,8 +43,18 @@ func (controller *Controller) Add(ctx echo.Context) error {
 		}
 	}
 
+	// заданная категория кастомная
+	var customCategory *string
+	if model.CustomCategory != nil {
+		if categoryCode, err := controller.postCategoryRepo.Create(*model.CustomCategory); err != nil {
+			return controller.Error(ctx, errors.PostCategoryCreate.With(err))
+		} else {
+			customCategory = &categoryCode
+		}
+	}
+
 	// создание поста
-	if err := controller.postRepo.Create(&model, session.Username, postCode, picturePath); err != nil {
+	if err := controller.postRepo.Create(&model, session.Username, postCode, picturePath, customCategory); err != nil {
 		logger.Error(err, "Create post error")
 		return controller.Error(ctx, errors.PostCreate.With(err))
 	}

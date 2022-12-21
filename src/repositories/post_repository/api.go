@@ -8,7 +8,7 @@ import (
 	"tok-core/src/data/models"
 )
 
-func (repo *Repository) Create(model *models.PostAdd, author, code, uploadedPicturePath string) error {
+func (repo *Repository) Create(model *models.PostAdd, author, code, uploadedPicturePath string, customCategoryCode *string) error {
 	ctx, cancel := repo.Ctx()
 	defer cancel()
 
@@ -19,9 +19,16 @@ func (repo *Repository) Create(model *models.PostAdd, author, code, uploadedPict
 		picturePath = &newPostPicture
 	}
 
+	var categoryCode string
+	if customCategoryCode != nil {
+		categoryCode = *customCategoryCode
+	} else {
+		categoryCode = model.CategoryCode
+	}
+
 	// сущность БД
 	entity := &entities.PostCreate{
-		CategoryCode:   model.CategoryCode,
+		CategoryCode:   categoryCode,
 		AuthorUsername: author,
 
 		Text:    model.Text,

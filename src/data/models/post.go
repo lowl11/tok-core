@@ -3,7 +3,8 @@ package models
 import "time"
 
 type PostAdd struct {
-	CategoryCode string `json:"category_code"`
+	CategoryCode   string  `json:"category_code"`
+	CustomCategory *string `json:"custom_category"`
 
 	Text    string `json:"text"`
 	Picture *struct {
