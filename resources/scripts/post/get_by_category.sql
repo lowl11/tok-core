@@ -13,4 +13,5 @@ select
 from posts as post
          inner join post_categories as category on post.category_code = category.code
          inner join users as u on (u.username = post.author_username)
-where post.category_code = $1;
+where post.category_code = $1
+order by post.created_at desc;

@@ -2,6 +2,7 @@ package post_repository
 
 import (
 	"github.com/jmoiron/sqlx"
+	"github.com/lib/pq"
 	"tok-core/src/data/entities"
 	"tok-core/src/data/models"
 )
@@ -68,7 +69,7 @@ func (repo *Repository) GetByUsernameList(usernameList []string) ([]entities.Pos
 	// скрипт
 	query := repo.Script("post", "get_by_username_list")
 
-	rows, err := repo.connection.QueryxContext(ctx, query, usernameList)
+	rows, err := repo.connection.QueryxContext(ctx, query, pq.Array(usernameList))
 	if err != nil {
 		return nil, err
 	}
