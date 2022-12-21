@@ -12,6 +12,7 @@ func (repo *Repository) Create(model *models.PostAdd, author, code, uploadedPict
 	ctx, cancel := repo.Ctx()
 	defer cancel()
 
+	// если загрузили изображение
 	var picturePath *string
 	if model.Picture != nil {
 		newPostPicture := "/images/post/" + author + "/post_" + code + "/post_picture" + filepath.Ext(uploadedPicturePath)

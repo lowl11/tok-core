@@ -127,6 +127,15 @@ func (event *Event) UploadWallpaper(wallpaper *models.ImageWallpaper, username s
 	return fileName, fileapi.Create(filePath, buffer)
 }
 
+/*
+	UploadPostPicture загрузка изображения для поста
+	Изображение принимается в base 64, далее конвертируется в байты
+	Создается папка post если такой нет
+	Далее создается папка с названием юзернейма пользователя если ее нет
+	Создается папка post/<username>/post_<code> если ее нет
+	Удаляются остальные файлы с именем post_picture
+	Создается новый файл
+*/
 func (event *Event) UploadPostPicture(postPicture *models.PostPicture, username, postCode string) (string, error) {
 	// валидируем расширение файла
 	if err := event.validateImageName(postPicture.Name); err != nil {
