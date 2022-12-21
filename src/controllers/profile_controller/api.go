@@ -194,6 +194,7 @@ func (controller *Controller) Update(ctx echo.Context) error {
 
 	// обновление сессии
 	if err := controller.clientSession.Update(session, token); err != nil {
+		logger.Error(err, "Update name & bio in session error")
 		return controller.Error(ctx, errors.SessionCreate.With(err))
 	}
 
@@ -231,6 +232,7 @@ func (controller *Controller) UploadAvatar(ctx echo.Context) error {
 
 	// обновление пути к аватару в БД
 	if err = controller.userRepo.UpdateAvatar(session.Username, fileName); err != nil {
+		logger.Error(err, "Update avatar is DB error")
 		return controller.Error(ctx, errors.ProfileUpdate.With(err))
 	}
 
@@ -238,6 +240,7 @@ func (controller *Controller) UploadAvatar(ctx echo.Context) error {
 	filePath := "/images/profile/" + session.Username + "/" + fileName
 	session.Avatar = &filePath
 	if err = controller.clientSession.Update(session, token); err != nil {
+		logger.Error(err, "Update avatar in session")
 		return controller.Error(ctx, errors.SessionUpdate.With(err))
 	}
 
@@ -275,6 +278,7 @@ func (controller *Controller) UploadWallpaper(ctx echo.Context) error {
 
 	// обновление пути к фону в БД
 	if err = controller.userRepo.UpdateWallpaper(session.Username, fileName); err != nil {
+		logger.Error(err, "Update wallpaper in DB error")
 		return controller.Error(ctx, errors.ProfileUpdate.With(err))
 	}
 
@@ -282,8 +286,32 @@ func (controller *Controller) UploadWallpaper(ctx echo.Context) error {
 	filePath := "/images/profile/" + session.Username + "/" + fileName
 	session.Wallpaper = &filePath
 	if err = controller.clientSession.Update(session, token); err != nil {
+		logger.Error(err, "Update wallpaper in session error")
 		return controller.Error(ctx, errors.SessionUpdate.With(err))
 	}
 
 	return controller.Ok(ctx, filePath)
+}
+
+func (controller *Controller) UpdateContacts(ctx echo.Context) error {
+	logger := definition.Logger
+
+	// привязка модели
+	model := models.ProfileUpdateContact{}
+	if err := ctx.Bind(&model); err != nil {
+		return controller.Error(ctx, errors.ProfileUpdateContactsBind.With(err))
+	}
+
+	// валидация модели
+	if err := controller.validateUpdateContacts(&model); err != nil {
+		return controller.Error(ctx, errors.ProfileUpdateContactsValidate.With(err))
+	}
+
+	// обновление контактов юзера в бд
+	if err := controller.userRepo.UpdateContact(&model); err != nil {
+		logger.Error(err, "Update profile contacts error")
+		return controller.Error(ctx, errors.ProfileUpdateContacts.With(err))
+	}
+
+	return controller.Ok(ctx, "OK")
 }

@@ -15,10 +15,18 @@ var (
 		TechMessage:     "Bind model upload wallpaper error",
 		BusinessMessage: "Ошибка загрузки изображения",
 	}
+	ProfileUpdateContactsBind = &models.Error{
+		TechMessage:     "Update profile contacts model bind error",
+		BusinessMessage: "Возникла ошибка при изменении",
+	}
 
 	ProfileUpdateValidate = &models.Error{
 		TechMessage:     "Validate profile update error",
 		BusinessMessage: "Введены неверные данные",
+	}
+	ProfileUpdateContactsValidate = &models.Error{
+		TechMessage:     "Update profile contacts validate error",
+		BusinessMessage: "Возникла ошибка при изменении",
 	}
 	ProfileAvatarValidate = &models.Error{
 		TechMessage:     "Upload avatar validation error",
@@ -31,6 +39,10 @@ var (
 
 	ProfileUpdate = &models.Error{
 		TechMessage:     "Update profile info error",
+		BusinessMessage: "Возникла ошибка при изменении",
+	}
+	ProfileUpdateContacts = &models.Error{
+		TechMessage:     "Update profile contacts error",
 		BusinessMessage: "Возникла ошибка при изменении",
 	}
 	ProfileAvatar = &models.Error{

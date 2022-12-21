@@ -131,3 +131,7 @@ func (repository *Repository) UpdateWallpaper(username, fileName string) error {
 
 	return nil
 }
+
+func (repository *Repository) UpdateContact(model *models.ProfileUpdateContact) error {
+	return nil
+}

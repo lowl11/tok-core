@@ -45,3 +45,7 @@ func (controller *Controller) validateUploadWallpaper(model *models.ImageWallpap
 
 	return nil
 }
+
+func (controller *Controller) validateUpdateContacts(model *models.ProfileUpdateContact) error {
+	return nil
+}
