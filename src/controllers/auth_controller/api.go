@@ -99,7 +99,7 @@ func (controller *Controller) LoginByCredentials(ctx echo.Context) error {
 
 	// сверка паролей
 	if model.Password != decryptedPassword {
-		return controller.Error(ctx, errors.LoginPassword.With(err))
+		return controller.Error(ctx, errors.LoginPassword)
 	}
 
 	// удаление всех сессий с таким логином
