@@ -176,20 +176,6 @@ func (event *Event) UploadPostPicture(postPicture *models.PostPicture, username,
 	fileName := "post_picture" + filepath.Ext(postPicture.Name)
 	filePath := usernamePath + "/" + fileName
 
-	// удаляем остальные файлы
-	objects, err := folderapi.Objects(usernamePath)
-	if err != nil {
-		return "", err
-	}
-
-	for _, obj := range objects {
-		if obj.Name != fileName && strings.Contains(obj.Name, "post_picture") {
-			if err = fileapi.Delete(obj.Path); err != nil {
-				return "", err
-			}
-		}
-	}
-
 	// создаем файл
 	return fileName, fileapi.Create(filePath, buffer)
 }
