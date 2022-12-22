@@ -9,6 +9,7 @@ import (
 	"tok-core/src/repositories/post_category_repository"
 	"tok-core/src/repositories/post_repository"
 	"tok-core/src/repositories/subscription_repository"
+	"tok-core/src/repositories/user_ip_repository"
 	"tok-core/src/repositories/user_repository"
 
 	_ "github.com/lib/pq"
@@ -17,6 +18,7 @@ import (
 type ApiRepositories struct {
 	Auth         *auth_repository.Repository
 	User         *user_repository.Repository
+	UserIP       *user_ip_repository.Repository
 	Subscription *subscription_repository.Repository
 
 	PostCategory *post_category_repository.Repository
@@ -48,6 +50,7 @@ func Get(apiEvents *events.ApiEvents) (*ApiRepositories, error) {
 	return &ApiRepositories{
 		Auth:         auth_repository.Create(connection, apiEvents),
 		User:         user_repository.Create(connection, apiEvents),
+		UserIP:       user_ip_repository.Create(connection, apiEvents),
 		Subscription: subscription_repository.Create(connection, apiEvents),
 
 		PostCategory: post_category_repository.Create(connection, apiEvents),
