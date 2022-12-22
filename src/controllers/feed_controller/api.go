@@ -18,6 +18,9 @@ func (controller *Controller) Main(ctx echo.Context) error {
 	// список подписок из сессии
 	subscriptions := session.Subscriptions.Subscriptions
 
+	// добавить себя в список
+	subscriptions = append(subscriptions, session.Username)
+
 	// посты с массивом юзернеймов из подписок
 	posts, err := controller.postRepo.GetByUsernameList(subscriptions)
 	if err != nil {
