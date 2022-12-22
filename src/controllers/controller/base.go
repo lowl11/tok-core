@@ -4,8 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"github.com/labstack/echo/v4"
-	"tok-core/src/data/models"
 	"net/http"
+	"tok-core/src/data/models"
 )
 
 type Base struct {
@@ -33,6 +33,15 @@ func (controller *Base) NotFound(ctx echo.Context, err *models.Error) error {
 		InnerMessage: err.TechMessage,
 	}
 	return ctx.JSON(http.StatusNotFound, errorObject)
+}
+
+func (controller *Base) Unauthorized(ctx echo.Context, err *models.Error) error {
+	errorObject := &models.Response{
+		Status:       "ERROR",
+		Message:      err.BusinessMessage,
+		InnerMessage: err.TechMessage,
+	}
+	return ctx.JSON(http.StatusUnauthorized, errorObject)
 }
 
 func (controller *Base) Ok(ctx echo.Context, response interface{}, messages ...string) error {

@@ -5,11 +5,11 @@ import (
 	"tok-core/src/data/entities"
 )
 
-func (repo *Repository) Get(username string) ([]string, error) {
+func (repo *Repository) GetByUsername(username string) ([]string, error) {
 	ctx, cancel := repo.Ctx()
 	defer cancel()
 
-	query := repo.Script("user_ip", "get")
+	query := repo.Script("user_ip", "get_by_username")
 
 	rows, err := repo.connection.QueryxContext(ctx, query, username)
 	if err != nil {
@@ -27,6 +27,29 @@ func (repo *Repository) Get(username string) ([]string, error) {
 	}
 
 	return list, nil
+}
+
+func (repo *Repository) GetByIpAddress(ipAddress string) (string, error) {
+	ctx, cancel := repo.Ctx()
+	defer cancel()
+
+	query := repo.Script("user_ip", "get_by_ip")
+
+	rows, err := repo.connection.QueryxContext(ctx, query, ipAddress)
+	if err != nil {
+		return "", err
+	}
+	defer repo.CloseRows(rows)
+
+	if rows.Next() {
+		var username string
+		if err = rows.Scan(&username); err != nil {
+			return "", err
+		}
+		return username, nil
+	}
+
+	return "", nil
 }
 
 func (repo *Repository) New(username, ipAddress string) error {

@@ -147,7 +147,7 @@ func (controller *Controller) Single(ctx echo.Context) error {
 
 	// если пост не найден
 	if post == nil {
-		return controller.Error(ctx, errors.PostNotFound)
+		return controller.NotFound(ctx, errors.PostNotFound)
 	}
 
 	// обработка поста для клиента

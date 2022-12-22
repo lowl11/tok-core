@@ -7,6 +7,7 @@ import (
 	"tok-core/src/repositories"
 	"tok-core/src/repositories/auth_repository"
 	"tok-core/src/repositories/subscription_repository"
+	"tok-core/src/repositories/user_ip_repository"
 	"tok-core/src/repositories/user_repository"
 )
 
@@ -15,6 +16,7 @@ type Controller struct {
 
 	authRepo      *auth_repository.Repository
 	userRepo      *user_repository.Repository
+	userIpRepo    *user_ip_repository.Repository
 	subscriptRepo *subscription_repository.Repository
 
 	clientSession *client_session_event.Event

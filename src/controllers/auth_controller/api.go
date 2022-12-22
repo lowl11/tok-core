@@ -87,7 +87,7 @@ func (controller *Controller) LoginByCredentials(ctx echo.Context) error {
 
 	// если пользователь не найден
 	if user == nil {
-		return controller.Error(ctx, errors.UserNotFound)
+		return controller.Unauthorized(ctx, errors.UserNotFound)
 	}
 
 	// расшифровать пароль
@@ -182,7 +182,7 @@ func (controller *Controller) LoginByToken(ctx echo.Context) error {
 
 	// если сессия не найдена
 	if session == nil {
-		return controller.Error(ctx, errors.SessionNotFound)
+		return controller.Unauthorized(ctx, errors.SessionNotFound)
 	}
 
 	// кол-во подписок сессии
@@ -246,6 +246,46 @@ func (controller *Controller) LoginByToken(ctx echo.Context) error {
 	// обработка данных для клиента
 	return controller.Ok(ctx, &models.ClientSessionGet{
 		Token:    model.Token,
+		Username: session.Username,
+
+		Name: session.Name,
+		BIO:  session.BIO,
+
+		Avatar:    session.Avatar,
+		Wallpaper: session.Wallpaper,
+
+		Subscriptions: session.Subscriptions,
+	})
+}
+
+/*
+	LoginByIP авторизация по IP адресу
+	Если токена в куки нет, фронт попытается отправить мне запрос
+	По IP адресу попытаюсь понять есть ли юзернейм
+*/
+func (controller *Controller) LoginByIP(ctx echo.Context) error {
+	ipAddress := ctx.Get("ip_address").(string)
+
+	username, err := controller.userIpRepo.GetByIpAddress(ipAddress)
+	if err != nil {
+		return controller.Error(ctx, errors.UserIpGetByIp.With(err))
+	}
+
+	if username == "" {
+		return controller.Unauthorized(ctx, errors.UserIpUserNotFound)
+	}
+
+	session, token, err := controller.clientSession.GetByUsername(username)
+	if err != nil {
+		return controller.Error(ctx, errors.SessionGet.With(err))
+	}
+
+	if session == nil {
+		return controller.Unauthorized(ctx, errors.SessionNotFound.With(err))
+	}
+
+	return controller.Ok(ctx, &models.ClientSessionGet{
+		Token:    token,
 		Username: session.Username,
 
 		Name: session.Name,

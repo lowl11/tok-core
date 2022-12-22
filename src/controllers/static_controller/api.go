@@ -7,7 +7,7 @@ import (
 )
 
 func (controller *Controller) Health(ctx echo.Context) error {
-	return ctx.String(http.StatusOK, "OK "+ctx.RealIP())
+	return ctx.String(http.StatusOK, "OK")
 }
 
 func (controller *Controller) RouteNotFound(ctx echo.Context) error {
