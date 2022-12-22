@@ -293,6 +293,10 @@ func (controller *Controller) UploadWallpaper(ctx echo.Context) error {
 	return controller.Ok(ctx, filePath)
 }
 
+/*
+	UpdateContacts Обновление контактов профиля
+	Обновляет Телефон и Почту у пользователя
+*/
 func (controller *Controller) UpdateContacts(ctx echo.Context) error {
 	logger := definition.Logger
 
