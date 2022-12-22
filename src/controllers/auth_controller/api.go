@@ -131,6 +131,29 @@ func (controller *Controller) LoginByCredentials(ctx echo.Context) error {
 		return controller.Error(ctx, errors.SubscriptionsGet.With(err))
 	}
 
+	// проверить нужно ли запомнить ip адрес
+	ipAddress := ctx.Get("ip_address").(string)
+	if model.Remember && ipAddress != "" {
+		go func() {
+			// проверка существует ли уже ip адрес
+			username, err := controller.userIpRepo.GetByIpAddress(ipAddress)
+			if err != nil {
+				logger.Error(err, "Get user by ip address error")
+				return
+			}
+
+			// не записываем если уже нашли
+			if username == model.Username {
+				return
+			}
+
+			if err = controller.userIpRepo.New(model.Username, ipAddress); err != nil {
+				logger.Error(err, "Creating new bind username + ip address error")
+				return
+			}
+		}()
+	}
+
 	// обработка данных для клиента
 	return controller.Ok(ctx, &models.ClientSessionGet{
 		Token:    sessionToken,
