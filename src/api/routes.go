@@ -57,6 +57,7 @@ func setAuth(server *echo.Echo, controller *auth_controller.Controller) {
 
 	group.POST("/login/credentials", controller.LoginByCredentials)
 	group.POST("/login/token", controller.LoginByToken)
+	group.POST("/login/ip", controller.LoginByIP)
 }
 
 func setProfile(server *echo.Echo, controller *profile_controller.Controller) {
