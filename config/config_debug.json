@@ -1,6 +1,9 @@
 {
 	"server": {
-		"port": ":8080"
+		"port": {
+			"primary": ":8080",
+			"secondary": ":8081"
+		}
 	},
 	"database": {
 		"connection": "host=185.22.67.118 port=5432 user=testuser password=qwerty dbname=toktest sslmode=disable",

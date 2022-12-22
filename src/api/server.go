@@ -6,6 +6,7 @@ import (
 
 func StartServer() {
 	server := definition.Server
+	config := definition.Config.Server
 
 	// проставлять роуты
 	setRoutes(server)
@@ -14,5 +15,11 @@ func StartServer() {
 	setMiddlewares(server)
 
 	// запуск сервера
-	server.Logger.Fatal(server.Start(definition.Config.Server.Port))
+	var port string
+	if definition.Config.Primary {
+		port = config.Port.Primary
+	} else {
+		port = config.Port.Secondary
+	}
+	server.Logger.Fatal(server.Start(port))
 }

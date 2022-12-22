@@ -7,8 +7,14 @@ import (
 )
 
 type Configuration struct {
+	Environment string
+	Primary     bool
+
 	Server struct {
-		Port string `json:"port"`
+		Port struct {
+			Primary   string `json:"primary"`
+			Secondary string `json:"secondary"`
+		} `json:"port"`
 	} `json:"server"`
 
 	Database struct {
@@ -38,7 +44,15 @@ func Init() {
 	Config = Configuration{}
 
 	// определение окружения (прод или нет)
-	isProduction := os.Getenv("env") == "production"
+	Config.Environment = os.Getenv("env")
+	isProduction := Config.Environment == "production"
+
+	// определение порта (primary, secondary)
+	if len(os.Args) > 1 && os.Args[1] == "secondary" {
+		Config.Primary = false
+	} else {
+		Config.Primary = true
+	}
 
 	// создание логгера
 	logger := logapi.New().File("info", "logs")
