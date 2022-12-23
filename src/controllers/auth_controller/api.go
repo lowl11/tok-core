@@ -102,6 +102,33 @@ func (controller *Controller) LoginByCredentials(ctx echo.Context) error {
 		return controller.Error(ctx, errors.LoginPassword)
 	}
 
+	// проверка существует ли уже сессия у пользователя
+	session, token, err := controller.clientSession.GetByUsername(model.Username)
+	if err != nil {
+		return controller.Error(ctx, errors.SessionGet.With(err))
+	}
+
+	if session != nil {
+		return controller.Ok(ctx, &models.ClientSessionGet{
+			Token:    token,
+			Username: user.Username,
+
+			Name: user.Name,
+			BIO:  user.BIO,
+
+			Avatar:    user.Avatar,
+			Wallpaper: user.Wallpaper,
+
+			Subscriptions: entities.ClientSessionSubscribes{
+				SubscriberCount:   session.Subscriptions.SubscriberCount,
+				SubscriptionCount: session.Subscriptions.SubscriptionCount,
+
+				Subscribers:   session.Subscriptions.Subscribers,
+				Subscriptions: session.Subscriptions.Subscriptions,
+			},
+		})
+	}
+
 	// удаление всех сессий с таким логином
 	if err = controller.clientSession.DeleteByUsername(model.Username); err != nil {
 		return controller.Error(ctx, errors.SessionDelete.With(err))
