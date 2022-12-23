@@ -10,22 +10,10 @@ import (
 )
 
 /*
-	Add создание нового поста
+	_add создание нового поста
 */
-func (controller *Controller) Add(ctx echo.Context) error {
+func (controller *Controller) _add(session *entities.ClientSession, model *models.PostAdd) *models.Error {
 	logger := definition.Logger
-	session := ctx.Get("client_session").(*entities.ClientSession)
-
-	// связка модели
-	model := models.PostAdd{}
-	if err := ctx.Bind(&model); err != nil {
-		return controller.Error(ctx, errors.PostCreateBind.With(err))
-	}
-
-	// валидация модели
-	if err := controller.validatePostCreate(&model); err != nil {
-		return controller.Error(ctx, errors.PostCreateValidate.With(err))
-	}
 
 	// создание кода поста
 	postCode := uuid.New().String()
@@ -37,7 +25,7 @@ func (controller *Controller) Add(ctx echo.Context) error {
 			Name:   model.Picture.Name,
 			Buffer: model.Picture.Buffer,
 		}, session.Username, postCode); err != nil {
-			return controller.Error(ctx, errors.PostCreateUploadPicture.With(err))
+			return errors.PostCreateUploadPicture.With(err)
 		} else {
 			picturePath = uploadedPicturePath
 		}
@@ -47,32 +35,56 @@ func (controller *Controller) Add(ctx echo.Context) error {
 	var customCategory *string
 	if model.CustomCategory != nil {
 		if categoryCode, err := controller.postCategoryRepo.Create(*model.CustomCategory); err != nil {
-			return controller.Error(ctx, errors.PostCategoryCreate.With(err))
+			return errors.PostCategoryCreate.With(err)
 		} else {
 			customCategory = &categoryCode
 		}
 	}
 
 	// создание поста
-	if err := controller.postRepo.Create(&model, session.Username, postCode, picturePath, customCategory); err != nil {
+	if err := controller.postRepo.Create(model, session.Username, postCode, picturePath, customCategory); err != nil {
 		logger.Error(err, "Create post error")
-		return controller.Error(ctx, errors.PostCreate.With(err))
+		return errors.PostCreate.With(err)
 	}
 
-	return controller.Ok(ctx, postCode)
+	return nil
 }
 
 /*
-	Categories возвращает список всех категорий
+	AddRest REST обертка для _add
 */
-func (controller *Controller) Categories(ctx echo.Context) error {
+func (controller *Controller) AddRest(ctx echo.Context) error {
+	// связка модели
+	model := models.PostAdd{}
+	if err := ctx.Bind(&model); err != nil {
+		return controller.Error(ctx, errors.PostCreateBind.With(err))
+	}
+
+	// валидация модели
+	if err := controller.validatePostCreate(&model); err != nil {
+		return controller.Error(ctx, errors.PostCreateValidate.With(err))
+	}
+
+	session := ctx.Get("client_session").(*entities.ClientSession)
+
+	if err := controller._add(session, &model); err != nil {
+		return controller.Error(ctx, err)
+	}
+
+	return controller.Ok(ctx, "OK")
+}
+
+/*
+	_categories возвращает список всех категорий
+*/
+func (controller *Controller) _categories() ([]models.PostCategoryGet, *models.Error) {
 	logger := definition.Logger
 
 	// получение списка всех категорий
 	categories, err := controller.postCategoryRepo.GetAll()
 	if err != nil {
 		logger.Error(err, "Get all post categories error")
-		return controller.Error(ctx, errors.PostCategoryGetList.With(err))
+		return nil, errors.PostCategoryGetList.With(err)
 	}
 
 	// обработка списка категорий для клиента
@@ -82,6 +94,18 @@ func (controller *Controller) Categories(ctx echo.Context) error {
 			Code: item.Code,
 			Name: item.Name,
 		})
+	}
+
+	return list, nil
+}
+
+/*
+	CategoriesREST REST обертка для _categories
+*/
+func (controller *Controller) CategoriesREST(ctx echo.Context) error {
+	list, err := controller._categories()
+	if err != nil {
+		return controller.Error(ctx, err)
 	}
 
 	return controller.Ok(ctx, list)

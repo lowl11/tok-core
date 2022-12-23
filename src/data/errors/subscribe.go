@@ -21,6 +21,10 @@ var (
 		TechMessage:     "Validate subscribe to user of profile error",
 		BusinessMessage: "Произошла ошибка",
 	}
+	UnsubscribeOfProfileValidate = &models.Error{
+		TechMessage:     "Validate unsubscribe to user of profile error",
+		BusinessMessage: "Произошла ошибка",
+	}
 
 	SubscribeOfProfile = &models.Error{
 		TechMessage:     "Subscribe to user of profile error",

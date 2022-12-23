@@ -64,12 +64,12 @@ func setProfile(server *echo.Echo, controller *profile_controller.Controller) {
 	group := server.Group("/api/v1/profile")
 
 	setMiddlewaresPublic(group)
-	group.POST("/update", controller.Update)
-	group.POST("/avatar", controller.UploadAvatar)
-	group.POST("/wallpaper", controller.UploadWallpaper)
+	group.POST("/update", controller.UpdateREST)
+	group.POST("/avatar", controller.UploadAvatarREST)
+	group.POST("/wallpaper", controller.UploadWallpaperREST)
 
-	group.POST("/subscribe", controller.Subscribe)
-	group.POST("/unsubscribe", controller.Unsubscribe)
+	group.POST("/subscribe", controller.SubscribeREST)
+	group.POST("/unsubscribe", controller.UnsubscribeREST)
 }
 
 func setUser(server *echo.Echo, controller *user_controller.Controller) {
@@ -102,10 +102,10 @@ func setPost(server *echo.Echo, controller *post_controller.Controller) {
 	group := server.Group("/api/v1/post")
 
 	setMiddlewaresPublic(group)
-	group.POST("/add", controller.Add)
+	group.POST("/add", controller.AddRest)
 
 	categoryGroup := group.Group("/category")
-	categoryGroup.GET("/get", controller.Categories)
+	categoryGroup.GET("/get", controller.CategoriesREST)
 }
 
 func setSearch(server *echo.Echo, controller *search_controller.Controller) {

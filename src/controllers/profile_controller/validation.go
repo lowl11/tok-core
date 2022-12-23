@@ -10,6 +10,14 @@ func (controller *Controller) validateSubscribeProfile(model *models.ProfileSubs
 	return nil
 }
 
+func (controller *Controller) validateUnsubscribeProfile(model *models.ProfileUnsubscribe) error {
+	if err := controller.RequiredField(model.Username, "username"); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (controller *Controller) validateUpdate(model *models.ProfileUpdate) error {
 	if err := controller.RequiredField(model.Name, "name"); err != nil {
 		return err
@@ -46,6 +54,6 @@ func (controller *Controller) validateUploadWallpaper(model *models.ImageWallpap
 	return nil
 }
 
-func (controller *Controller) validateUpdateContacts(model *models.ProfileUpdateContact) error {
+func (controller *Controller) validateUpdateContacts(_ *models.ProfileUpdateContact) error {
 	return nil
 }
