@@ -10,7 +10,8 @@ import (
 
 func (repo *Repository) Create(
 	model *models.PostAddExtended,
-	author, code, uploadedPicturePath string,
+	author, code string,
+	uploadedPicturePath *string,
 	customCategoryCode *string,
 ) error {
 	ctx, cancel := repo.Ctx()
@@ -18,8 +19,8 @@ func (repo *Repository) Create(
 
 	// если загрузили изображение
 	var picturePath *string
-	if model.Base.Picture != nil {
-		newPostPicture := "/images/post/" + author + "/post_" + code + "/post_picture" + filepath.Ext(uploadedPicturePath)
+	if model.Base.Picture != nil && uploadedPicturePath != nil {
+		newPostPicture := "/images/post/" + author + "/post_" + code + "/post_picture" + filepath.Ext(*uploadedPicturePath)
 		picturePath = &newPostPicture
 	}
 

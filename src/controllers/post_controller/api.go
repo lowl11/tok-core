@@ -24,7 +24,7 @@ func (controller *Controller) _add(session *entities.ClientSession, model *model
 	postCode := uuid.New().String()
 
 	// загружаем изображение поста если оно есть
-	var picturePath string
+	var picturePath *string
 
 	if model.Picture != nil {
 		if imageConfig, err := controller.image.UploadPostPicture(&models.PostPicture{
@@ -33,8 +33,13 @@ func (controller *Controller) _add(session *entities.ClientSession, model *model
 		}, session.Username, postCode); err != nil {
 			return errors.PostCreateUploadPicture.With(err)
 		} else {
-			picturePath = imageConfig.Path
+			picturePath = &imageConfig.Path
 			extendedModel.ImageConfig = imageConfig
+		}
+	} else {
+		extendedModel.ImageConfig = &models.ImageConfig{
+			Width:  0,
+			Height: 0,
 		}
 	}
 
