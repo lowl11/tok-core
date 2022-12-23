@@ -7,6 +7,8 @@ import (
 	"errors"
 	"github.com/lowl11/lazy-collection/array"
 	"image"
+	_ "image/jpeg"
+	_ "image/png"
 	"path/filepath"
 )
 
