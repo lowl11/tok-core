@@ -53,7 +53,7 @@ func (controller *Controller) _add(session *entities.ClientSession, model *model
 /*
 	AddRest REST обертка для _add
 */
-func (controller *Controller) AddRest(ctx echo.Context) error {
+func (controller *Controller) AddREST(ctx echo.Context) error {
 	// связка модели
 	model := models.PostAdd{}
 	if err := ctx.Bind(&model); err != nil {

@@ -102,7 +102,7 @@ func setPost(server *echo.Echo, controller *post_controller.Controller) {
 	group := server.Group("/api/v1/post")
 
 	setMiddlewaresPublic(group)
-	group.POST("/add", controller.AddRest)
+	group.POST("/add", controller.AddREST)
 
 	categoryGroup := group.Group("/category")
 	categoryGroup.GET("/get", controller.CategoriesREST)
