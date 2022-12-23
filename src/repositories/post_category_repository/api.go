@@ -28,6 +28,9 @@ func (repo *Repository) GetAll() ([]entities.PostCategoryGet, error) {
 		list = append(list, item)
 	}
 
+	// ограничие списка по кол-ву
+	list = list[:maxAllResult]
+
 	return list, nil
 }
 
@@ -51,6 +54,9 @@ func (repo *Repository) Search(searchQuery string) ([]entities.PostCategoryGet, 
 		}
 		list = append(list, item)
 	}
+
+	// ограничие списка по кол-ву
+	list = list[:maxSearchResult]
 
 	return list, nil
 }

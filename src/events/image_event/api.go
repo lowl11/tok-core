@@ -148,8 +148,6 @@ func (event *Event) UploadPostPicture(postPicture *models.PostPicture, username,
 		return nil, err
 	}
 
-	width, height := event.getSize(buffer)
-
 	//resizedBuffer, err := image_resize.DoWallpaper(wallpaper.Name, buffer)
 	//if err != nil {
 	//	return "", err
@@ -178,7 +176,8 @@ func (event *Event) UploadPostPicture(postPicture *models.PostPicture, username,
 	fileName := "post_picture" + filepath.Ext(postPicture.Name)
 	filePath := usernamePath + "/" + fileName
 
-	width, height = event.getSize(buffer)
+	// высчитывание размеров изображения
+	width, height := event.getSize(buffer)
 
 	// создаем файл
 	return &models.ImageConfig{
