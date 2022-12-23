@@ -8,13 +8,17 @@ import (
 	"tok-core/src/data/models"
 )
 
-func (repo *Repository) Create(model *models.PostAdd, author, code, uploadedPicturePath string, customCategoryCode *string) error {
+func (repo *Repository) Create(
+	model *models.PostAddExtended,
+	author, code, uploadedPicturePath string,
+	customCategoryCode *string,
+) error {
 	ctx, cancel := repo.Ctx()
 	defer cancel()
 
 	// если загрузили изображение
 	var picturePath *string
-	if model.Picture != nil {
+	if model.Base.Picture != nil {
 		newPostPicture := "/images/post/" + author + "/post_" + code + "/post_picture" + filepath.Ext(uploadedPicturePath)
 		picturePath = &newPostPicture
 	}
@@ -23,7 +27,7 @@ func (repo *Repository) Create(model *models.PostAdd, author, code, uploadedPict
 	if customCategoryCode != nil {
 		categoryCode = *customCategoryCode
 	} else {
-		categoryCode = model.CategoryCode
+		categoryCode = model.Base.CategoryCode
 	}
 
 	// сущность БД
@@ -31,9 +35,12 @@ func (repo *Repository) Create(model *models.PostAdd, author, code, uploadedPict
 		CategoryCode:   categoryCode,
 		AuthorUsername: author,
 
-		Text:    model.Text,
+		Text:    model.Base.Text,
 		Picture: picturePath,
 		Code:    code,
+
+		PictureWidth:  model.ImageConfig.Width,
+		PictureHeight: model.ImageConfig.Height,
 	}
 
 	// скрипт

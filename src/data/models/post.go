@@ -13,6 +13,11 @@ type PostAdd struct {
 	} `json:"picture"`
 }
 
+type PostAddExtended struct {
+	Base        *PostAdd
+	ImageConfig *ImageConfig
+}
+
 type PostGet struct {
 	AuthorUsername string  `json:"author_username"`
 	AuthorName     *string `json:"author_name"`
@@ -21,8 +26,14 @@ type PostGet struct {
 	CategoryCode string `json:"category_code"`
 	CategoryName string `json:"category_name"`
 
-	Code      string    `json:"code"`
-	Text      string    `json:"text"`
-	Picture   *string   `json:"picture"`
-	CreatedAt time.Time `json:"created_at"`
+	Code      string          `json:"code"`
+	Text      string          `json:"text"`
+	Picture   *PostGetPicture `json:"picture"`
+	CreatedAt time.Time       `json:"created_at"`
+}
+
+type PostGetPicture struct {
+	Path   *string `json:"path"`
+	Width  int     `json:"width"`
+	Height int     `json:"height"`
 }

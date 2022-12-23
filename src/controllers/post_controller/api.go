@@ -15,26 +15,33 @@ import (
 func (controller *Controller) _add(session *entities.ClientSession, model *models.PostAdd) *models.Error {
 	logger := definition.Logger
 
+	// расширенная модель
+	extendedModel := &models.PostAddExtended{
+		Base: model,
+	}
+
 	// создание кода поста
 	postCode := uuid.New().String()
 
 	// загружаем изображение поста если оно есть
 	var picturePath string
+
 	if model.Picture != nil {
-		if uploadedPicturePath, err := controller.image.UploadPostPicture(&models.PostPicture{
+		if imageConfig, err := controller.image.UploadPostPicture(&models.PostPicture{
 			Name:   model.Picture.Name,
 			Buffer: model.Picture.Buffer,
 		}, session.Username, postCode); err != nil {
 			return errors.PostCreateUploadPicture.With(err)
 		} else {
-			picturePath = uploadedPicturePath
+			picturePath = imageConfig.Path
+			extendedModel.ImageConfig = imageConfig
 		}
 	}
 
 	// заданная категория кастомная
 	var customCategory *string
 	if model.CustomCategory != nil {
-		if categoryCode, err := controller.postCategoryRepo.Create(*model.CustomCategory); err != nil {
+		if categoryCode, err := controller.postCategoryRepo.Create(*extendedModel.Base.CustomCategory); err != nil {
 			return errors.PostCategoryCreate.With(err)
 		} else {
 			customCategory = &categoryCode
@@ -42,7 +49,7 @@ func (controller *Controller) _add(session *entities.ClientSession, model *model
 	}
 
 	// создание поста
-	if err := controller.postRepo.Create(model, session.Username, postCode, picturePath, customCategory); err != nil {
+	if err := controller.postRepo.Create(extendedModel, session.Username, postCode, picturePath, customCategory); err != nil {
 		logger.Error(err, "Create post error")
 		return errors.PostCreate.With(err)
 	}

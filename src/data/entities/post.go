@@ -16,6 +16,9 @@ type PostGet struct {
 	Text    string  `db:"text"`
 	Picture *string `db:"picture"`
 
+	PictureWidth  int `db:"picture_width"`
+	PictureHeight int `db:"picture_height"`
+
 	CreatedAt time.Time `db:"created_at"`
 }
 
@@ -27,4 +30,7 @@ type PostCreate struct {
 
 	Text    string  `db:"text"`
 	Picture *string `db:"picture"`
+
+	PictureWidth  int `db:"picture_width"`
+	PictureHeight int `db:"picture_height"`
 }

@@ -1,9 +1,12 @@
 package image_event
 
 import (
+	"bufio"
+	"bytes"
 	"encoding/base64"
 	"errors"
 	"github.com/lowl11/lazy-collection/array"
+	"image"
 	"path/filepath"
 )
 
@@ -26,4 +29,14 @@ func (event *Event) validateImageName(name string) error {
 	}
 
 	return nil
+}
+
+func (event *Event) getSize(buffer []byte) (width int, height int) {
+	reader := bufio.NewReader(bytes.NewReader(buffer))
+	imageConfig, _, err := image.DecodeConfig(reader)
+	if err != nil {
+		return 0, 0
+	}
+
+	return imageConfig.Width, imageConfig.Height
 }

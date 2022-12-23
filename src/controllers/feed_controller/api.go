@@ -39,9 +39,13 @@ func (controller *Controller) Main(ctx echo.Context) error {
 			CategoryCode: item.CategoryCode,
 			CategoryName: item.CategoryName,
 
-			Code:      item.Code,
-			Text:      item.Text,
-			Picture:   item.Picture,
+			Code: item.Code,
+			Text: item.Text,
+			Picture: &models.PostGetPicture{
+				Path:   item.Picture,
+				Width:  item.PictureWidth,
+				Height: item.PictureHeight,
+			},
 			CreatedAt: item.CreatedAt,
 		})
 	}
@@ -79,9 +83,13 @@ func (controller *Controller) User(ctx echo.Context) error {
 			CategoryCode: item.CategoryCode,
 			CategoryName: item.CategoryName,
 
-			Code:      item.Code,
-			Text:      item.Text,
-			Picture:   item.Picture,
+			Code: item.Code,
+			Text: item.Text,
+			Picture: &models.PostGetPicture{
+				Path:   item.Picture,
+				Width:  item.PictureWidth,
+				Height: item.PictureHeight,
+			},
 			CreatedAt: item.CreatedAt,
 		})
 	}
@@ -119,9 +127,13 @@ func (controller *Controller) Category(ctx echo.Context) error {
 			CategoryCode: item.CategoryCode,
 			CategoryName: item.CategoryName,
 
-			Code:      item.Code,
-			Text:      item.Text,
-			Picture:   item.Picture,
+			Code: item.Code,
+			Text: item.Text,
+			Picture: &models.PostGetPicture{
+				Path:   item.Picture,
+				Width:  item.PictureWidth,
+				Height: item.PictureHeight,
+			},
 			CreatedAt: item.CreatedAt,
 		})
 	}
@@ -162,9 +174,13 @@ func (controller *Controller) Single(ctx echo.Context) error {
 		CategoryCode: post.CategoryCode,
 		CategoryName: post.CategoryName,
 
-		Code:      post.Code,
-		Text:      post.Text,
-		Picture:   post.Picture,
+		Code: post.Code,
+		Text: post.Text,
+		Picture: &models.PostGetPicture{
+			Path:   post.Picture,
+			Width:  post.PictureWidth,
+			Height: post.PictureHeight,
+		},
 		CreatedAt: post.CreatedAt,
 	})
 }

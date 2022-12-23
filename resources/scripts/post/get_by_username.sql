@@ -9,6 +9,8 @@ select
     post.code,
     post.text,
     post.picture,
+    post.picture_width,
+    post.picture_height,
     post.created_at
 from posts as post
     inner join post_categories as category on post.category_code = category.code

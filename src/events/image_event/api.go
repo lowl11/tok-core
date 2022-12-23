@@ -136,16 +136,16 @@ func (event *Event) UploadWallpaper(wallpaper *models.ImageWallpaper, username s
 	Удаляются остальные файлы с именем post_picture
 	Создается новый файл
 */
-func (event *Event) UploadPostPicture(postPicture *models.PostPicture, username, postCode string) (string, error) {
+func (event *Event) UploadPostPicture(postPicture *models.PostPicture, username, postCode string) (*models.ImageConfig, error) {
 	// валидируем расширение файла
 	if err := event.validateImageName(postPicture.Name); err != nil {
-		return "", err
+		return nil, err
 	}
 
 	// конвертация из base64 в байты
 	buffer, err := event.fromBase64(postPicture.Buffer)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	//resizedBuffer, err := image_resize.DoWallpaper(wallpaper.Name, buffer)
@@ -155,20 +155,20 @@ func (event *Event) UploadPostPicture(postPicture *models.PostPicture, username,
 
 	// создается папка /post если ее нет
 	if err = folderapi.Create(event.basePath, "post"); err != nil {
-		return "", err
+		return nil, err
 	}
 
 	// создается папка /post/<username> если ее нет
 	postPath := event.basePath + "/post"
 	if err = folderapi.Create(postPath, username); err != nil {
-		return "", err
+		return nil, err
 	}
 
 	// создается папка /post/<username>/<post_code> если ее нет
 	userPostPath := postPath + "/" + username
 	postName := "post_" + postCode
 	if err = folderapi.Create(userPostPath, postName); err != nil {
-		return "", err
+		return nil, err
 	}
 
 	// генерируем название и путь к файлу
@@ -176,6 +176,12 @@ func (event *Event) UploadPostPicture(postPicture *models.PostPicture, username,
 	fileName := "post_picture" + filepath.Ext(postPicture.Name)
 	filePath := usernamePath + "/" + fileName
 
+	width, height := event.getSize(buffer)
+
 	// создаем файл
-	return fileName, fileapi.Create(filePath, buffer)
+	return &models.ImageConfig{
+		Path:   fileName,
+		Width:  width,
+		Height: height,
+	}, fileapi.Create(filePath, buffer)
 }
