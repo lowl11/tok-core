@@ -28,6 +28,12 @@ type Configuration struct {
 		Password string `json:"password"`
 	} `json:"redis"`
 
+	Elastic struct {
+		Servers  []string `json:"servers"`
+		Username string   `json:"username"`
+		Password string   `json:"password"`
+	} `json:"elastic"`
+
 	User struct {
 		CryptKey string `json:"crypt_key"`
 	} `json:"user"`

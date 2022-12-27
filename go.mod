@@ -14,6 +14,7 @@ require (
 	github.com/lowl11/lazylog v1.1.1
 	github.com/mehanizm/iuliia-go v1.0.2
 	golang.org/x/image v0.2.0
+	github.com/lowl11/lazy-elastic v0.0.1
 )
 
 require (

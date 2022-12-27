@@ -45,7 +45,7 @@ func Get() (*ApiEvents, error) {
 	image := image_event.Create(config.Image.BasePath)
 
 	clientSession := client_session_event.Create(client)
-	feed := feed_event.Create(client)
+	feed := feed_event.Create(config.Elastic.Servers, config.Elastic.Username, config.Elastic.Password)
 
 	return &ApiEvents{
 		Script: script,

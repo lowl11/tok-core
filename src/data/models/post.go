@@ -13,6 +13,16 @@ type PostAdd struct {
 	} `json:"picture"`
 }
 
+type PostElasticAdd struct {
+	Code     string  `json:"code"`
+	Text     string  `json:"text"`
+	Category string  `json:"category"`
+	Picture  *string `json:"picture"`
+	Author   string  `json:"author"`
+
+	Keys []string `json:"keys"`
+}
+
 type PostAddExtended struct {
 	Base        *PostAdd
 	ImageConfig *ImageConfig

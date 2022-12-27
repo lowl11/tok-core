@@ -14,6 +14,11 @@
 		"address": "185.22.67.118:6379",
 		"password": "PKhqpdv6NZmuZXpf"
 	},
+	"elastic": {
+		"servers": ["http://185.22.67.118:9200"],
+		"username": "",
+		"password": ""
+	},
 	"user": {
 		"crypt_key": "NGNhYjgzMDcxNjhhZjQ0NzBlMDliODJj"
 	},

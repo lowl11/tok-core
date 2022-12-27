@@ -3,6 +3,7 @@ package post_controller
 import (
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
+	"github.com/lowl11/lazylog/layers"
 	"tok-core/src/data/entities"
 	"tok-core/src/data/errors"
 	"tok-core/src/data/models"
@@ -58,6 +59,44 @@ func (controller *Controller) _add(session *entities.ClientSession, model *model
 		logger.Error(err, "Create post error")
 		return errors.PostCreate.With(err)
 	}
+
+	// создание поста в рекомендациях
+	go func() {
+		// построить путь к изображению (если есть) для эластика
+		var elasticPicturePath *string
+		if extendedModel.ImageConfig != nil && extendedModel.ImageConfig.Path != "" {
+			postPicturePath := "/images/post/" + session.Username + "/post_" + postCode + "/" + extendedModel.ImageConfig.Path
+			elasticPicturePath = &postPicturePath
+		}
+
+		// получаем имя категории
+		var categoryName string
+		if model.CustomCategory != nil {
+			categoryName = *model.CustomCategory
+		} else {
+			category, _ := controller.postCategoryRepo.GetByCode(model.CategoryCode)
+			if category != nil {
+				categoryName = category.Name
+			} else {
+				// если вдруг не получилось найти категорию, вставляем сам код
+				categoryName = model.CategoryCode
+			}
+		}
+
+		// завести пост в рекоммендациях (через elastic)
+		if err := controller.feed.AddRecommendation(&models.PostElasticAdd{
+			Code:     postCode,
+			Text:     extendedModel.Base.Text,
+			Category: extendedModel.Base.CategoryCode,
+			Picture:  elasticPicturePath,
+			Author:   session.Username,
+
+			Keys: []string{categoryName},
+		}); err != nil {
+			logger.Error(err, "Add post to recommendation error", layers.Elastic)
+			return
+		}
+	}()
 
 	return nil
 }

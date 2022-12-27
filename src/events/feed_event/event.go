@@ -1,17 +1,22 @@
 package feed_event
 
 import (
-	"github.com/go-redis/redis/v8"
-	"tok-core/src/events/redis_event"
+	"github.com/lowl11/lazy-elastic/elastic_client"
+	"github.com/lowl11/lazy-elastic/elastic_search"
+	"github.com/lowl11/lazy-elastic/es_api"
+	"tok-core/src/data/models"
 )
 
 type Event struct {
-	redis_event.Base
-	client *redis.Client
+	client *elastic_client.Event
+	search *elastic_search.Event[models.PostGet]
 }
 
-func Create(client *redis.Client) *Event {
+func Create(servers []string, _, _ string) *Event {
+	baseURL := servers[0]
+
 	return &Event{
-		client: client,
+		client: es_api.NewClient(baseURL),
+		search: es_api.NewSearch[models.PostGet](baseURL),
 	}
 }

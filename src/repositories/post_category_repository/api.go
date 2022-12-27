@@ -61,6 +61,29 @@ func (repo *Repository) Search(searchQuery string) ([]entities.PostCategoryGet, 
 	return list, nil
 }
 
+func (repo *Repository) GetByCode(code string) (*entities.PostCategoryGet, error) {
+	ctx, cancel := repo.Ctx()
+	defer cancel()
+
+	query := repo.Script("post_category", "get_by_code")
+
+	rows, err := repo.connection.QueryxContext(ctx, query, code)
+	if err != nil {
+		return nil, err
+	}
+	defer repo.CloseRows(rows)
+
+	if rows.Next() {
+		item := entities.PostCategoryGet{}
+		if err = rows.StructScan(&item); err != nil {
+			return nil, err
+		}
+		return &item, nil
+	}
+
+	return nil, nil
+}
+
 func (repo *Repository) Create(name string) (string, error) {
 	ctx, cancel := repo.Ctx()
 	defer cancel()
