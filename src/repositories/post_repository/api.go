@@ -60,14 +60,14 @@ func (repo *Repository) Create(
 	return nil
 }
 
-func (repo *Repository) GetByUsername(username string) ([]entities.PostGet, error) {
+func (repo *Repository) GetByUsername(username string, offset, size int) ([]entities.PostGet, error) {
 	ctx, cancel := repo.Ctx()
 	defer cancel()
 
 	// скрипт
 	query := repo.Script("post", "get_by_username")
 
-	rows, err := repo.connection.QueryxContext(ctx, query, username)
+	rows, err := repo.connection.QueryxContext(ctx, query, username, offset, size)
 	if err != nil {
 		return nil, err
 	}
@@ -85,14 +85,14 @@ func (repo *Repository) GetByUsername(username string) ([]entities.PostGet, erro
 	return list, nil
 }
 
-func (repo *Repository) GetByUsernameList(usernameList []string) ([]entities.PostGet, error) {
+func (repo *Repository) GetByUsernameList(usernameList []string, offset, size int) ([]entities.PostGet, error) {
 	ctx, cancel := repo.Ctx()
 	defer cancel()
 
 	// скрипт
 	query := repo.Script("post", "get_by_username_list")
 
-	rows, err := repo.connection.QueryxContext(ctx, query, pq.Array(usernameList))
+	rows, err := repo.connection.QueryxContext(ctx, query, pq.Array(usernameList), offset, size)
 	if err != nil {
 		return nil, err
 	}
@@ -110,14 +110,14 @@ func (repo *Repository) GetByUsernameList(usernameList []string) ([]entities.Pos
 	return list, nil
 }
 
-func (repo *Repository) GetByCategory(categoryCode string) ([]entities.PostGet, error) {
+func (repo *Repository) GetByCategory(categoryCode string, offset, size int) ([]entities.PostGet, error) {
 	ctx, cancel := repo.Ctx()
 	defer cancel()
 
 	// скрипт
 	query := repo.Script("post", "get_by_category")
 
-	rows, err := repo.connection.QueryxContext(ctx, query, categoryCode)
+	rows, err := repo.connection.QueryxContext(ctx, query, categoryCode, offset, size)
 	if err != nil {
 		return nil, err
 	}

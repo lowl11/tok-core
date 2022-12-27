@@ -2,6 +2,7 @@ package feed_controller
 
 import (
 	"github.com/labstack/echo/v4"
+	"strconv"
 	"tok-core/src/data/entities"
 	"tok-core/src/data/errors"
 	"tok-core/src/data/models"
@@ -15,6 +16,12 @@ func (controller *Controller) Main(ctx echo.Context) error {
 	logger := definition.Logger
 	session := ctx.Get("client_session").(*entities.ClientSession)
 
+	// чтение номера страницы
+	page, _ := strconv.Atoi(ctx.QueryParam("page"))
+	if page <= 0 {
+		page = 1 // номер страницы по умолчанию
+	}
+
 	// список подписок из сессии
 	subscriptions := session.Subscriptions.Subscriptions
 
@@ -22,7 +29,9 @@ func (controller *Controller) Main(ctx echo.Context) error {
 	subscriptions = append(subscriptions, session.Username)
 
 	// посты с массивом юзернеймов из подписок
-	posts, err := controller.postRepo.GetByUsernameList(subscriptions)
+	offset := (page - 1) * 10
+	size := 10
+	posts, err := controller.postRepo.GetByUsernameList(subscriptions, offset, size)
 	if err != nil {
 		logger.Error(err, "Get posts list by username list error")
 		return controller.Error(ctx, errors.PostsGetByUsernameList.With(err))
@@ -65,8 +74,16 @@ func (controller *Controller) User(ctx echo.Context) error {
 		return controller.Error(ctx, errors.PostsGetByUsernameParam)
 	}
 
+	// чтение номера страницы
+	page, _ := strconv.Atoi(ctx.QueryParam("page"))
+	if page <= 0 {
+		page = 1 // номер страницы по умолчанию
+	}
+
 	// получить список постовов по логину
-	posts, err := controller.postRepo.GetByUsername(username)
+	offset := (page - 1) * 10
+	size := 10
+	posts, err := controller.postRepo.GetByUsername(username, offset, size)
 	if err != nil {
 		logger.Error(err, "Get posts list by username error")
 		return controller.Error(ctx, errors.PostsGetByUsername.With(err))
@@ -103,6 +120,12 @@ func (controller *Controller) User(ctx echo.Context) error {
 func (controller *Controller) Category(ctx echo.Context) error {
 	logger := definition.Logger
 
+	// чтение номера страницы
+	page, _ := strconv.Atoi(ctx.QueryParam("page"))
+	if page <= 0 {
+		page = 1 // номер страницы по умолчанию
+	}
+
 	// чтение параметра кода категории
 	categoryCode := ctx.Param("category_code")
 	if categoryCode == "" {
@@ -110,7 +133,9 @@ func (controller *Controller) Category(ctx echo.Context) error {
 	}
 
 	// получить список постовов по логину
-	posts, err := controller.postRepo.GetByCategory(categoryCode)
+	offset := (page - 1) * 10
+	size := 10
+	posts, err := controller.postRepo.GetByCategory(categoryCode, offset, size)
 	if err != nil {
 		logger.Error(err, "Get posts list by category error")
 		return controller.Error(ctx, errors.PostsGetByCategory.With(err))
