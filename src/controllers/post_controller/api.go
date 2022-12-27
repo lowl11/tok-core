@@ -168,14 +168,26 @@ func (controller *Controller) CategoriesREST(ctx echo.Context) error {
 func (controller *Controller) _delete(code string) *models.Error {
 	logger := definition.Logger
 
+	// получаем пост по коду
+	post, err := controller.postRepo.GetByCode(code)
+	if err != nil {
+		logger.Error(err, "Get post by code for deletion error", layers.Database)
+		return errors.PostsGetByCode.With(err)
+	}
+
+	// ошибка если пост не найден
+	if post == nil {
+		return errors.PostNotFound
+	}
+
 	// удаление поста по коду в БД
-	if err := controller.postRepo.DeleteByCode(code); err != nil {
+	if err = controller.postRepo.DeleteByCode(code); err != nil {
 		logger.Error(err, "Delete post by code error", layers.Database)
 		return errors.PostDelete.With(err)
 	}
 
 	// удаление поста по коду в эластике
-	if err := controller.feed.DeleteRecommendation(code); err != nil {
+	if err = controller.feed.DeleteRecommendation(code); err != nil {
 		logger.Error(err, "Delete post by code error", layers.Elastic)
 		return errors.PostDelete.With(err)
 	}
