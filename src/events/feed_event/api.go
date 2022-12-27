@@ -1,6 +1,7 @@
 package feed_event
 
 import (
+	"strings"
 	"time"
 	"tok-core/src/data/models"
 )
@@ -24,4 +25,16 @@ func (event *Event) DeleteExplore(postCode string) error {
 
 	// удалить запись с индекса
 	return event.client.DeleteItem(indexName, postCode)
+}
+
+func (event *Event) GetExplore(keys []string, page int) ([]models.PostElasticGet, error) {
+	// explore_27-12-2022
+	indexName := explorePrefix + time.Now().Format("02-01-2006")
+
+	results, err := event.search.MultiMatch(indexName, strings.Join(keys, " "), exploreFields)
+	if err != nil {
+		return nil, err
+	}
+
+	return results, nil
 }

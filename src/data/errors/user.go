@@ -12,6 +12,10 @@ var (
 		TechMessage:     "Get user error",
 		BusinessMessage: "Ошибка получения пользователя",
 	}
+	UserDynamicGet = &models.Error{
+		TechMessage:     "Get dynamic user info error",
+		BusinessMessage: "Ошибка получения пользователя",
+	}
 	UserSearch = &models.Error{
 		TechMessage:     "Search users by query error",
 		BusinessMessage: "Ошибка получения пользователя",

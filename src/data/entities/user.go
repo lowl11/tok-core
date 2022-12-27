@@ -15,3 +15,9 @@ type UserGet struct {
 	Avatar    *string `db:"avatar"`
 	Wallpaper *string `db:"wallpaper"`
 }
+
+type UserDynamicGet struct {
+	Username string  `db:"username"`
+	Name     *string `db:"name"`
+	Avatar   *string `db:"avatar"`
+}

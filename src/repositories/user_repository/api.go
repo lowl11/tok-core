@@ -2,6 +2,7 @@ package user_repository
 
 import (
 	"github.com/jmoiron/sqlx"
+	"github.com/lib/pq"
 	"tok-core/src/data/entities"
 	"tok-core/src/data/models"
 )
@@ -51,6 +52,30 @@ func (repository *Repository) GetByUsername(username string) (*entities.UserGet,
 	}
 
 	return nil, nil
+}
+
+func (repository *Repository) GetDynamicByUsernames(usernames []string) ([]entities.UserDynamicGet, error) {
+	ctx, cancel := repository.Ctx()
+	defer cancel()
+
+	query := repository.Script("user", "get_dynamic_by_usernames")
+
+	rows, err := repository.connection.QueryxContext(ctx, query, pq.Array(usernames))
+	if err != nil {
+		return nil, err
+	}
+	defer repository.CloseRows(rows)
+
+	list := make([]entities.UserDynamicGet, 0)
+	for rows.Next() {
+		user := entities.UserDynamicGet{}
+		if err = rows.StructScan(&user); err != nil {
+			return nil, err
+		}
+		list = append(list, user)
+	}
+
+	return list, nil
 }
 
 func (repository *Repository) UpdateProfile(username string, model *models.ProfileUpdate) error {

@@ -2,6 +2,9 @@ package feed_controller
 
 import (
 	"github.com/labstack/echo/v4"
+	"github.com/lowl11/lazy-collection/array"
+	"github.com/lowl11/lazy-collection/set"
+	"github.com/lowl11/lazylog/layers"
 	"strconv"
 	"tok-core/src/data/entities"
 	"tok-core/src/data/errors"
@@ -63,10 +66,66 @@ func (controller *Controller) Main(ctx echo.Context) error {
 }
 
 /*
-	Explore лента "рекомендаций"
+	_explore лента "рекомендаций"
 */
-func (controller *Controller) Explore(ctx echo.Context) error {
+func (controller *Controller) _explore(session *entities.ClientSession, page int) ([]models.PostGet, *models.Error) {
 	logger := definition.Logger
+
+	// запрос для получения "рекомендаций"
+	posts, err := controller.feed.GetExplore([]string{"Мемы", "Образование", "memy", "obrazovanie"}, page)
+	if err != nil {
+		logger.Error(err, "Get list for explore error", layers.Elastic)
+		return nil, errors.PostsGetExplore.With(err)
+	}
+
+	usernames := set.NewWithSize[string](len(posts))
+	for _, post := range posts {
+		usernames.Push(post.Author)
+	}
+
+	// получаем "имена" и "аватары" авторов
+	dynamics, err := controller.userRepo.GetDynamicByUsernames(usernames.Slice())
+	if err != nil {
+		return nil, errors.UserDynamicGet.With(err)
+	}
+
+	dynamicsArray := array.NewWithList[entities.UserDynamicGet](dynamics...)
+
+	list := make([]models.PostGet, 0, len(posts))
+	for _, item := range posts {
+		var authorName *string
+		var authorAvatar *string
+
+		dynamicUserInfo := dynamicsArray.Single(func(item entities.UserDynamicGet) bool {
+			return item.Username == item.Username
+		})
+		if dynamicUserInfo != nil {
+			authorName = dynamicUserInfo.Name
+			authorAvatar = dynamicUserInfo.Avatar
+		}
+
+		list = append(list, models.PostGet{
+			AuthorUsername: item.Author,
+			AuthorName:     authorName,
+			AuthorAvatar:   authorAvatar,
+
+			CategoryCode: item.Category,
+			CategoryName: item.CategoryName,
+
+			Code:      item.Code,
+			Text:      item.Text,
+			Picture:   item.Picture,
+			CreatedAt: item.CreatedAt,
+		})
+	}
+
+	return list, nil
+}
+
+/*
+	ExploreREST обертка для _explore
+*/
+func (controller *Controller) ExploreREST(ctx echo.Context) error {
 	session := ctx.Get("client_session").(*entities.ClientSession)
 
 	// чтение номера страницы
@@ -75,41 +134,9 @@ func (controller *Controller) Explore(ctx echo.Context) error {
 		page = 1 // номер страницы по умолчанию
 	}
 
-	// список подписок из сессии
-	subscriptions := session.Subscriptions.Subscriptions
-
-	// добавить себя в список
-	subscriptions = append(subscriptions, session.Username)
-
-	// посты с массивом юзернеймов из подписок
-	offset := (page - 1) * 10
-	size := 10
-	posts, err := controller.postRepo.GetByUsernameList(subscriptions, offset, size)
+	list, err := controller._explore(session, page)
 	if err != nil {
-		logger.Error(err, "Get posts list by username list error")
-		return controller.Error(ctx, errors.PostsGetByUsernameList.With(err))
-	}
-
-	// обработка списка постов для клиента
-	list := make([]models.PostGet, 0, len(posts))
-	for _, item := range posts {
-		list = append(list, models.PostGet{
-			AuthorUsername: item.AuthorUsername,
-			AuthorName:     item.AuthorName,
-			AuthorAvatar:   item.AuthorAvatar,
-
-			CategoryCode: item.CategoryCode,
-			CategoryName: item.CategoryName,
-
-			Code: item.Code,
-			Text: item.Text,
-			Picture: &models.PostGetPicture{
-				Path:   item.Picture,
-				Width:  item.PictureWidth,
-				Height: item.PictureHeight,
-			},
-			CreatedAt: item.CreatedAt,
-		})
+		return controller.Error(ctx, err)
 	}
 
 	return controller.Ok(ctx, list)

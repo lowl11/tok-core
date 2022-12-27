@@ -14,11 +14,13 @@ type PostAdd struct {
 }
 
 type PostElasticAdd struct {
-	Code     string  `json:"code"`
-	Text     string  `json:"text"`
-	Category string  `json:"category"`
-	Picture  *string `json:"picture"`
-	Author   string  `json:"author"`
+	Code         string          `json:"code"`
+	Text         string          `json:"text"`
+	Category     string          `json:"category"`
+	CategoryName string          `json:"category_name"`
+	Picture      *PostGetPicture `json:"picture"`
+	Author       string          `json:"author"`
+	CreatedAt    time.Time       `json:"created_at"`
 
 	Keys []string `json:"keys"`
 }
@@ -40,6 +42,19 @@ type PostGet struct {
 	Text      string          `json:"text"`
 	Picture   *PostGetPicture `json:"picture"`
 	CreatedAt time.Time       `json:"created_at"`
+}
+
+type PostElasticGet struct {
+	Code         string          `json:"code"`
+	Text         string          `json:"text"`
+	Category     string          `json:"category"`
+	CategoryName string          `json:"category_name"`
+	Picture      *PostGetPicture `json:"picture"`
+	Author       string          `json:"author"`
+
+	Keys []string `json:"keys"`
+
+	CreatedAt time.Time `json:"created_at"`
 }
 
 type PostGetPicture struct {

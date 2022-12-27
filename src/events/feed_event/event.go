@@ -9,7 +9,7 @@ import (
 
 type Event struct {
 	client *elastic_client.Event
-	search *elastic_search.Event[models.PostGet]
+	search *elastic_search.Event[models.PostElasticGet]
 }
 
 func Create(servers []string, _, _ string) *Event {
@@ -17,6 +17,6 @@ func Create(servers []string, _, _ string) *Event {
 
 	return &Event{
 		client: es_api.NewClient(baseURL),
-		search: es_api.NewSearch[models.PostGet](baseURL),
+		search: es_api.NewSearch[models.PostElasticGet](baseURL),
 	}
 }

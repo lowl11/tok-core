@@ -4,6 +4,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/lowl11/lazylog/layers"
+	"time"
 	"tok-core/src/data/entities"
 	"tok-core/src/data/errors"
 	"tok-core/src/data/models"
@@ -63,10 +64,15 @@ func (controller *Controller) _add(session *entities.ClientSession, model *model
 	// создание поста в рекомендациях
 	go func() {
 		// построить путь к изображению (если есть) для эластика
-		var elasticPicturePath *string
+		var elasticPicture *models.PostGetPicture
 		if extendedModel.ImageConfig != nil && extendedModel.ImageConfig.Path != "" {
 			postPicturePath := "/images/post/" + session.Username + "/post_" + postCode + "/" + extendedModel.ImageConfig.Path
-			elasticPicturePath = &postPicturePath
+
+			elasticPicture = &models.PostGetPicture{
+				Path:   &postPicturePath,
+				Width:  extendedModel.ImageConfig.Width,
+				Height: extendedModel.ImageConfig.Height,
+			}
 		}
 
 		// получаем имя категории
@@ -85,11 +91,13 @@ func (controller *Controller) _add(session *entities.ClientSession, model *model
 
 		// завести пост в рекоммендациях (через elastic)
 		if err := controller.feed.AddExplore(&models.PostElasticAdd{
-			Code:     postCode,
-			Text:     extendedModel.Base.Text,
-			Category: extendedModel.Base.CategoryCode,
-			Picture:  elasticPicturePath,
-			Author:   session.Username,
+			Code:         postCode,
+			Text:         extendedModel.Base.Text,
+			Category:     extendedModel.Base.CategoryCode,
+			CategoryName: categoryName,
+			Picture:      elasticPicture,
+			Author:       session.Username,
+			CreatedAt:    time.Now(),
 
 			Keys: []string{categoryName},
 		}); err != nil {

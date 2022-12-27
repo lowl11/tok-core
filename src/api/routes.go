@@ -93,7 +93,7 @@ func setFeed(server *echo.Echo, controller *feed_controller.Controller) {
 
 	setMiddlewaresPublic(group)
 	group.GET("/main", controller.Main)
-	group.GET("/explore", controller.Explore)
+	group.GET("/explore", controller.ExploreREST)
 	group.GET("/user/:username", controller.User)
 	group.GET("/category/:category_code", controller.Category)
 	group.GET("/single/:code", controller.Single)

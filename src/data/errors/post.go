@@ -63,4 +63,8 @@ var (
 		TechMessage:     "Get post by code error",
 		BusinessMessage: "Произошла ошибка",
 	}
+	PostsGetExplore = &models.Error{
+		TechMessage:     "Get posts explore error",
+		BusinessMessage: "Произошла ошибка",
+	}
 )
