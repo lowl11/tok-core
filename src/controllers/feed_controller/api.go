@@ -63,6 +63,59 @@ func (controller *Controller) Main(ctx echo.Context) error {
 }
 
 /*
+	Explore лента "рекомендаций"
+*/
+func (controller *Controller) Explore(ctx echo.Context) error {
+	logger := definition.Logger
+	session := ctx.Get("client_session").(*entities.ClientSession)
+
+	// чтение номера страницы
+	page, _ := strconv.Atoi(ctx.QueryParam("page"))
+	if page <= 0 {
+		page = 1 // номер страницы по умолчанию
+	}
+
+	// список подписок из сессии
+	subscriptions := session.Subscriptions.Subscriptions
+
+	// добавить себя в список
+	subscriptions = append(subscriptions, session.Username)
+
+	// посты с массивом юзернеймов из подписок
+	offset := (page - 1) * 10
+	size := 10
+	posts, err := controller.postRepo.GetByUsernameList(subscriptions, offset, size)
+	if err != nil {
+		logger.Error(err, "Get posts list by username list error")
+		return controller.Error(ctx, errors.PostsGetByUsernameList.With(err))
+	}
+
+	// обработка списка постов для клиента
+	list := make([]models.PostGet, 0, len(posts))
+	for _, item := range posts {
+		list = append(list, models.PostGet{
+			AuthorUsername: item.AuthorUsername,
+			AuthorName:     item.AuthorName,
+			AuthorAvatar:   item.AuthorAvatar,
+
+			CategoryCode: item.CategoryCode,
+			CategoryName: item.CategoryName,
+
+			Code: item.Code,
+			Text: item.Text,
+			Picture: &models.PostGetPicture{
+				Path:   item.Picture,
+				Width:  item.PictureWidth,
+				Height: item.PictureHeight,
+			},
+			CreatedAt: item.CreatedAt,
+		})
+	}
+
+	return controller.Ok(ctx, list)
+}
+
+/*
 	User лента на странице пользователя
 */
 func (controller *Controller) User(ctx echo.Context) error {

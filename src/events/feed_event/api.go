@@ -5,9 +5,9 @@ import (
 	"tok-core/src/data/models"
 )
 
-func (event *Event) AddRecommendation(post *models.PostElasticAdd) error {
-	// recmd_27-12-2022
-	indexName := recmdPrefix + time.Now().Format("02-01-2006")
+func (event *Event) AddExplore(post *models.PostElasticAdd) error {
+	// explore_27-12-2022
+	indexName := explorePrefix + time.Now().Format("02-01-2006")
 
 	// создать индекс перед записью (с проверкой на существование)
 	if err := event.client.CreateIndex(indexName, nil); err != nil {
@@ -18,9 +18,9 @@ func (event *Event) AddRecommendation(post *models.PostElasticAdd) error {
 	return event.client.Insert(post.Code, indexName, post)
 }
 
-func (event *Event) DeleteRecommendation(postCode string) error {
-	// recmd_27-12-2022
-	indexName := recmdPrefix + time.Now().Format("02-01-2006")
+func (event *Event) DeleteExplore(postCode string) error {
+	// explore_27-12-2022
+	indexName := explorePrefix + time.Now().Format("02-01-2006")
 
 	// удалить запись с индекса
 	return event.client.DeleteItem(indexName, postCode)

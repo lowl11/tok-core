@@ -1,5 +1,5 @@
 package feed_event
 
 const (
-	recmdPrefix = "recmd_"
+	explorePrefix = "explore_"
 )

@@ -84,7 +84,7 @@ func (controller *Controller) _add(session *entities.ClientSession, model *model
 		}
 
 		// завести пост в рекоммендациях (через elastic)
-		if err := controller.feed.AddRecommendation(&models.PostElasticAdd{
+		if err := controller.feed.AddExplore(&models.PostElasticAdd{
 			Code:     postCode,
 			Text:     extendedModel.Base.Text,
 			Category: extendedModel.Base.CategoryCode,
@@ -93,7 +93,7 @@ func (controller *Controller) _add(session *entities.ClientSession, model *model
 
 			Keys: []string{categoryName},
 		}); err != nil {
-			logger.Error(err, "Add post to recommendation error", layers.Elastic)
+			logger.Error(err, "Add post to explore error", layers.Elastic)
 			return
 		}
 	}()
@@ -187,7 +187,7 @@ func (controller *Controller) _delete(code string) *models.Error {
 	}
 
 	// удаление поста по коду в эластике
-	if err = controller.feed.DeleteRecommendation(code); err != nil {
+	if err = controller.feed.DeleteExplore(code); err != nil {
 		logger.Error(err, "Delete post by code error", layers.Elastic)
 		return errors.PostDelete.With(err)
 	}
