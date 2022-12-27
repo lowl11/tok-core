@@ -20,6 +20,10 @@ var (
 		TechMessage:     "Post code required",
 		BusinessMessage: "Произошла ошибка",
 	}
+	PostDeleteParam = &models.Error{
+		TechMessage:     "Post Code required",
+		BusinessMessage: "Произошла ошибка",
+	}
 
 	PostCreateBind = &models.Error{
 		TechMessage:     "Create post model bind error",
@@ -33,6 +37,10 @@ var (
 
 	PostCreate = &models.Error{
 		TechMessage:     "Create post error",
+		BusinessMessage: "Произошла ошибка",
+	}
+	PostDelete = &models.Error{
+		TechMessage:     "Delete post error",
 		BusinessMessage: "Произошла ошибка",
 	}
 	PostCreateUploadPicture = &models.Error{

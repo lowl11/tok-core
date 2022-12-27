@@ -102,7 +102,7 @@ func (controller *Controller) _add(session *entities.ClientSession, model *model
 }
 
 /*
-	AddRest REST обертка для _add
+	AddREST обертка для _add
 */
 func (controller *Controller) AddREST(ctx echo.Context) error {
 	// связка модели
@@ -151,7 +151,7 @@ func (controller *Controller) _categories() ([]models.PostCategoryGet, *models.E
 }
 
 /*
-	CategoriesREST REST обертка для _categories
+	CategoriesREST обертка для _categories
 */
 func (controller *Controller) CategoriesREST(ctx echo.Context) error {
 	list, err := controller._categories()
@@ -160,4 +160,41 @@ func (controller *Controller) CategoriesREST(ctx echo.Context) error {
 	}
 
 	return controller.Ok(ctx, list)
+}
+
+/*
+	_delete удаление поста с БД и эластика
+*/
+func (controller *Controller) _delete(code string) *models.Error {
+	logger := definition.Logger
+
+	// удаление поста по коду в БД
+	if err := controller.postRepo.DeleteByCode(code); err != nil {
+		logger.Error(err, "Delete post by code error", layers.Database)
+		return errors.PostDelete.With(err)
+	}
+
+	// удаление поста по коду в эластике
+	if err := controller.feed.DeleteRecommendation(code); err != nil {
+		logger.Error(err, "Delete post by code error", layers.Elastic)
+		return errors.PostDelete.With(err)
+	}
+
+	return nil
+}
+
+/*
+	DeleteREST обертка для _delete
+*/
+func (controller *Controller) DeleteREST(ctx echo.Context) error {
+	code := ctx.Param("code")
+	if code == "" {
+		return controller.Error(ctx, errors.PostDeleteParam)
+	}
+
+	if err := controller._delete(code); err != nil {
+		return controller.Error(ctx, err)
+	}
+
+	return controller.Ok(ctx, "OK")
 }

@@ -9,27 +9,19 @@ func (event *Event) AddRecommendation(post *models.PostElasticAdd) error {
 	// recmd_27-12-2022
 	indexName := recmdPrefix + time.Now().Format("02-01-2006")
 
-	// create index before recording (with exist check)
+	// создать индекс перед записью (с проверкой на существование)
 	if err := event.client.CreateIndex(indexName, nil); err != nil {
 		return err
 	}
 
-	// create record
+	// создать запись
 	return event.client.Insert(post.Code, indexName, post)
 }
 
-func (event *Event) CreateUserFeed() error {
-	return nil
-}
+func (event *Event) DeleteRecommendation(postCode string) error {
+	// recmd_27-12-2022
+	indexName := recmdPrefix + time.Now().Format("02-01-2006")
 
-func (event *Event) CreateCategoryFeed() error {
-	return nil
-}
-
-func (event *Event) UpdateUserFeed() error {
-	return nil
-}
-
-func (event *Event) UpdateCategoryFeed() error {
-	return nil
+	// удалить запись с индекса
+	return event.client.DeleteItem(indexName, postCode)
 }

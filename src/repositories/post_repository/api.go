@@ -158,3 +158,22 @@ func (repo *Repository) GetByCode(code string) (*entities.PostGet, error) {
 
 	return nil, nil
 }
+
+func (repo *Repository) DeleteByCode(code string) error {
+	ctx, cancel := repo.Ctx()
+	defer cancel()
+
+	query := repo.Script("post", "delete_by_code")
+
+	if err := repo.Transaction(repo.connection, func(tx *sqlx.Tx) error {
+		if _, err := tx.ExecContext(ctx, query, code); err != nil {
+			return err
+		}
+
+		return nil
+	}); err != nil {
+		return err
+	}
+
+	return nil
+}
