@@ -54,6 +54,7 @@ func (event *Event) GetExplore(username string, keys []string, page int) ([]mode
 	results, err := event.search.
 		MultiMatch(indexName, strings.Join(keys, " "), exploreFields).
 		Not(event.notMyAccount(username)).
+		Size(10).
 		Search()
 	if err != nil {
 		return nil, err
