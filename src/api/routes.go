@@ -106,6 +106,9 @@ func setPost(server *echo.Echo, controller *post_controller.Controller) {
 	group.POST("/add", controller.AddREST)
 	group.DELETE("/delete/:code", controller.DeleteREST)
 
+	exploreGroup := group.Group("/explore")
+	exploreGroup.POST("/fill", controller.FillExploreREST)
+
 	categoryGroup := group.Group("/category")
 	categoryGroup.GET("/get", controller.CategoriesREST)
 }

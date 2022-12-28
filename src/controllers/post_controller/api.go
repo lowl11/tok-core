@@ -218,3 +218,30 @@ func (controller *Controller) DeleteREST(ctx echo.Context) error {
 
 	return controller.Ok(ctx, "OK")
 }
+
+/*
+	_fillExplore заполнение данных для "рекомендаций"
+*/
+func (controller *Controller) _fillExplore() *models.Error {
+	posts, err := controller.postRepo.GetExplore()
+	if err != nil {
+		return errors.PostsGetExplore.With(err)
+	}
+
+	if err = controller.feed.FillExplore(posts); err != nil {
+		return errors.ExploreFill.With(err)
+	}
+
+	return nil
+}
+
+/*
+	FillExploreREST обертка для _fillExplore
+*/
+func (controller *Controller) FillExploreREST(ctx echo.Context) error {
+	if err := controller._fillExplore(); err != nil {
+		return controller.Error(ctx, err)
+	}
+
+	return controller.Ok(ctx, "OK")
+}

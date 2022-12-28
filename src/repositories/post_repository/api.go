@@ -177,3 +177,27 @@ func (repo *Repository) DeleteByCode(code string) error {
 
 	return nil
 }
+
+func (repo *Repository) GetExplore() ([]entities.PostGet, error) {
+	ctx, cancel := repo.Ctx()
+	defer cancel()
+
+	query := repo.Script("post", "get_explore")
+
+	rows, err := repo.connection.QueryxContext(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	defer repo.CloseRows(rows)
+
+	list := make([]entities.PostGet, 0)
+	for rows.Next() {
+		item := entities.PostGet{}
+		if err = rows.StructScan(&item); err != nil {
+			return nil, err
+		}
+		list = append(list, item)
+	}
+
+	return list, nil
+}
