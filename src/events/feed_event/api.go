@@ -2,6 +2,7 @@ package feed_event
 
 import (
 	"github.com/lowl11/lazy-collection/type_list"
+	"github.com/lowl11/lazy-elastic/es_model"
 	"strings"
 	"time"
 	"tok-core/src/data/entities"
@@ -31,8 +32,11 @@ func (event *Event) AddListExplore(posts []models.PostElasticAdd) error {
 	}
 
 	// создать запись
-	return event.client.InsertMultiple(indexName, type_list.NewWithList[models.PostElasticAdd, any](posts...).Select(func(item models.PostElasticAdd) any {
-		return item
+	return event.client.InsertMultiple(indexName, type_list.NewWithList[models.PostElasticAdd, es_model.InsertMultipleData](posts...).Select(func(item models.PostElasticAdd) es_model.InsertMultipleData {
+		return es_model.InsertMultipleData{
+			ID:     item.Code,
+			Object: item,
+		}
 	}).Slice())
 }
 

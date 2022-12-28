@@ -142,6 +142,24 @@ func (controller *Controller) Category(ctx echo.Context) error {
 	// обработка поискового запроса клиента
 	model.Query = query_corrector.Correct(model.Query)
 
+	if model.Query == "" {
+		categories, err := controller.postCategoryRepo.GetFirstSorted()
+		if err != nil {
+			return controller.Error(ctx, errors.PostCategoryGetList.With(err))
+		}
+
+		// обработка списка категорий постов для клиента
+		list := make([]models.PostCategoryGet, 0, len(categories))
+		for _, item := range categories {
+			list = append(list, models.PostCategoryGet{
+				Code: item.Code,
+				Name: item.Name,
+			})
+		}
+
+		return controller.Ok(ctx, list)
+	}
+
 	// получить список категорий постов
 	categories, err := controller.postCategoryRepo.Search(model.Query)
 	if err != nil {

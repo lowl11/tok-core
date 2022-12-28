@@ -12,11 +12,7 @@ func (controller *Controller) validateUser(model *models.SearchUser) error {
 	return nil
 }
 
-func (controller *Controller) validateCategory(model *models.SearchCategory) error {
-	if err := controller.RequiredField(model.Query, "query"); err != nil {
-		return err
-	}
-
+func (controller *Controller) validateCategory(_ *models.SearchCategory) error {
 	return nil
 }
 

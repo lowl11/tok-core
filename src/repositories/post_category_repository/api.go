@@ -29,7 +29,38 @@ func (repo *Repository) GetAll() ([]entities.PostCategoryGet, error) {
 	}
 
 	// ограничие списка по кол-ву
-	list = list[:maxAllResult]
+	if len(list) > maxAllResult {
+		list = list[:maxAllResult]
+	}
+
+	return list, nil
+}
+
+func (repo *Repository) GetFirstSorted() ([]entities.PostCategoryGet, error) {
+	ctx, cancel := repo.Ctx()
+	defer cancel()
+
+	query := repo.Script("post_category", "get_first_sorted")
+
+	rows, err := repo.connection.QueryxContext(ctx, query, 10)
+	if err != nil {
+		return nil, err
+	}
+	defer repo.CloseRows(rows)
+
+	list := make([]entities.PostCategoryGet, 0)
+	for rows.Next() {
+		item := entities.PostCategoryGet{}
+		if err = rows.StructScan(&item); err != nil {
+			return nil, err
+		}
+		list = append(list, item)
+	}
+
+	// ограничие списка по кол-ву
+	if len(list) > maxAllResult {
+		list = list[:maxAllResult]
+	}
 
 	return list, nil
 }
