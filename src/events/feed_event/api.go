@@ -51,9 +51,12 @@ func (event *Event) DeleteExplore(postCode string) error {
 func (event *Event) GetExplore(username string, keys []string, page int) ([]models.PostElasticGet, error) {
 	indexName := explorePrefix + time.Now().Format("02-01-2006")
 
+	from := (page - 1) * 10
+
 	results, err := event.search.
 		MultiMatch(indexName, strings.Join(keys, " "), exploreFields).
 		Not(event.notMyAccount(username)).
+		From(from).
 		Size(10).
 		Search()
 	if err != nil {
