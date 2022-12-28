@@ -27,13 +27,30 @@ func (event *Event) DeleteExplore(postCode string) error {
 	return event.client.DeleteItem(indexName, postCode)
 }
 
-func (event *Event) GetExplore(keys []string, page int) ([]models.PostElasticGet, error) {
-	// explore_27-12-2022
+func (event *Event) GetExplore(username string, keys []string, page int) ([]models.PostElasticGet, error) {
 	indexName := explorePrefix + time.Now().Format("02-01-2006")
 
-	results, err := event.search.MultiMatch(indexName, strings.Join(keys, " "), exploreFields)
+	results, err := event.search.
+		MultiMatch(indexName, strings.Join(keys, " "), exploreFields).
+		Not(event.notMyAccount(username)).
+		Search()
 	if err != nil {
 		return nil, err
+	}
+
+	if len(results) == 0 {
+		// ищем во вчерашнем индексе
+		yesterdayIndexName := explorePrefix + time.Now().AddDate(0, 0, -1).Format("02-01-2006")
+
+		yesterdayResults, err := event.search.
+			MultiMatch(yesterdayIndexName, strings.Join(keys, " "), exploreFields).
+			Not(event.notMyAccount(username)).
+			Search()
+		if err != nil {
+			return nil, err
+		}
+
+		return yesterdayResults, nil
 	}
 
 	return results, nil
