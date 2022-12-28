@@ -29,9 +29,17 @@ var (
 		TechMessage:     "Create post model bind error",
 		BusinessMessage: "Произошла ошибка",
 	}
+	PostLikeBind = &models.Error{
+		TechMessage:     "Like post model bind error",
+		BusinessMessage: "Произошла ошибка",
+	}
 
 	PostCreateValidate = &models.Error{
 		TechMessage:     "Create post model validate error",
+		BusinessMessage: "Произошла ошибка",
+	}
+	PostLikeValidate = &models.Error{
+		TechMessage:     "Like post model validate error",
 		BusinessMessage: "Произошла ошибка",
 	}
 
@@ -65,6 +73,10 @@ var (
 	}
 	PostsGetExplore = &models.Error{
 		TechMessage:     "Get posts explore error",
+		BusinessMessage: "Произошла ошибка",
+	}
+	PostLike = &models.Error{
+		TechMessage:     "Like post error",
 		BusinessMessage: "Произошла ошибка",
 	}
 )

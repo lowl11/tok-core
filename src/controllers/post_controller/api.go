@@ -223,12 +223,16 @@ func (controller *Controller) DeleteREST(ctx echo.Context) error {
 	_fillExplore заполнение данных для "рекомендаций"
 */
 func (controller *Controller) _fillExplore() *models.Error {
+	logger := definition.Logger
+
 	posts, err := controller.postRepo.GetExplore()
 	if err != nil {
+		logger.Error(err, "Get explore posts error", layers.Database)
 		return errors.PostsGetExplore.With(err)
 	}
 
 	if err = controller.feed.FillExplore(posts); err != nil {
+		logger.Error(err, "Fill posts for explore error", layers.Elastic)
 		return errors.ExploreFill.With(err)
 	}
 
@@ -240,6 +244,73 @@ func (controller *Controller) _fillExplore() *models.Error {
 */
 func (controller *Controller) FillExploreREST(ctx echo.Context) error {
 	if err := controller._fillExplore(); err != nil {
+		return controller.Error(ctx, err)
+	}
+
+	return controller.Ok(ctx, "OK")
+}
+
+func (controller *Controller) _like(model *models.PostLike) *models.Error {
+	//
+
+	return nil
+}
+
+func (controller *Controller) _unlike(model *models.PostUnlike) *models.Error {
+	//
+
+	return nil
+}
+
+func (controller *Controller) LikeREST(ctx echo.Context) error {
+	model := models.PostLike{}
+	if err := ctx.Bind(&model); err != nil {
+		return controller.Error(ctx, errors.PostLikeBind.With(err))
+	}
+
+	if err := controller.validateLike(&model); err != nil {
+		return controller.Error(ctx, errors.PostLikeValidate.With(err))
+	}
+
+	if err := controller._like(&model); err != nil {
+		return controller.Error(ctx, err)
+	}
+
+	return controller.Ok(ctx, "OK")
+}
+
+func (controller *Controller) UnlikeREST(ctx echo.Context) error {
+	model := models.PostUnlike{}
+	if err := ctx.Bind(&model); err != nil {
+		return controller.Error(ctx, errors.PostLikeBind.With(err))
+	}
+
+	if err := controller.validateUnlike(&model); err != nil {
+		return controller.Error(ctx, errors.PostLikeValidate.With(err))
+	}
+
+	if err := controller._unlike(&model); err != nil {
+		return controller.Error(ctx, err)
+	}
+
+	return controller.Ok(ctx, "OK")
+}
+
+func (controller *Controller) _addComment(model *models.PostCommentAdd) *models.Error {
+	return nil
+}
+
+func (controller *Controller) AddCommentREST(ctx echo.Context) error {
+	model := models.PostCommentAdd{}
+	if err := ctx.Bind(&model); err != nil {
+		return controller.Error(ctx, errors.PostLikeBind.With(err))
+	}
+
+	if err := controller.validateAddComment(&model); err != nil {
+		return controller.Error(ctx, errors.PostLikeValidate.With(err))
+	}
+
+	if err := controller._addComment(&model); err != nil {
 		return controller.Error(ctx, err)
 	}
 

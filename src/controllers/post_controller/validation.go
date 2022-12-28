@@ -29,3 +29,43 @@ func (controller *Controller) validatePostCreate(model *models.PostAdd) error {
 
 	return nil
 }
+
+func (controller *Controller) validateLike(model *models.PostLike) error {
+	if err := controller.RequiredField(model.Author, "author"); err != nil {
+		return err
+	}
+
+	if err := controller.RequiredField(model.PostCode, "post_code"); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (controller *Controller) validateUnlike(model *models.PostUnlike) error {
+	if err := controller.RequiredField(model.Author, "author"); err != nil {
+		return err
+	}
+
+	if err := controller.RequiredField(model.PostCode, "post_code"); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (controller *Controller) validateAddComment(model *models.PostCommentAdd) error {
+	if err := controller.RequiredField(model.Author, "author"); err != nil {
+		return err
+	}
+
+	if err := controller.RequiredField(model.PostCode, "post_code"); err != nil {
+		return err
+	}
+
+	if err := controller.RequiredField(model.Text, "text"); err != nil {
+		return err
+	}
+
+	return nil
+}

@@ -105,6 +105,9 @@ func setPost(server *echo.Echo, controller *post_controller.Controller) {
 	setMiddlewaresPublic(group)
 	group.POST("/add", controller.AddREST)
 	group.DELETE("/delete/:code", controller.DeleteREST)
+	group.POST("/like", controller.LikeREST)
+	group.POST("/unlike", controller.UnlikeREST)
+	group.POST("/comment", controller.AddCommentREST)
 
 	exploreGroup := group.Group("/explore")
 	exploreGroup.POST("/fill", controller.FillExploreREST)
