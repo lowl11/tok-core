@@ -56,7 +56,9 @@ func (repo *Repository) Search(searchQuery string) ([]entities.PostCategoryGet, 
 	}
 
 	// ограничие списка по кол-ву
-	list = list[:maxSearchResult]
+	if len(list) > maxSearchResult {
+		list = list[:maxSearchResult]
+	}
 
 	return list, nil
 }
