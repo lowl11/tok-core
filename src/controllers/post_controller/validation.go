@@ -71,11 +71,5 @@ func (controller *Controller) validateAddComment(model *models.PostCommentAdd) e
 		return err
 	}
 
-	if !model.FirstComment {
-		if err := controller.RequiredField(model.ParentCommentCode, "parent_comment_code"); err != nil {
-			return err
-		}
-	}
-
 	return nil
 }
