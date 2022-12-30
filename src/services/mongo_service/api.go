@@ -30,3 +30,10 @@ func NewConnection(databaseName string) (*mongo.Database, error) {
 
 	return client.Database(databaseName), nil
 }
+
+func Filter() *FilterService {
+	return &FilterService{
+		isAnd:      true,
+		conditions: make(map[string]any),
+	}
+}

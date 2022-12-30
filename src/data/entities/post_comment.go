@@ -2,13 +2,24 @@ package entities
 
 import "time"
 
-type PostCommentGet struct {
-	PostCode       string    `bson:"post_code"`
-	AuthorUsername string    `bson:"author_username"`
-	Text           string    `bson:"text"`
-	LikesCount     int       `bson:"likes_count"`
-	Likers         []string  `bson:"likers"`
-	CreatedAt      time.Time `bson:"created_at"`
+type PostCommentItem struct {
+	CommentCode   string    `bson:"comment_code"`
+	CommentAuthor string    `bson:"comment_author"`
+	CommentText   string    `bson:"comment_text"`
+	LikesCount    int       `bson:"likes_count"`
+	LikeAuthors   []string  `bson:"like_authors"`
+	CreatedAt     time.Time `bson:"created_at"`
+
+	SubComments []PostSubCommentItem `bson:"subcomments"`
+}
+
+type PostSubCommentItem struct {
+	CommentCode   string    `bson:"comment_code"`
+	CommentAuthor string    `bson:"comment_author"`
+	CommentText   string    `bson:"comment_text"`
+	LikesCount    int       `bson:"likes_count"`
+	LikeAuthors   []string  `bson:"like_authors"`
+	CreatedAt     time.Time `bson:"created_at"`
 }
 
 type PostCommentCreate struct {
@@ -18,22 +29,31 @@ type PostCommentCreate struct {
 	Comments []PostCommentItem `bson:"comments"`
 }
 
-type PostCommentItem struct {
+type PostCommentAppendComment struct {
 	CommentCode   string    `bson:"comment_code"`
 	CommentAuthor string    `bson:"comment_author"`
-	Text          string    `bson:"text"`
+	CommentText   string    `bson:"comment_text"`
 	LikesCount    int       `bson:"likes_count"`
 	LikeAuthors   []string  `bson:"like_authors"`
 	CreatedAt     time.Time `bson:"created_at"`
 
-	SubComments []PostSubCommentItem `bson:"sub_comments"`
+	SubComments []PostSubCommentItem `bson:"subcomments"`
 }
 
-type PostSubCommentItem struct {
+type PostCommentAppendSubComment struct {
 	CommentCode   string    `bson:"comment_code"`
 	CommentAuthor string    `bson:"comment_author"`
-	Text          string    `bson:"text"`
+	CommentText   string    `bson:"comment_text"`
 	LikesCount    int       `bson:"likes_count"`
 	LikeAuthors   []string  `bson:"like_authors"`
 	CreatedAt     time.Time `bson:"created_at"`
+}
+
+type PostCommentGet struct {
+	PostCode       string    `bson:"post_code"`
+	AuthorUsername string    `bson:"author_username"`
+	Text           string    `bson:"text"`
+	LikesCount     int       `bson:"likes_count"`
+	Likers         []string  `bson:"likers"`
+	CreatedAt      time.Time `bson:"created_at"`
 }

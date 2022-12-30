@@ -17,5 +17,8 @@ type PostCommentAdd struct {
 
 	CommentAuthor string `json:"comment_author"`
 	CommentText   string `json:"comment_text"`
-	FirstComment  bool   `json:"first_comment"`
+
+	// если комментарий не первый в посте
+	ParentCommentCode string `json:"parent_comment_code"`
+	FirstComment      bool   `json:"first_comment"`
 }

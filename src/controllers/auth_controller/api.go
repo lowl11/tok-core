@@ -2,6 +2,7 @@ package auth_controller
 
 import (
 	"github.com/labstack/echo/v4"
+	"github.com/lowl11/lazylog/layers"
 	"tok-core/src/data/entities"
 	"tok-core/src/data/errors"
 	"tok-core/src/data/models"
@@ -81,8 +82,8 @@ func (controller *Controller) LoginByCredentials(ctx echo.Context) error {
 	// получить пользователя
 	user, err := controller.userRepo.GetByUsername(model.Username)
 	if err != nil {
-		logger.Error(err, "Get user error")
-		return controller.Error(ctx, errors.UserGet.With(err))
+		logger.Error(err, "Get user error", layers.Auth)
+		return controller.Unauthorized(ctx, errors.UserGet.With(err))
 	}
 
 	// если пользователь не найден
@@ -104,7 +105,7 @@ func (controller *Controller) LoginByCredentials(ctx echo.Context) error {
 
 	// проверка существует ли уже сессия у пользователя
 	session, token, err := controller.clientSession.GetByUsername(model.Username)
-	if err != nil {
+	if err != nil && err.Error() != "session not found" {
 		return controller.Error(ctx, errors.SessionGet.With(err))
 	}
 

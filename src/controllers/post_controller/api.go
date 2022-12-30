@@ -329,9 +329,19 @@ func (controller *Controller) _addComment(model *models.PostCommentAdd) (string,
 
 	commentCode := uuid.New().String()
 
-	if err := controller.postCommentRepo.Create(model, commentCode); err != nil {
-		logger.Error(err, "Create new post comment error", layers.Mongo)
-		return "", errors.PostCommentCreate.With(err)
+	// комментарий у поста может быть первым и не первым
+	// если комментарий первый то значит записи в Mongo у поста нет (для комментариев)
+	// значит, нужно создать его чтобы в дальнейшем в него писать
+	if model.FirstComment {
+		if err := controller.postCommentRepo.Create(model, commentCode); err != nil {
+			logger.Error(err, "Create new post comment error", layers.Mongo)
+			return "", errors.PostCommentCreate.With(err)
+		}
+	} else {
+		if err := controller.postCommentRepo.Append(model, commentCode); err != nil {
+			logger.Error(err, "Create new post comment error", layers.Mongo)
+			return "", errors.PostCommentCreate.With(err)
+		}
 	}
 
 	return commentCode, nil
