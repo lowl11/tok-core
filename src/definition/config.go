@@ -23,6 +23,10 @@ type Configuration struct {
 		Lifetime       int    `json:"lifetime"`
 	} `json:"database"`
 
+	Mongo struct {
+		Connection string `json:"connection"`
+	} `json:"mongo"`
+
 	Redis struct {
 		Address  string `json:"address"`
 		Password string `json:"password"`

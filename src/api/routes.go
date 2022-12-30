@@ -103,15 +103,22 @@ func setPost(server *echo.Echo, controller *post_controller.Controller) {
 	group := server.Group("/api/v1/post")
 
 	setMiddlewaresPublic(group)
+
+	// main
 	group.POST("/add", controller.AddREST)
 	group.DELETE("/delete/:code", controller.DeleteREST)
 	group.POST("/like", controller.LikeREST)
 	group.POST("/unlike", controller.UnlikeREST)
-	group.POST("/comment", controller.AddCommentREST)
 
+	// comments
+	group.POST("/comment/add", controller.AddCommentREST)
+	group.GET("/comment/get", controller.GetCommentREST)
+
+	// explore
 	exploreGroup := group.Group("/explore")
 	exploreGroup.POST("/fill", controller.FillExploreREST)
 
+	// category
 	categoryGroup := group.Group("/category")
 	categoryGroup.GET("/get", controller.CategoriesREST)
 }

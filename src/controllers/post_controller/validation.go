@@ -55,7 +55,7 @@ func (controller *Controller) validateUnlike(model *models.PostUnlike) error {
 }
 
 func (controller *Controller) validateAddComment(model *models.PostCommentAdd) error {
-	if err := controller.RequiredField(model.Author, "author"); err != nil {
+	if err := controller.RequiredField(model.PostAuthor, "post_author"); err != nil {
 		return err
 	}
 
@@ -63,7 +63,11 @@ func (controller *Controller) validateAddComment(model *models.PostCommentAdd) e
 		return err
 	}
 
-	if err := controller.RequiredField(model.Text, "text"); err != nil {
+	if err := controller.RequiredField(model.CommentAuthor, "comment_author"); err != nil {
+		return err
+	}
+
+	if err := controller.RequiredField(model.CommentText, "comment_text"); err != nil {
 		return err
 	}
 

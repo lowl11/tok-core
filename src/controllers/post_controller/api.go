@@ -1,6 +1,7 @@
 package post_controller
 
 import (
+	"fmt"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/lowl11/lazylog/layers"
@@ -296,8 +297,44 @@ func (controller *Controller) UnlikeREST(ctx echo.Context) error {
 	return controller.Ok(ctx, "OK")
 }
 
-func (controller *Controller) _addComment(model *models.PostCommentAdd) *models.Error {
-	return nil
+func (controller *Controller) _getComment(postCode string) ([]models.PostCommentGet, *models.Error) {
+	logger := definition.Logger
+
+	comments, err := controller.postCommentRepo.GetAll()
+	if err != nil {
+		logger.Error(err, "Get comments list error", layers.Mongo)
+		return nil, errors.PostCommentGet.With(err)
+	}
+
+	for _, item := range comments {
+		fmt.Println("comment:", item)
+	}
+
+	return nil, nil
+}
+
+func (controller *Controller) GetCommentREST(ctx echo.Context) error {
+	postCode := ctx.QueryParam("code")
+
+	comments, err := controller._getComment(postCode)
+	if err != nil {
+		return controller.Error(ctx, err)
+	}
+
+	return controller.Ok(ctx, comments)
+}
+
+func (controller *Controller) _addComment(model *models.PostCommentAdd) (string, *models.Error) {
+	logger := definition.Logger
+
+	commentCode := uuid.New().String()
+
+	if err := controller.postCommentRepo.Create(model, commentCode); err != nil {
+		logger.Error(err, "Create new post comment error", layers.Mongo)
+		return "", errors.PostCommentCreate.With(err)
+	}
+
+	return commentCode, nil
 }
 
 func (controller *Controller) AddCommentREST(ctx echo.Context) error {
@@ -310,9 +347,10 @@ func (controller *Controller) AddCommentREST(ctx echo.Context) error {
 		return controller.Error(ctx, errors.PostLikeValidate.With(err))
 	}
 
-	if err := controller._addComment(&model); err != nil {
+	commentCode, err := controller._addComment(&model)
+	if err != nil {
 		return controller.Error(ctx, err)
 	}
 
-	return controller.Ok(ctx, "OK")
+	return controller.Ok(ctx, commentCode)
 }

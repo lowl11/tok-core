@@ -1,18 +1,24 @@
 package repositories
 
 import (
-	"github.com/jmoiron/sqlx"
-	"time"
+	"github.com/lowl11/lazylog/layers"
 	"tok-core/src/definition"
 	"tok-core/src/events"
 	"tok-core/src/repositories/auth_repository"
 	"tok-core/src/repositories/post_category_repository"
+	"tok-core/src/repositories/post_comment_repository"
 	"tok-core/src/repositories/post_repository"
 	"tok-core/src/repositories/subscription_repository"
 	"tok-core/src/repositories/user_ip_repository"
 	"tok-core/src/repositories/user_repository"
+	"tok-core/src/services/mongo_service"
+	"tok-core/src/services/postgres_service"
+)
 
-	_ "github.com/lib/pq"
+const (
+	databaseName = "tok"
+
+	postCommentCollection = "post_comments"
 )
 
 type ApiRepositories struct {
@@ -23,37 +29,32 @@ type ApiRepositories struct {
 
 	PostCategory *post_category_repository.Repository
 	Post         *post_repository.Repository
+	PostComment  *post_comment_repository.Repository
 }
 
 func Get(apiEvents *events.ApiEvents) (*ApiRepositories, error) {
-	config := definition.Config.Database
 	logger := definition.Logger
 
-	connection, err := sqlx.Open("postgres", config.Connection)
+	// подключение к Postgres
+	connectionPostgres, err := postgres_service.NewConnection()
 	if err != nil {
-		return nil, err
+		logger.Fatal(err, "Connect to Postgres database error", layers.Database)
 	}
 
-	connection.SetMaxOpenConns(config.MaxConnections)
-	connection.SetMaxIdleConns(config.MaxConnections)
-	connection.SetConnMaxIdleTime(time.Duration(config.Lifetime) * time.Minute)
-
-	logger.Info("Ping database...")
-	if err = connection.Ping(); err != nil {
-		return nil, err
+	// подключение к MongoDB
+	connectionMongo, err := mongo_service.NewConnection(databaseName)
+	if err != nil {
+		logger.Fatal(err, "Connect to Mongo database error", layers.Mongo)
 	}
-	logger.Info("Ping database done!")
-
-	logger.Info("Initialization database...")
-	defer logger.Info("Initialization database done!")
 
 	return &ApiRepositories{
-		Auth:         auth_repository.Create(connection, apiEvents),
-		User:         user_repository.Create(connection, apiEvents),
-		UserIP:       user_ip_repository.Create(connection, apiEvents),
-		Subscription: subscription_repository.Create(connection, apiEvents),
+		Auth:         auth_repository.Create(connectionPostgres, apiEvents),
+		User:         user_repository.Create(connectionPostgres, apiEvents),
+		UserIP:       user_ip_repository.Create(connectionPostgres, apiEvents),
+		Subscription: subscription_repository.Create(connectionPostgres, apiEvents),
 
-		PostCategory: post_category_repository.Create(connection, apiEvents),
-		Post:         post_repository.Create(connection, apiEvents),
+		PostCategory: post_category_repository.Create(connectionPostgres, apiEvents),
+		Post:         post_repository.Create(connectionPostgres, apiEvents),
+		PostComment:  post_comment_repository.Create(connectionMongo, postCommentCollection),
 	}, nil
 }

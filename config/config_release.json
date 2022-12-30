@@ -10,6 +10,9 @@
 		"max_connections": 30,
 		"lifetime": 5
 	},
+	"mongo": {
+		"connection": "mongodb://185.22.67.118:27017/tok"
+	},
 	"redis": {
 		"address": "185.22.67.118:6379",
 		"password": "PKhqpdv6NZmuZXpf"
