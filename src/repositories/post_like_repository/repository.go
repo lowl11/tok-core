@@ -1,4 +1,4 @@
-package post_comment_repository
+package post_like_repository
 
 import (
 	"go.mongodb.org/mongo-driver/mongo"

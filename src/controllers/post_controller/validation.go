@@ -31,7 +31,7 @@ func (controller *Controller) validatePostCreate(model *models.PostAdd) error {
 }
 
 func (controller *Controller) validateLike(model *models.PostLike) error {
-	if err := controller.RequiredField(model.Author, "author"); err != nil {
+	if err := controller.RequiredField(model.LikeAuthor, "like_author"); err != nil {
 		return err
 	}
 
@@ -43,7 +43,7 @@ func (controller *Controller) validateLike(model *models.PostLike) error {
 }
 
 func (controller *Controller) validateUnlike(model *models.PostUnlike) error {
-	if err := controller.RequiredField(model.Author, "author"); err != nil {
+	if err := controller.RequiredField(model.LikeAuthor, "like_author"); err != nil {
 		return err
 	}
 

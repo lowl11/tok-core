@@ -7,6 +7,7 @@ import (
 	"tok-core/src/repositories/auth_repository"
 	"tok-core/src/repositories/post_category_repository"
 	"tok-core/src/repositories/post_comment_repository"
+	"tok-core/src/repositories/post_like_repository"
 	"tok-core/src/repositories/post_repository"
 	"tok-core/src/repositories/subscription_repository"
 	"tok-core/src/repositories/user_ip_repository"
@@ -19,6 +20,7 @@ const (
 	databaseName = "tok"
 
 	postCommentCollection = "post_comments"
+	postLikeCollection    = "post_likes"
 )
 
 type ApiRepositories struct {
@@ -30,6 +32,7 @@ type ApiRepositories struct {
 	PostCategory *post_category_repository.Repository
 	Post         *post_repository.Repository
 	PostComment  *post_comment_repository.Repository
+	PostLike     *post_like_repository.Repository
 }
 
 func Get(apiEvents *events.ApiEvents) (*ApiRepositories, error) {
@@ -56,5 +59,6 @@ func Get(apiEvents *events.ApiEvents) (*ApiRepositories, error) {
 		PostCategory: post_category_repository.Create(connectionPostgres, apiEvents),
 		Post:         post_repository.Create(connectionPostgres, apiEvents),
 		PostComment:  post_comment_repository.Create(connectionMongo, postCommentCollection),
+		PostLike:     post_like_repository.Create(connectionMongo, postLikeCollection),
 	}, nil
 }

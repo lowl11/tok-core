@@ -252,13 +252,23 @@ func (controller *Controller) FillExploreREST(ctx echo.Context) error {
 }
 
 func (controller *Controller) _like(model *models.PostLike) *models.Error {
-	//
+	logger := definition.Logger
+
+	if err := controller.postLikeRepo.Like(model.PostCode, model.LikeAuthor); err != nil {
+		logger.Error(err, "Like post error", layers.Mongo)
+		return errors.PostLike.With(err)
+	}
 
 	return nil
 }
 
 func (controller *Controller) _unlike(model *models.PostUnlike) *models.Error {
-	//
+	logger := definition.Logger
+
+	if err := controller.postLikeRepo.Unlike(model.PostCode, model.LikeAuthor); err != nil {
+		logger.Error(err, "Unlike post error", layers.Mongo)
+		return errors.PostLike.With(err)
+	}
 
 	return nil
 }

@@ -1,11 +1,11 @@
 package models
 
 type PostLike struct {
-	Author   string `json:"author"`
-	PostCode string `json:"post_code"`
+	PostCode   string `json:"post_code"`
+	LikeAuthor string `json:"like_author"`
 }
 
 type PostUnlike struct {
-	Author   string `json:"author"`
-	PostCode string `json:"post_code"`
+	PostCode   string `json:"post_code"`
+	LikeAuthor string `json:"like_author"`
 }

@@ -75,8 +75,4 @@ var (
 		TechMessage:     "Get posts explore error",
 		BusinessMessage: "Произошла ошибка",
 	}
-	PostLike = &models.Error{
-		TechMessage:     "Like post error",
-		BusinessMessage: "Произошла ошибка",
-	}
 )
