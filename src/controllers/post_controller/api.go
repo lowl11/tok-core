@@ -252,10 +252,10 @@ func (controller *Controller) FillExploreREST(ctx echo.Context) error {
 	return controller.Ok(ctx, "OK")
 }
 
-func (controller *Controller) _like(model *models.PostLike) *models.Error {
+func (controller *Controller) _like(session *entities.ClientSession, model *models.PostLike) *models.Error {
 	logger := definition.Logger
 
-	if err := controller.postLikeRepo.Like(model.PostCode, model.LikeAuthor); err != nil {
+	if err := controller.postLikeRepo.Like(model.PostCode, session.Username); err != nil {
 		logger.Error(err, "Like post error", layers.Mongo)
 		return errors.PostLike.With(err)
 	}
@@ -263,10 +263,10 @@ func (controller *Controller) _like(model *models.PostLike) *models.Error {
 	return nil
 }
 
-func (controller *Controller) _unlike(model *models.PostUnlike) *models.Error {
+func (controller *Controller) _unlike(session *entities.ClientSession, model *models.PostUnlike) *models.Error {
 	logger := definition.Logger
 
-	if err := controller.postLikeRepo.Unlike(model.PostCode, model.LikeAuthor); err != nil {
+	if err := controller.postLikeRepo.Unlike(model.PostCode, session.Username); err != nil {
 		logger.Error(err, "Unlike post error", layers.Mongo)
 		return errors.PostUnlike.With(err)
 	}
@@ -275,6 +275,8 @@ func (controller *Controller) _unlike(model *models.PostUnlike) *models.Error {
 }
 
 func (controller *Controller) LikeREST(ctx echo.Context) error {
+	session := ctx.Get("client_session").(*entities.ClientSession)
+
 	model := models.PostLike{}
 	if err := ctx.Bind(&model); err != nil {
 		return controller.Error(ctx, errors.PostLikeBind.With(err))
@@ -284,7 +286,7 @@ func (controller *Controller) LikeREST(ctx echo.Context) error {
 		return controller.Error(ctx, errors.PostLikeValidate.With(err))
 	}
 
-	if err := controller._like(&model); err != nil {
+	if err := controller._like(session, &model); err != nil {
 		return controller.Error(ctx, err)
 	}
 
@@ -292,6 +294,8 @@ func (controller *Controller) LikeREST(ctx echo.Context) error {
 }
 
 func (controller *Controller) UnlikeREST(ctx echo.Context) error {
+	session := ctx.Get("client_session").(*entities.ClientSession)
+
 	model := models.PostUnlike{}
 	if err := ctx.Bind(&model); err != nil {
 		return controller.Error(ctx, errors.PostUnlikeBind.With(err))
@@ -301,7 +305,7 @@ func (controller *Controller) UnlikeREST(ctx echo.Context) error {
 		return controller.Error(ctx, errors.PostUnlikeValidate.With(err))
 	}
 
-	if err := controller._unlike(&model); err != nil {
+	if err := controller._unlike(session, &model); err != nil {
 		return controller.Error(ctx, err)
 	}
 
