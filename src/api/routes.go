@@ -107,8 +107,11 @@ func setPost(server *echo.Echo, controller *post_controller.Controller) {
 	// main
 	group.POST("/add", controller.AddREST)
 	group.DELETE("/delete/:code", controller.DeleteREST)
-	group.POST("/like", controller.LikeREST)
-	group.POST("/unlike", controller.UnlikeREST)
+
+	// likes
+	group.POST("/like/do", controller.LikeREST)
+	group.POST("/like/undo", controller.UnlikeREST)
+	group.GET("/like/get/:code", controller.GetLikesREST)
 
 	// comments
 	group.POST("/comment/add", controller.AddCommentREST)

@@ -2,8 +2,30 @@ package post_like_repository
 
 import (
 	"go.mongodb.org/mongo-driver/bson"
+	"tok-core/src/data/entities"
 	"tok-core/src/services/mongo_service"
 )
+
+func (repo *Repository) Get(postCode string) (*entities.PostLikeGet, error) {
+	ctx, cancel := repo.Ctx()
+	defer cancel()
+
+	result := repo.connection.FindOne(ctx, mongo_service.Filter().Eq("post_code", postCode).Get())
+	if result.Err() != nil {
+		return nil, result.Err()
+	}
+
+	item := entities.PostLikeGet{}
+	if err := result.Decode(&item); err != nil {
+		return nil, err
+	}
+
+	if item.PostCode == "" {
+		return nil, nil
+	}
+
+	return &item, nil
+}
 
 func (repo *Repository) Like(postCode, likeAuthor string) error {
 	ctx, cancel := repo.Ctx()

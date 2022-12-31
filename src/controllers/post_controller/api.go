@@ -3,6 +3,7 @@ package post_controller
 import (
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
+	"github.com/lowl11/lazy-collection/array"
 	"github.com/lowl11/lazy-collection/type_list"
 	"github.com/lowl11/lazylog/layers"
 	"time"
@@ -267,7 +268,7 @@ func (controller *Controller) _unlike(model *models.PostUnlike) *models.Error {
 
 	if err := controller.postLikeRepo.Unlike(model.PostCode, model.LikeAuthor); err != nil {
 		logger.Error(err, "Unlike post error", layers.Mongo)
-		return errors.PostLike.With(err)
+		return errors.PostUnlike.With(err)
 	}
 
 	return nil
@@ -293,11 +294,11 @@ func (controller *Controller) LikeREST(ctx echo.Context) error {
 func (controller *Controller) UnlikeREST(ctx echo.Context) error {
 	model := models.PostUnlike{}
 	if err := ctx.Bind(&model); err != nil {
-		return controller.Error(ctx, errors.PostLikeBind.With(err))
+		return controller.Error(ctx, errors.PostUnlikeBind.With(err))
 	}
 
 	if err := controller.validateUnlike(&model); err != nil {
-		return controller.Error(ctx, errors.PostLikeValidate.With(err))
+		return controller.Error(ctx, errors.PostUnlikeValidate.With(err))
 	}
 
 	if err := controller._unlike(&model); err != nil {
@@ -305,6 +306,44 @@ func (controller *Controller) UnlikeREST(ctx echo.Context) error {
 	}
 
 	return controller.Ok(ctx, "OK")
+}
+
+func (controller *Controller) _getLikes(session *entities.ClientSession, postCode string) (*models.PostLikeGet, *models.Error) {
+	logger := definition.Logger
+
+	likes, err := controller.postLikeRepo.Get(postCode)
+	if err != nil {
+		logger.Error(err, "Get post likes error", layers.Mongo)
+		return nil, errors.PostLikeGet.With(err)
+	}
+
+	if likes == nil {
+		return nil, errors.PostNotFound
+	}
+
+	authorsList := array.NewWithList[string](likes.LikeAuthors...)
+
+	return &models.PostLikeGet{
+		LikesCount:  likes.LikesCount,
+		LikeAuthors: likes.LikeAuthors,
+		Liked:       authorsList.Contains(session.Username),
+	}, nil
+}
+
+func (controller *Controller) GetLikesREST(ctx echo.Context) error {
+	session := ctx.Get("client_session").(*entities.ClientSession)
+
+	postCode := ctx.Param("code")
+	if postCode == "" {
+		return errors.PostLikeGetParam
+	}
+
+	likes, err := controller._getLikes(session, postCode)
+	if err != nil {
+		return controller.Error(ctx, err)
+	}
+
+	return controller.Ok(ctx, likes)
 }
 
 func (controller *Controller) _getComment(postCode string) (*models.PostCommentGet, *models.Error) {
