@@ -8,28 +8,26 @@ import (
 	"tok-core/src/services/mongo_service"
 )
 
-func (repo *Repository) GetAll() ([]entities.PostCommentGet, error) {
+func (repo *Repository) GetByPost(postCode string) (*entities.PostCommentGet, error) {
 	ctx, cancel := repo.Ctx()
 	defer cancel()
 
-	cursor, err := repo.connection.Find(ctx, bson.D{})
+	cursor, err := repo.connection.Find(ctx, mongo_service.Filter().Eq("post_code", postCode).Get())
 	if err != nil {
 		return nil, err
 	}
 	defer repo.CloseCursor(cursor)
+	defer repo.LogError(cursor.Err())
 
-	list := make([]entities.PostCommentGet, 0)
-	for cursor.Next(ctx) {
+	if cursor.Next(ctx) {
 		item := entities.PostCommentGet{}
 		if err = cursor.Decode(&item); err != nil {
 			return nil, err
 		}
-		list = append(list, item)
+		return &item, nil
 	}
 
-	repo.LogError(cursor.Err())
-
-	return list, nil
+	return nil, nil
 }
 
 func (repo *Repository) Create(model *models.PostCommentAdd, commentCode string) error {

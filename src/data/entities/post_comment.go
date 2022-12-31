@@ -50,10 +50,7 @@ type PostCommentAppendSubComment struct {
 }
 
 type PostCommentGet struct {
-	PostCode       string    `bson:"post_code"`
-	AuthorUsername string    `bson:"author_username"`
-	Text           string    `bson:"text"`
-	LikesCount     int       `bson:"likes_count"`
-	Likers         []string  `bson:"likers"`
-	CreatedAt      time.Time `bson:"created_at"`
+	PostCode   string            `bson:"post_code"`
+	PostAuthor string            `bson:"post_author"`
+	Comments   []PostCommentItem `bson:"comments"`
 }

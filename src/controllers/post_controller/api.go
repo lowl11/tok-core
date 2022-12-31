@@ -1,9 +1,9 @@
 package post_controller
 
 import (
-	"fmt"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
+	"github.com/lowl11/lazy-collection/type_list"
 	"github.com/lowl11/lazylog/layers"
 	"time"
 	"tok-core/src/data/entities"
@@ -297,20 +297,50 @@ func (controller *Controller) UnlikeREST(ctx echo.Context) error {
 	return controller.Ok(ctx, "OK")
 }
 
-func (controller *Controller) _getComment(postCode string) ([]models.PostCommentGet, *models.Error) {
+func (controller *Controller) _getComment(postCode string) (*models.PostCommentGet, *models.Error) {
 	logger := definition.Logger
 
-	comments, err := controller.postCommentRepo.GetAll()
+	postComments, err := controller.postCommentRepo.GetByPost(postCode)
 	if err != nil {
 		logger.Error(err, "Get comments list error", layers.Mongo)
 		return nil, errors.PostCommentGet.With(err)
 	}
 
-	for _, item := range comments {
-		fmt.Println("comment:", item)
+	if postComments == nil {
+		return nil, errors.PostCommentNotFound
 	}
 
-	return nil, nil
+	commentsList := type_list.NewWithList[entities.PostCommentItem, models.PostCommentItem](postComments.Comments...)
+
+	item := &models.PostCommentGet{
+		PostCode:   postComments.PostCode,
+		PostAuthor: postComments.PostAuthor,
+
+		Comments: commentsList.Select(func(item entities.PostCommentItem) models.PostCommentItem {
+			subCommentsList := type_list.NewWithList[entities.PostSubCommentItem, models.PostSubCommentItem](item.SubComments...)
+
+			return models.PostCommentItem{
+				CommentCode:   item.CommentCode,
+				CommentAuthor: item.CommentAuthor,
+				CommentText:   item.CommentText,
+				LikesCount:    item.LikesCount,
+				LikeAuthors:   item.LikeAuthors,
+				CreatedAt:     item.CreatedAt,
+
+				SubComments: subCommentsList.Select(func(item entities.PostSubCommentItem) models.PostSubCommentItem {
+					return models.PostSubCommentItem{
+						CommentCode:   item.CommentCode,
+						CommentAuthor: item.CommentAuthor,
+						CommentText:   item.CommentText,
+						LikesCount:    item.LikesCount,
+						LikeAuthors:   item.LikeAuthors,
+					}
+				}).Slice(),
+			}
+		}).Slice(),
+	}
+
+	return item, nil
 }
 
 func (controller *Controller) GetCommentREST(ctx echo.Context) error {
