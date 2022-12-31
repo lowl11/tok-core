@@ -407,7 +407,7 @@ func (controller *Controller) GetCommentREST(ctx echo.Context) error {
 	return controller.Ok(ctx, comments)
 }
 
-func (controller *Controller) _addComment(model *models.PostCommentAdd) (string, *models.Error) {
+func (controller *Controller) _addComment(session *entities.ClientSession, model *models.PostCommentAdd) (string, *models.Error) {
 	logger := definition.Logger
 
 	commentCode := uuid.New().String()
@@ -416,12 +416,12 @@ func (controller *Controller) _addComment(model *models.PostCommentAdd) (string,
 	// если комментарий первый то значит записи в Mongo у поста нет (для комментариев)
 	// значит, нужно создать его чтобы в дальнейшем в него писать
 	if model.FirstComment {
-		if err := controller.postCommentRepo.Create(model, commentCode); err != nil {
+		if err := controller.postCommentRepo.Create(model, session.Username, commentCode); err != nil {
 			logger.Error(err, "Create new post comment error", layers.Mongo)
 			return "", errors.PostCommentCreate.With(err)
 		}
 	} else {
-		if err := controller.postCommentRepo.Append(model, commentCode); err != nil {
+		if err := controller.postCommentRepo.Append(model, session.Username, commentCode); err != nil {
 			logger.Error(err, "Create new post comment error", layers.Mongo)
 			return "", errors.PostCommentCreate.With(err)
 		}
@@ -431,6 +431,8 @@ func (controller *Controller) _addComment(model *models.PostCommentAdd) (string,
 }
 
 func (controller *Controller) AddCommentREST(ctx echo.Context) error {
+	session := ctx.Get("client_session").(*entities.ClientSession)
+
 	model := models.PostCommentAdd{}
 	if err := ctx.Bind(&model); err != nil {
 		return controller.Error(ctx, errors.PostLikeBind.With(err))
@@ -440,7 +442,7 @@ func (controller *Controller) AddCommentREST(ctx echo.Context) error {
 		return controller.Error(ctx, errors.PostLikeValidate.With(err))
 	}
 
-	commentCode, err := controller._addComment(&model)
+	commentCode, err := controller._addComment(session, &model)
 	if err != nil {
 		return controller.Error(ctx, err)
 	}

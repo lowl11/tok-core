@@ -30,7 +30,7 @@ func (repo *Repository) GetByPost(postCode string) (*entities.PostCommentGet, er
 	return nil, nil
 }
 
-func (repo *Repository) Create(model *models.PostCommentAdd, commentCode string) error {
+func (repo *Repository) Create(model *models.PostCommentAdd, commentAuthor, commentCode string) error {
 	ctx, cancel := repo.Ctx()
 	defer cancel()
 
@@ -40,7 +40,7 @@ func (repo *Repository) Create(model *models.PostCommentAdd, commentCode string)
 		Comments: []entities.PostCommentItem{
 			{
 				CommentCode:   commentCode,
-				CommentAuthor: model.CommentAuthor,
+				CommentAuthor: commentAuthor,
 				CommentText:   model.CommentText,
 				CreatedAt:     time.Now(),
 				SubComments:   []entities.PostSubCommentItem{},
@@ -55,7 +55,7 @@ func (repo *Repository) Create(model *models.PostCommentAdd, commentCode string)
 	return nil
 }
 
-func (repo *Repository) Append(model *models.PostCommentAdd, commentCode string) error {
+func (repo *Repository) Append(model *models.PostCommentAdd, commentAuthor, commentCode string) error {
 	ctx, cancel := repo.Ctx()
 	defer cancel()
 
@@ -74,7 +74,7 @@ func (repo *Repository) Append(model *models.PostCommentAdd, commentCode string)
 	if isSubComment {
 		entity = entities.PostCommentAppendSubComment{
 			CommentCode:   commentCode,
-			CommentAuthor: model.CommentAuthor,
+			CommentAuthor: commentAuthor,
 			CommentText:   model.CommentText,
 			LikeAuthors:   likeAuthors,
 			CreatedAt:     createdAt,
@@ -85,7 +85,7 @@ func (repo *Repository) Append(model *models.PostCommentAdd, commentCode string)
 	} else {
 		entity = entities.PostCommentAppendComment{
 			CommentCode:   commentCode,
-			CommentAuthor: model.CommentAuthor,
+			CommentAuthor: commentAuthor,
 			CommentText:   model.CommentText,
 			LikeAuthors:   likeAuthors,
 			SubComments:   make([]entities.PostSubCommentItem, 0),

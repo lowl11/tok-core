@@ -55,10 +55,6 @@ func (controller *Controller) validateAddComment(model *models.PostCommentAdd) e
 		return err
 	}
 
-	if err := controller.RequiredField(model.CommentAuthor, "comment_author"); err != nil {
-		return err
-	}
-
 	if err := controller.RequiredField(model.CommentText, "comment_text"); err != nil {
 		return err
 	}

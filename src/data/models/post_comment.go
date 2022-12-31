@@ -32,8 +32,7 @@ type PostCommentAdd struct {
 	PostCode   string `json:"post_code"`
 	PostAuthor string `json:"post_author"`
 
-	CommentAuthor string `json:"comment_author"`
-	CommentText   string `json:"comment_text"`
+	CommentText string `json:"comment_text"`
 
 	// если комментарий не первый в посте
 	ParentCommentCode string `json:"parent_comment_code"`
