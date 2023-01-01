@@ -42,6 +42,9 @@ type PostGet struct {
 	Text      string          `json:"text"`
 	Picture   *PostGetPicture `json:"picture"`
 	CreatedAt time.Time       `json:"created_at"`
+
+	LikeCount int  `json:"like_count"`
+	MyLike    bool `json:"my_like"`
 }
 
 type PostElasticGet struct {

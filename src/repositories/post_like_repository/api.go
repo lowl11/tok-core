@@ -27,6 +27,35 @@ func (repo *Repository) Get(postCode string) (*entities.PostLikeGet, error) {
 	return &item, nil
 }
 
+func (repo *Repository) GetByList(postCodes []string) ([]entities.PostLikeGetList, error) {
+	ctx, cancel := repo.Ctx()
+	defer cancel()
+
+	filter := bson.M{
+		"post_code": bson.M{
+			"$in": postCodes,
+		},
+	}
+
+	cursor, err := repo.connection.Find(ctx, filter)
+	if err != nil {
+		return nil, err
+	}
+	defer repo.CloseCursor(cursor)
+	defer repo.LogError(cursor.Err())
+
+	list := make([]entities.PostLikeGetList, 0)
+	for cursor.Next(ctx) {
+		item := entities.PostLikeGetList{}
+		if err = cursor.Decode(&item); err != nil {
+			return nil, err
+		}
+		list = append(list, item)
+	}
+
+	return list, nil
+}
+
 func (repo *Repository) Like(postCode, likeAuthor string) error {
 	ctx, cancel := repo.Ctx()
 	defer cancel()

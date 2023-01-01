@@ -6,3 +6,9 @@ type PostLikeGet struct {
 	LikesCount  int      `bson:"likes_count"`
 	LikeAuthors []string `bson:"like_authors"`
 }
+
+type PostLikeGetList struct {
+	PostCode    string   `bson:"post_code"`
+	LikesCount  int      `bson:"likes_count"`
+	LikeAuthors []string `bson:"like_authors"`
+}
