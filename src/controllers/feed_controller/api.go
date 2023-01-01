@@ -180,6 +180,8 @@ func (controller *Controller) ExploreREST(ctx echo.Context) error {
 func (controller *Controller) User(ctx echo.Context) error {
 	logger := definition.Logger
 
+	session := ctx.Get("client_session").(*entities.ClientSession)
+
 	// чтение параметра логина пользователя
 	username := ctx.Param("username")
 	if username == "" {
@@ -201,9 +203,37 @@ func (controller *Controller) User(ctx echo.Context) error {
 		return controller.Error(ctx, errors.PostsGetByUsername.With(err))
 	}
 
+	likeList, err := controller.postLikeRepo.GetByList(type_list.NewWithList[entities.PostGet, string](posts...).Select(func(item entities.PostGet) string {
+		return item.Code
+	}).Slice())
+	if err != nil {
+		logger.Error(err, "Get posts like counter error", layers.Mongo)
+	}
+
+	var likeArray *array.Array[entities.PostLikeGetList]
+	if likeList != nil {
+		likeArray = array.NewWithList[entities.PostLikeGetList](likeList...)
+	}
+
 	// обработка списка постов для клиента
 	list := make([]models.PostGet, 0, len(posts))
 	for _, item := range posts {
+		var myLike bool
+		var likeCount int
+
+		if likeArray != nil {
+			foundLike := likeArray.Single(func(iterator entities.PostLikeGetList) bool {
+				return iterator.PostCode == item.Code
+			})
+
+			if foundLike != nil {
+				likeCount = foundLike.LikesCount
+
+				likeAuthors := array.NewWithList[string](foundLike.LikeAuthors...)
+				myLike = likeAuthors.Contains(session.Username)
+			}
+		}
+
 		list = append(list, models.PostGet{
 			AuthorUsername: item.AuthorUsername,
 			AuthorName:     item.AuthorName,
@@ -220,6 +250,9 @@ func (controller *Controller) User(ctx echo.Context) error {
 				Height: item.PictureHeight,
 			},
 			CreatedAt: item.CreatedAt,
+
+			LikeCount: likeCount,
+			MyLike:    myLike,
 		})
 	}
 
@@ -231,6 +264,8 @@ func (controller *Controller) User(ctx echo.Context) error {
 */
 func (controller *Controller) Category(ctx echo.Context) error {
 	logger := definition.Logger
+
+	session := ctx.Get("client_session").(entities.ClientSession)
 
 	// чтение номера страницы
 	page, _ := strconv.Atoi(ctx.QueryParam("page"))
@@ -253,9 +288,37 @@ func (controller *Controller) Category(ctx echo.Context) error {
 		return controller.Error(ctx, errors.PostsGetByCategory.With(err))
 	}
 
+	likeList, err := controller.postLikeRepo.GetByList(type_list.NewWithList[entities.PostGet, string](posts...).Select(func(item entities.PostGet) string {
+		return item.Code
+	}).Slice())
+	if err != nil {
+		logger.Error(err, "Get posts like counter error", layers.Mongo)
+	}
+
+	var likeArray *array.Array[entities.PostLikeGetList]
+	if likeList != nil {
+		likeArray = array.NewWithList[entities.PostLikeGetList](likeList...)
+	}
+
 	// обработка списка постов для клиента
 	list := make([]models.PostGet, 0, len(posts))
 	for _, item := range posts {
+		var myLike bool
+		var likeCount int
+
+		if likeArray != nil {
+			foundLike := likeArray.Single(func(iterator entities.PostLikeGetList) bool {
+				return iterator.PostCode == item.Code
+			})
+
+			if foundLike != nil {
+				likeCount = foundLike.LikesCount
+
+				likeAuthors := array.NewWithList[string](foundLike.LikeAuthors...)
+				myLike = likeAuthors.Contains(session.Username)
+			}
+		}
+
 		list = append(list, models.PostGet{
 			AuthorUsername: item.AuthorUsername,
 			AuthorName:     item.AuthorName,
@@ -272,6 +335,9 @@ func (controller *Controller) Category(ctx echo.Context) error {
 				Height: item.PictureHeight,
 			},
 			CreatedAt: item.CreatedAt,
+
+			LikeCount: likeCount,
+			MyLike:    myLike,
 		})
 	}
 
