@@ -37,6 +37,8 @@ func (repo *Repository) Create(model *models.PostCommentAdd, commentAuthor, comm
 	entity := entities.PostCommentCreate{
 		PostCode:   model.PostCode,
 		PostAuthor: model.PostAuthor,
+
+		CommentsCount: 1,
 		Comments: []entities.PostCommentItem{
 			{
 				CommentCode:   commentCode,
@@ -96,10 +98,9 @@ func (repo *Repository) Append(model *models.PostCommentAdd, commentAuthor, comm
 		pushName = "comments"
 	}
 
-	if _, err := repo.connection.UpdateOne(ctx, filter, bson.D{
-		{"$push", bson.D{
-			{Key: pushName, Value: entity},
-		}},
+	if _, err := repo.connection.UpdateOne(ctx, filter, bson.M{
+		"$push": bson.M{pushName: entity},
+		"$inc":  bson.M{"comments_count": 1},
 	}); err != nil {
 		return err
 	}

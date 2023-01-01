@@ -26,7 +26,8 @@ type PostCommentCreate struct {
 	PostCode   string `bson:"post_code"`
 	PostAuthor string `bson:"post_author"`
 
-	Comments []PostCommentItem `bson:"comments"`
+	CommentsCount int               `bson:"comments_count"`
+	Comments      []PostCommentItem `bson:"comments"`
 }
 
 type PostCommentAppendComment struct {
