@@ -2,7 +2,9 @@ package post_like_repository
 
 import (
 	"go.mongodb.org/mongo-driver/bson"
+	"strings"
 	"tok-core/src/data/entities"
+	"tok-core/src/data/models"
 	"tok-core/src/services/mongo_service"
 )
 
@@ -12,6 +14,10 @@ func (repo *Repository) Get(postCode string) (*entities.PostLikeGet, error) {
 
 	result := repo.connection.FindOne(ctx, mongo_service.Filter().Eq("post_code", postCode).Get())
 	if result.Err() != nil {
+		if strings.Contains(result.Err().Error(), "no documents") {
+			return nil, nil
+		}
+
 		return nil, result.Err()
 	}
 
@@ -54,6 +60,22 @@ func (repo *Repository) GetByList(postCodes []string) ([]entities.PostLikeGetLis
 	}
 
 	return list, nil
+}
+
+func (repo *Repository) Create(model *models.PostLike, likeAuthor string) error {
+	ctx, cancel := repo.Ctx()
+	defer cancel()
+
+	if _, err := repo.connection.InsertOne(ctx, &entities.PostLikeCreate{
+		PostCode:    model.PostCode,
+		PostAuthor:  model.PostAuthor,
+		LikesCount:  1,
+		LikeAuthors: []string{likeAuthor},
+	}); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (repo *Repository) Like(postCode, likeAuthor string) error {

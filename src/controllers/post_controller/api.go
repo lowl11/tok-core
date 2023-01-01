@@ -255,9 +255,22 @@ func (controller *Controller) FillExploreREST(ctx echo.Context) error {
 func (controller *Controller) _like(session *entities.ClientSession, model *models.PostLike) *models.Error {
 	logger := definition.Logger
 
-	if err := controller.postLikeRepo.Like(model.PostCode, session.Username); err != nil {
-		logger.Error(err, "Like post error", layers.Mongo)
-		return errors.PostLike.With(err)
+	// проверяем существует ли запись по лайкам
+	like, err := controller.postLikeRepo.Get(model.PostCode)
+	if err != nil {
+		return errors.PostLikeGet.With(err)
+	}
+
+	if like == nil {
+		if err = controller.postLikeRepo.Create(model, session.Username); err != nil {
+			logger.Error(err, "Like post error", layers.Mongo)
+			return errors.PostLike.With(err)
+		}
+	} else {
+		if err = controller.postLikeRepo.Like(model.PostCode, session.Username); err != nil {
+			logger.Error(err, "Like post error", layers.Mongo)
+			return errors.PostLike.With(err)
+		}
 	}
 
 	return nil

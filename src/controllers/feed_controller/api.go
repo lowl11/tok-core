@@ -41,6 +41,7 @@ func (controller *Controller) Main(ctx echo.Context) error {
 		return controller.Error(ctx, errors.PostsGetByUsernameList.With(err))
 	}
 
+	// получаем лайки постов
 	likeList, err := controller.postLikeRepo.GetByList(type_list.NewWithList[entities.PostGet, string](posts...).Select(func(item entities.PostGet) string {
 		return item.Code
 	}).Slice())
@@ -67,6 +68,7 @@ func (controller *Controller) Main(ctx echo.Context) error {
 			if foundLike != nil {
 				likeCount = foundLike.LikesCount
 
+				// поставил ли авторизовавшийся лайк
 				likeAuthors := array.NewWithList[string](foundLike.LikeAuthors...)
 				myLike = likeAuthors.Contains(session.Username)
 			}
