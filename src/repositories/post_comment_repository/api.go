@@ -30,6 +30,35 @@ func (repo *Repository) GetByPost(postCode string) (*entities.PostCommentGet, er
 	return nil, nil
 }
 
+func (repo *Repository) GetByList(postCodes []string) ([]entities.PostCommentGetList, error) {
+	ctx, cancel := repo.Ctx()
+	defer cancel()
+
+	filter := bson.M{
+		"post_code": bson.M{
+			"$in": postCodes,
+		},
+	}
+
+	cursor, err := repo.connection.Find(ctx, filter)
+	if err != nil {
+		return nil, err
+	}
+	defer repo.CloseCursor(cursor)
+	defer repo.LogError(cursor.Err())
+
+	list := make([]entities.PostCommentGetList, 0)
+	for cursor.Next(ctx) {
+		item := entities.PostCommentGetList{}
+		if err = cursor.Decode(&item); err != nil {
+			return nil, err
+		}
+		list = append(list, item)
+	}
+
+	return list, nil
+}
+
 func (repo *Repository) Create(model *models.PostCommentAdd, commentAuthor, commentCode string) error {
 	ctx, cancel := repo.Ctx()
 	defer cancel()

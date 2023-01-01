@@ -43,8 +43,9 @@ type PostGet struct {
 	Picture   *PostGetPicture `json:"picture"`
 	CreatedAt time.Time       `json:"created_at"`
 
-	LikeCount int  `json:"like_count"`
-	MyLike    bool `json:"my_like"`
+	LikeCount    int  `json:"like_count"`
+	MyLike       bool `json:"my_like"`
+	CommentCount int  `json:"comment_count"`
 }
 
 type PostElasticGet struct {

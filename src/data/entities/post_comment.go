@@ -55,3 +55,8 @@ type PostCommentGet struct {
 	PostAuthor string            `bson:"post_author"`
 	Comments   []PostCommentItem `bson:"comments"`
 }
+
+type PostCommentGetList struct {
+	PostCode      string `bson:"post_code"`
+	CommentsCount int    `bson:"comments_count"`
+}

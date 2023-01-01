@@ -41,10 +41,13 @@ func (controller *Controller) Main(ctx echo.Context) error {
 		return controller.Error(ctx, errors.PostsGetByUsernameList.With(err))
 	}
 
-	// получаем лайки постов
-	likeList, err := controller.postLikeRepo.GetByList(type_list.NewWithList[entities.PostGet, string](posts...).Select(func(item entities.PostGet) string {
+	// массив с кодами постов
+	postCodes := type_list.NewWithList[entities.PostGet, string](posts...).Select(func(item entities.PostGet) string {
 		return item.Code
-	}).Slice())
+	}).Slice()
+
+	// получаем лайки постов
+	likeList, err := controller.postLikeRepo.GetByList(postCodes)
 	if err != nil {
 		logger.Error(err, "Get posts like counter error", layers.Mongo)
 	}
@@ -54,9 +57,21 @@ func (controller *Controller) Main(ctx echo.Context) error {
 		likeArray = array.NewWithList[entities.PostLikeGetList](likeList...)
 	}
 
+	// получаем комменты постов
+	commentList, err := controller.postCommentRepo.GetByList(postCodes)
+	if err != nil {
+		logger.Error(err, "Get posts comment counter error", layers.Mongo)
+	}
+
+	var commentArray *array.Array[entities.PostCommentGetList]
+	if commentList != nil {
+		commentArray = array.NewWithList[entities.PostCommentGetList](commentList...)
+	}
+
 	// обработка списка постов для клиента
 	list := make([]models.PostGet, 0, len(posts))
 	for _, item := range posts {
+		// лайки
 		var myLike bool
 		var likeCount int
 
@@ -71,6 +86,19 @@ func (controller *Controller) Main(ctx echo.Context) error {
 				// поставил ли авторизовавшийся лайк
 				likeAuthors := array.NewWithList[string](foundLike.LikeAuthors...)
 				myLike = likeAuthors.Contains(session.Username)
+			}
+		}
+
+		// комментарии
+		var commentCount int
+
+		if commentArray != nil {
+			foundComment := commentArray.Single(func(iterator entities.PostCommentGetList) bool {
+				return iterator.PostCode == item.Code
+			})
+
+			if foundComment != nil {
+				commentCount = foundComment.CommentsCount
 			}
 		}
 
@@ -91,8 +119,9 @@ func (controller *Controller) Main(ctx echo.Context) error {
 			},
 			CreatedAt: item.CreatedAt,
 
-			LikeCount: likeCount,
-			MyLike:    myLike,
+			LikeCount:    likeCount,
+			MyLike:       myLike,
+			CommentCount: commentCount,
 		})
 	}
 
