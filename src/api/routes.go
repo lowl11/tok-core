@@ -13,6 +13,7 @@ import (
 	"tok-core/src/events"
 	"tok-core/src/middlewares"
 	"tok-core/src/repositories"
+	"tok-core/src/services/feed_helper"
 )
 
 func setRoutes(server *echo.Echo) {
@@ -32,6 +33,9 @@ func setRoutes(server *echo.Echo) {
 	if err != nil {
 		logger.Fatal(err, "Connecting to database error")
 	}
+
+	feed_helper.SetLikeRepository(apiRepositories.PostLike)
+	feed_helper.SetCommentRepository(apiRepositories.PostComment)
 
 	// контроллеры
 	apiControllers := controllers.Get(apiRepositories, apiEvents)

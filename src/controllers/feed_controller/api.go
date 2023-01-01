@@ -11,6 +11,7 @@ import (
 	"tok-core/src/data/errors"
 	"tok-core/src/data/models"
 	"tok-core/src/definition"
+	"tok-core/src/services/feed_helper"
 )
 
 /*
@@ -46,27 +47,8 @@ func (controller *Controller) Main(ctx echo.Context) error {
 		return item.Code
 	}).Slice()
 
-	// получаем лайки постов
-	likeList, err := controller.postLikeRepo.GetByList(postCodes)
-	if err != nil {
-		logger.Error(err, "Get posts like counter error", layers.Mongo)
-	}
-
-	var likeArray *array.Array[entities.PostLikeGetList]
-	if likeList != nil {
-		likeArray = array.NewWithList[entities.PostLikeGetList](likeList...)
-	}
-
-	// получаем комменты постов
-	commentList, err := controller.postCommentRepo.GetByList(postCodes)
-	if err != nil {
-		logger.Error(err, "Get posts comment counter error", layers.Mongo)
-	}
-
-	var commentArray *array.Array[entities.PostCommentGetList]
-	if commentList != nil {
-		commentArray = array.NewWithList[entities.PostCommentGetList](commentList...)
-	}
+	// получаем лайки и комментарии постов
+	likeArray, commentArray := feed_helper.LikesAndComments(postCodes)
 
 	// обработка списка постов для клиента
 	list := make([]models.PostGet, 0, len(posts))
