@@ -2,7 +2,6 @@ package post_controller
 
 import (
 	"github.com/google/uuid"
-	"github.com/labstack/echo/v4"
 	"github.com/lowl11/lazy-collection/array"
 	"github.com/lowl11/lazy-collection/type_list"
 	"github.com/lowl11/lazylog/layers"
@@ -112,30 +111,6 @@ func (controller *Controller) _add(session *entities.ClientSession, model *model
 }
 
 /*
-	AddREST обертка для _add
-*/
-func (controller *Controller) AddREST(ctx echo.Context) error {
-	// связка модели
-	model := models.PostAdd{}
-	if err := ctx.Bind(&model); err != nil {
-		return controller.Error(ctx, errors.PostCreateBind.With(err))
-	}
-
-	// валидация модели
-	if err := controller.validatePostCreate(&model); err != nil {
-		return controller.Error(ctx, errors.PostCreateValidate.With(err))
-	}
-
-	session := ctx.Get("client_session").(*entities.ClientSession)
-
-	if err := controller._add(session, &model); err != nil {
-		return controller.Error(ctx, err)
-	}
-
-	return controller.Ok(ctx, "OK")
-}
-
-/*
 	_categories возвращает список всех категорий
 */
 func (controller *Controller) _categories() ([]models.PostCategoryGet, *models.Error) {
@@ -158,18 +133,6 @@ func (controller *Controller) _categories() ([]models.PostCategoryGet, *models.E
 	}
 
 	return list, nil
-}
-
-/*
-	CategoriesREST обертка для _categories
-*/
-func (controller *Controller) CategoriesREST(ctx echo.Context) error {
-	list, err := controller._categories()
-	if err != nil {
-		return controller.Error(ctx, err)
-	}
-
-	return controller.Ok(ctx, list)
 }
 
 /*
@@ -206,22 +169,6 @@ func (controller *Controller) _delete(code string) *models.Error {
 }
 
 /*
-	DeleteREST обертка для _delete
-*/
-func (controller *Controller) DeleteREST(ctx echo.Context) error {
-	code := ctx.Param("code")
-	if code == "" {
-		return controller.Error(ctx, errors.PostDeleteParam)
-	}
-
-	if err := controller._delete(code); err != nil {
-		return controller.Error(ctx, err)
-	}
-
-	return controller.Ok(ctx, "OK")
-}
-
-/*
 	_fillExplore заполнение данных для "рекомендаций"
 */
 func (controller *Controller) _fillExplore() *models.Error {
@@ -242,16 +189,8 @@ func (controller *Controller) _fillExplore() *models.Error {
 }
 
 /*
-	FillExploreREST обертка для _fillExplore
+	_like поставить лайк для поста
 */
-func (controller *Controller) FillExploreREST(ctx echo.Context) error {
-	if err := controller._fillExplore(); err != nil {
-		return controller.Error(ctx, err)
-	}
-
-	return controller.Ok(ctx, "OK")
-}
-
 func (controller *Controller) _like(session *entities.ClientSession, model *models.PostLike) *models.Error {
 	logger := definition.Logger
 
@@ -276,6 +215,9 @@ func (controller *Controller) _like(session *entities.ClientSession, model *mode
 	return nil
 }
 
+/*
+	_unlike убрать лайк с поста
+*/
 func (controller *Controller) _unlike(session *entities.ClientSession, model *models.PostUnlike) *models.Error {
 	logger := definition.Logger
 
@@ -287,44 +229,9 @@ func (controller *Controller) _unlike(session *entities.ClientSession, model *mo
 	return nil
 }
 
-func (controller *Controller) LikeREST(ctx echo.Context) error {
-	session := ctx.Get("client_session").(*entities.ClientSession)
-
-	model := models.PostLike{}
-	if err := ctx.Bind(&model); err != nil {
-		return controller.Error(ctx, errors.PostLikeBind.With(err))
-	}
-
-	if err := controller.validateLike(&model); err != nil {
-		return controller.Error(ctx, errors.PostLikeValidate.With(err))
-	}
-
-	if err := controller._like(session, &model); err != nil {
-		return controller.Error(ctx, err)
-	}
-
-	return controller.Ok(ctx, "OK")
-}
-
-func (controller *Controller) UnlikeREST(ctx echo.Context) error {
-	session := ctx.Get("client_session").(*entities.ClientSession)
-
-	model := models.PostUnlike{}
-	if err := ctx.Bind(&model); err != nil {
-		return controller.Error(ctx, errors.PostUnlikeBind.With(err))
-	}
-
-	if err := controller.validateUnlike(&model); err != nil {
-		return controller.Error(ctx, errors.PostUnlikeValidate.With(err))
-	}
-
-	if err := controller._unlike(session, &model); err != nil {
-		return controller.Error(ctx, err)
-	}
-
-	return controller.Ok(ctx, "OK")
-}
-
+/*
+	_getLikes получить список лайков (с авторами) поста
+*/
 func (controller *Controller) _getLikes(session *entities.ClientSession, postCode string) (*models.PostLikeGet, *models.Error) {
 	logger := definition.Logger
 
@@ -347,22 +254,9 @@ func (controller *Controller) _getLikes(session *entities.ClientSession, postCod
 	}, nil
 }
 
-func (controller *Controller) GetLikesREST(ctx echo.Context) error {
-	session := ctx.Get("client_session").(*entities.ClientSession)
-
-	postCode := ctx.Param("code")
-	if postCode == "" {
-		return errors.PostLikeGetParam
-	}
-
-	likes, err := controller._getLikes(session, postCode)
-	if err != nil {
-		return controller.Error(ctx, err)
-	}
-
-	return controller.Ok(ctx, likes)
-}
-
+/*
+	_getComment
+*/
 func (controller *Controller) _getComment(postCode string) (*models.PostCommentGet, *models.Error) {
 	logger := definition.Logger
 
@@ -409,17 +303,9 @@ func (controller *Controller) _getComment(postCode string) (*models.PostCommentG
 	return item, nil
 }
 
-func (controller *Controller) GetCommentREST(ctx echo.Context) error {
-	postCode := ctx.QueryParam("code")
-
-	comments, err := controller._getComment(postCode)
-	if err != nil {
-		return controller.Error(ctx, err)
-	}
-
-	return controller.Ok(ctx, comments)
-}
-
+/*
+	_addComment
+*/
 func (controller *Controller) _addComment(session *entities.ClientSession, model *models.PostCommentAdd) (string, *models.Error) {
 	logger := definition.Logger
 
@@ -441,24 +327,4 @@ func (controller *Controller) _addComment(session *entities.ClientSession, model
 	}
 
 	return commentCode, nil
-}
-
-func (controller *Controller) AddCommentREST(ctx echo.Context) error {
-	session := ctx.Get("client_session").(*entities.ClientSession)
-
-	model := models.PostCommentAdd{}
-	if err := ctx.Bind(&model); err != nil {
-		return controller.Error(ctx, errors.PostLikeBind.With(err))
-	}
-
-	if err := controller.validateAddComment(&model); err != nil {
-		return controller.Error(ctx, errors.PostLikeValidate.With(err))
-	}
-
-	commentCode, err := controller._addComment(session, &model)
-	if err != nil {
-		return controller.Error(ctx, err)
-	}
-
-	return controller.Ok(ctx, commentCode)
 }
