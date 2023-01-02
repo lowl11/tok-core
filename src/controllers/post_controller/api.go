@@ -255,7 +255,7 @@ func (controller *Controller) _getLikes(session *entities.ClientSession, postCod
 }
 
 /*
-	_getComment
+	_getComment получение всего дерева комментариев под постом
 */
 func (controller *Controller) _getComment(postCode string) (*models.PostCommentGet, *models.Error) {
 	logger := definition.Logger
@@ -304,12 +304,28 @@ func (controller *Controller) _getComment(postCode string) (*models.PostCommentG
 }
 
 /*
-	_addComment
+	_addComment добавление нового комментария под постом
+	Добавляется как обычный комментарий так и "подкомментарий"
+	Уровень подкомментариев может быть максимум 1, то есть кто-то написал первый комментарий под постом
+	И тот кто ответит ему оставит "подкомментарий", это и будет последним уровнем
 */
 func (controller *Controller) _addComment(session *entities.ClientSession, model *models.PostCommentAdd) (string, *models.Error) {
 	logger := definition.Logger
 
 	commentCode := uuid.New().String()
+
+	// если клиент говорит что это первый коммент под постом
+	// нужно проверить существует ли под этот пост запись
+	if model.FirstComment {
+		comment, err := controller.postCommentRepo.GetByPost(model.PostCode)
+		if err != nil {
+			return "", errors.PostCommentGet.With(err)
+		}
+
+		if comment != nil {
+			model.FirstComment = false
+		}
+	}
 
 	// комментарий у поста может быть первым и не первым
 	// если комментарий первый то значит записи в Mongo у поста нет (для комментариев)
@@ -327,4 +343,44 @@ func (controller *Controller) _addComment(session *entities.ClientSession, model
 	}
 
 	return commentCode, nil
+}
+
+func (controller *Controller) _deleteComment(session *entities.ClientSession, model *models.PostCommentDelete) *models.Error {
+	logger := definition.Logger
+
+	post, err := controller.postCommentRepo.GetByCode(model.CommentCode, model.SubComment)
+	if err != nil {
+		logger.Error(err, "Get post comment error", layers.Mongo)
+		return errors.PostCommentGet.With(err)
+	}
+
+	if post == nil {
+		return errors.PostCommentNotFound
+	}
+
+	var authorMatch bool
+	for _, comment := range post.Comments {
+		if session.Username == comment.CommentAuthor {
+			authorMatch = true
+			break
+		}
+
+		for _, subComment := range comment.SubComments {
+			if session.Username == subComment.CommentAuthor {
+				authorMatch = true
+				break
+			}
+		}
+	}
+
+	if !authorMatch {
+		return errors.PostCommentNotYours
+	}
+
+	if err = controller.postCommentRepo.Delete(model); err != nil {
+		logger.Error(err, "Delete post comment error", layers.Mongo)
+		return errors.PostCommentDelete.With(err)
+	}
+
+	return nil
 }

@@ -61,3 +61,17 @@ func (controller *Controller) validateAddComment(model *models.PostCommentAdd) e
 
 	return nil
 }
+
+func (controller *Controller) validateDeleteComment(model *models.PostCommentDelete) error {
+	if err := controller.RequiredField(model.CommentCode, "comment_code"); err != nil {
+		return err
+	}
+
+	if model.SubComment {
+		if err := controller.RequiredField(model.ParentCommentCode, "parent_comment_code"); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}

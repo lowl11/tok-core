@@ -2,11 +2,39 @@ package post_comment_repository
 
 import (
 	"go.mongodb.org/mongo-driver/bson"
+	"strings"
 	"time"
 	"tok-core/src/data/entities"
 	"tok-core/src/data/models"
 	"tok-core/src/services/mongo_service"
 )
+
+func (repo *Repository) GetByCode(commentCode string, subComment bool) (*entities.PostCommentGet, error) {
+	ctx, cancel := repo.Ctx()
+	defer cancel()
+
+	var filter bson.M
+	if subComment {
+		filter = mongo_service.Filter().Eq("comments.subcomments.comment_code", commentCode).Get()
+	} else {
+		filter = mongo_service.Filter().Eq("comments.comment_code", commentCode).Get()
+	}
+
+	result := repo.connection.FindOne(ctx, filter)
+	if result.Err() != nil {
+		if strings.Contains(result.Err().Error(), "no documents") {
+			return nil, nil
+		}
+		return nil, result.Err()
+	}
+
+	item := entities.PostCommentGet{}
+	if err := result.Decode(&item); err != nil {
+		return nil, err
+	}
+
+	return &item, nil
+}
 
 func (repo *Repository) GetByPost(postCode string) (*entities.PostCommentGet, error) {
 	ctx, cancel := repo.Ctx()
@@ -130,6 +158,38 @@ func (repo *Repository) Append(model *models.PostCommentAdd, commentAuthor, comm
 	if _, err := repo.connection.UpdateOne(ctx, filter, bson.M{
 		"$push": bson.M{pushName: entity},
 		"$inc":  bson.M{"comments_count": 1},
+	}); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (repo *Repository) Delete(model *models.PostCommentDelete) error {
+	ctx, cancel := repo.Ctx()
+	defer cancel()
+
+	var filter bson.M
+	var commentsField string
+
+	if model.SubComment {
+		filter = mongo_service.Filter().
+			Eq("comments.comment_code", model.ParentCommentCode).
+			Eq("comments.subcomments.comment_code", model.CommentCode).Get()
+
+		commentsField = "comments.$.subcomments"
+	} else {
+		filter = mongo_service.Filter().Eq("comments.comment_code", model.CommentCode).Get()
+		commentsField = "comments"
+	}
+
+	if _, err := repo.connection.UpdateOne(ctx, filter, bson.M{
+		"$pull": bson.M{
+			commentsField: bson.M{
+				"comment_code": model.CommentCode,
+			},
+		},
+		"$inc": bson.M{"comments_count": -1},
 	}); err != nil {
 		return err
 	}

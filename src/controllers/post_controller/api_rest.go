@@ -155,11 +155,11 @@ func (controller *Controller) AddCommentREST(ctx echo.Context) error {
 
 	model := models.PostCommentAdd{}
 	if err := ctx.Bind(&model); err != nil {
-		return controller.Error(ctx, errors.PostLikeBind.With(err))
+		return controller.Error(ctx, errors.PostCommentCreateBind.With(err))
 	}
 
 	if err := controller.validateAddComment(&model); err != nil {
-		return controller.Error(ctx, errors.PostLikeValidate.With(err))
+		return controller.Error(ctx, errors.PostCommentCreateValidation.With(err))
 	}
 
 	commentCode, err := controller._addComment(session, &model)
@@ -168,4 +168,26 @@ func (controller *Controller) AddCommentREST(ctx echo.Context) error {
 	}
 
 	return controller.Ok(ctx, commentCode)
+}
+
+/*
+	DeleteCommentREST обертка для _deleteComment
+*/
+func (controller *Controller) DeleteCommentREST(ctx echo.Context) error {
+	session := ctx.Get("client_session").(*entities.ClientSession)
+
+	model := models.PostCommentDelete{}
+	if err := ctx.Bind(&model); err != nil {
+		return controller.Error(ctx, errors.PostCommentDeleteBind.With(err))
+	}
+
+	if err := controller.validateDeleteComment(&model); err != nil {
+		return controller.Error(ctx, errors.PostCommentDeleteValidation.With(err))
+	}
+
+	if err := controller._deleteComment(session, &model); err != nil {
+		return controller.Error(ctx, err)
+	}
+
+	return controller.Ok(ctx, "OK")
 }

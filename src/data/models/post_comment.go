@@ -38,3 +38,9 @@ type PostCommentAdd struct {
 	ParentCommentCode string `json:"parent_comment_code"`
 	FirstComment      bool   `json:"first_comment"`
 }
+
+type PostCommentDelete struct {
+	CommentCode       string `json:"comment_code"`
+	ParentCommentCode string `json:"parent_comment_code"`
+	SubComment        bool   `json:"subcomment"`
+}
