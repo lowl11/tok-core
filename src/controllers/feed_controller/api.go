@@ -1,12 +1,10 @@
 package feed_controller
 
 import (
-	"github.com/labstack/echo/v4"
 	"github.com/lowl11/lazy-collection/array"
 	"github.com/lowl11/lazy-collection/set"
 	"github.com/lowl11/lazy-collection/type_list"
 	"github.com/lowl11/lazylog/layers"
-	"strconv"
 	"tok-core/src/data/entities"
 	"tok-core/src/data/errors"
 	"tok-core/src/data/models"
@@ -15,17 +13,10 @@ import (
 )
 
 /*
-	Main лента на главной странице
+	_main лента на главной странице
 */
-func (controller *Controller) Main(ctx echo.Context) error {
+func (controller *Controller) _main(session *entities.ClientSession, page int) ([]models.PostGet, *models.Error) {
 	logger := definition.Logger
-	session := ctx.Get("client_session").(*entities.ClientSession)
-
-	// чтение номера страницы
-	page, _ := strconv.Atoi(ctx.QueryParam("page"))
-	if page <= 0 {
-		page = 1 // номер страницы по умолчанию
-	}
 
 	// список подписок из сессии
 	subscriptions := session.Subscriptions.Subscriptions
@@ -39,7 +30,7 @@ func (controller *Controller) Main(ctx echo.Context) error {
 	posts, err := controller.postRepo.GetByUsernameList(subscriptions, offset, size)
 	if err != nil {
 		logger.Error(err, "Get posts list by username list error")
-		return controller.Error(ctx, errors.PostsGetByUsernameList.With(err))
+		return nil, errors.PostsGetByUsernameList.With(err)
 	}
 
 	// массив с кодами постов
@@ -107,7 +98,7 @@ func (controller *Controller) Main(ctx echo.Context) error {
 		})
 	}
 
-	return controller.Ok(ctx, list)
+	return list, nil
 }
 
 /*
@@ -168,44 +159,10 @@ func (controller *Controller) _explore(session *entities.ClientSession, page int
 }
 
 /*
-	ExploreREST обертка для _explore
+	_user лента на странице пользователя
 */
-func (controller *Controller) ExploreREST(ctx echo.Context) error {
-	session := ctx.Get("client_session").(*entities.ClientSession)
-
-	// чтение номера страницы
-	page, _ := strconv.Atoi(ctx.QueryParam("page"))
-	if page <= 0 {
-		page = 1 // номер страницы по умолчанию
-	}
-
-	list, err := controller._explore(session, page)
-	if err != nil {
-		return controller.Error(ctx, err)
-	}
-
-	return controller.Ok(ctx, list)
-}
-
-/*
-	User лента на странице пользователя
-*/
-func (controller *Controller) User(ctx echo.Context) error {
+func (controller *Controller) _user(session *entities.ClientSession, username string, page int) ([]models.PostGet, *models.Error) {
 	logger := definition.Logger
-
-	session := ctx.Get("client_session").(*entities.ClientSession)
-
-	// чтение параметра логина пользователя
-	username := ctx.Param("username")
-	if username == "" {
-		return controller.Error(ctx, errors.PostsGetByUsernameParam)
-	}
-
-	// чтение номера страницы
-	page, _ := strconv.Atoi(ctx.QueryParam("page"))
-	if page <= 0 {
-		page = 1 // номер страницы по умолчанию
-	}
 
 	// получить список постовов по логину
 	offset := (page - 1) * 10
@@ -213,20 +170,16 @@ func (controller *Controller) User(ctx echo.Context) error {
 	posts, err := controller.postRepo.GetByUsername(username, offset, size)
 	if err != nil {
 		logger.Error(err, "Get posts list by username error")
-		return controller.Error(ctx, errors.PostsGetByUsername.With(err))
+		return nil, errors.PostsGetByUsername.With(err)
 	}
 
-	likeList, err := controller.postLikeRepo.GetByList(type_list.NewWithList[entities.PostGet, string](posts...).Select(func(item entities.PostGet) string {
+	// массив с кодами постов
+	postCodes := type_list.NewWithList[entities.PostGet, string](posts...).Select(func(item entities.PostGet) string {
 		return item.Code
-	}).Slice())
-	if err != nil {
-		logger.Error(err, "Get posts like counter error", layers.Mongo)
-	}
+	}).Slice()
 
-	var likeArray *array.Array[entities.PostLikeGetList]
-	if likeList != nil {
-		likeArray = array.NewWithList[entities.PostLikeGetList](likeList...)
-	}
+	// получаем лайки и комментарии постов
+	likeArray, commentArray := feed_helper.LikesAndComments(postCodes)
 
 	// обработка списка постов для клиента
 	list := make([]models.PostGet, 0, len(posts))
@@ -247,6 +200,19 @@ func (controller *Controller) User(ctx echo.Context) error {
 			}
 		}
 
+		// комментарии
+		var commentCount int
+
+		if commentArray != nil {
+			foundComment := commentArray.Single(func(iterator entities.PostCommentGetList) bool {
+				return iterator.PostCode == item.Code
+			})
+
+			if foundComment != nil {
+				commentCount = foundComment.CommentsCount
+			}
+		}
+
 		list = append(list, models.PostGet{
 			AuthorUsername: item.AuthorUsername,
 			AuthorName:     item.AuthorName,
@@ -264,33 +230,20 @@ func (controller *Controller) User(ctx echo.Context) error {
 			},
 			CreatedAt: item.CreatedAt,
 
-			LikeCount: likeCount,
-			MyLike:    myLike,
+			LikeCount:    likeCount,
+			MyLike:       myLike,
+			CommentCount: commentCount,
 		})
 	}
 
-	return controller.Ok(ctx, list)
+	return list, nil
 }
 
 /*
-	Category лента на странице категории
+	_category лента на странице категории
 */
-func (controller *Controller) Category(ctx echo.Context) error {
+func (controller *Controller) _category(session *entities.ClientSession, categoryCode string, page int) ([]models.PostGet, *models.Error) {
 	logger := definition.Logger
-
-	session := ctx.Get("client_session").(entities.ClientSession)
-
-	// чтение номера страницы
-	page, _ := strconv.Atoi(ctx.QueryParam("page"))
-	if page <= 0 {
-		page = 1 // номер страницы по умолчанию
-	}
-
-	// чтение параметра кода категории
-	categoryCode := ctx.Param("category_code")
-	if categoryCode == "" {
-		return controller.Error(ctx, errors.PostsGetByCategoryParam)
-	}
 
 	// получить список постовов по логину
 	offset := (page - 1) * 10
@@ -298,20 +251,16 @@ func (controller *Controller) Category(ctx echo.Context) error {
 	posts, err := controller.postRepo.GetByCategory(categoryCode, offset, size)
 	if err != nil {
 		logger.Error(err, "Get posts list by category error")
-		return controller.Error(ctx, errors.PostsGetByCategory.With(err))
+		return nil, errors.PostsGetByCategory.With(err)
 	}
 
-	likeList, err := controller.postLikeRepo.GetByList(type_list.NewWithList[entities.PostGet, string](posts...).Select(func(item entities.PostGet) string {
+	// массив с кодами постов
+	postCodes := type_list.NewWithList[entities.PostGet, string](posts...).Select(func(item entities.PostGet) string {
 		return item.Code
-	}).Slice())
-	if err != nil {
-		logger.Error(err, "Get posts like counter error", layers.Mongo)
-	}
+	}).Slice()
 
-	var likeArray *array.Array[entities.PostLikeGetList]
-	if likeList != nil {
-		likeArray = array.NewWithList[entities.PostLikeGetList](likeList...)
-	}
+	// получаем лайки и комментарии постов
+	likeArray, commentArray := feed_helper.LikesAndComments(postCodes)
 
 	// обработка списка постов для клиента
 	list := make([]models.PostGet, 0, len(posts))
@@ -332,6 +281,19 @@ func (controller *Controller) Category(ctx echo.Context) error {
 			}
 		}
 
+		// комментарии
+		var commentCount int
+
+		if commentArray != nil {
+			foundComment := commentArray.Single(func(iterator entities.PostCommentGetList) bool {
+				return iterator.PostCode == item.Code
+			})
+
+			if foundComment != nil {
+				commentCount = foundComment.CommentsCount
+			}
+		}
+
 		list = append(list, models.PostGet{
 			AuthorUsername: item.AuthorUsername,
 			AuthorName:     item.AuthorName,
@@ -349,40 +311,67 @@ func (controller *Controller) Category(ctx echo.Context) error {
 			},
 			CreatedAt: item.CreatedAt,
 
-			LikeCount: likeCount,
-			MyLike:    myLike,
+			LikeCount:    likeCount,
+			MyLike:       myLike,
+			CommentCount: commentCount,
 		})
 	}
 
-	return controller.Ok(ctx, list)
+	return list, nil
 }
 
 /*
 	Single страница одного поста
 */
-func (controller *Controller) Single(ctx echo.Context) error {
+func (controller *Controller) _single(session *entities.ClientSession, code string) (*models.PostGet, *models.Error) {
 	logger := definition.Logger
-
-	// чтение параметра кода поста
-	code := ctx.Param("code")
-	if code == "" {
-		return controller.Error(ctx, errors.PostsGetBySingleParam)
-	}
 
 	// получение списка постов
 	post, err := controller.postRepo.GetByCode(code)
 	if err != nil {
 		logger.Error(err, "Get post by code error")
-		return controller.Error(ctx, errors.PostsGetByCode.With(err))
+		return nil, errors.PostsGetByCode.With(err)
 	}
 
 	// если пост не найден
 	if post == nil {
-		return controller.NotFound(ctx, errors.PostNotFound)
+		return nil, errors.PostNotFound
+	}
+
+	// получаем лайки и комментарии постов
+	likeArray, commentArray := feed_helper.LikesAndComments([]string{post.Code})
+
+	var myLike bool
+	var likeCount int
+
+	if likeArray != nil {
+		foundLike := likeArray.Single(func(iterator entities.PostLikeGetList) bool {
+			return iterator.PostCode == post.Code
+		})
+
+		if foundLike != nil {
+			likeCount = foundLike.LikesCount
+
+			likeAuthors := array.NewWithList[string](foundLike.LikeAuthors...)
+			myLike = likeAuthors.Contains(session.Username)
+		}
+	}
+
+	// комментарии
+	var commentCount int
+
+	if commentArray != nil {
+		foundComment := commentArray.Single(func(iterator entities.PostCommentGetList) bool {
+			return iterator.PostCode == post.Code
+		})
+
+		if foundComment != nil {
+			commentCount = foundComment.CommentsCount
+		}
 	}
 
 	// обработка поста для клиента
-	return controller.Ok(ctx, &models.PostGet{
+	return &models.PostGet{
 		AuthorUsername: post.AuthorUsername,
 		AuthorName:     post.AuthorName,
 		AuthorAvatar:   post.AuthorAvatar,
@@ -398,5 +387,9 @@ func (controller *Controller) Single(ctx echo.Context) error {
 			Height: post.PictureHeight,
 		},
 		CreatedAt: post.CreatedAt,
-	})
+
+		LikeCount:    likeCount,
+		MyLike:       myLike,
+		CommentCount: commentCount,
+	}, nil
 }

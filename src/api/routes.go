@@ -96,11 +96,11 @@ func setFeed(server *echo.Echo, controller *feed_controller.Controller) {
 	group := server.Group("/api/v1/feed")
 
 	setMiddlewaresPublic(group)
-	group.GET("/main", controller.Main)
+	group.GET("/main", controller.MainREST)
 	group.GET("/explore", controller.ExploreREST)
-	group.GET("/user/:username", controller.User)
-	group.GET("/category/:category_code", controller.Category)
-	group.GET("/single/:code", controller.Single)
+	group.GET("/user/:username", controller.UserREST)
+	group.GET("/category/:category_code", controller.CategoryREST)
+	group.GET("/single/:code", controller.SingleREST)
 }
 
 func setPost(server *echo.Echo, controller *post_controller.Controller) {
