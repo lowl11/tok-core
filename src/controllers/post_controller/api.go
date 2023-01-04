@@ -206,6 +206,11 @@ func (controller *Controller) _like(session *entities.ClientSession, model *mode
 			return errors.PostLike.With(err)
 		}
 	} else {
+		// если вдруг тот кто авторизовался уже поставил лайк
+		if array.NewWithList[string](like.LikeAuthors...).Contains(session.Username) {
+			return nil
+		}
+
 		if err = controller.postLikeRepo.Like(model.PostCode, session.Username); err != nil {
 			logger.Error(err, "Like post error", layers.Mongo)
 			return errors.PostLike.With(err)
