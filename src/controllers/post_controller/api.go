@@ -165,6 +165,18 @@ func (controller *Controller) _delete(code string) *models.Error {
 		return errors.PostDelete.With(err)
 	}
 
+	// удаление комментариев и лайков поста
+	if err = controller.postCommentRepo.DeleteByPost(code); err != nil {
+		logger.Error(err, "Delete post comments error", layers.Mongo)
+		return errors.PostCommentDelete.With(err)
+	}
+
+	// удаление лайков поста
+	if err = controller.postLikeRepo.DeleteByPost(code); err != nil {
+		logger.Error(err, "Delete post likes error", layers.Mongo)
+		return errors.PostLikeDelete.With(err)
+	}
+
 	return nil
 }
 

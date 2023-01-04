@@ -20,7 +20,7 @@ func SetLikeRepository(likeRepository *post_like_repository.Repository) {
 	LikesAndComments возвращает список лайков и комментариев по заданным кодам постов
 */
 func LikesAndComments(postCodes []string) (*array.Array[entities.PostLikeGetList], *array.Array[entities.PostCommentGetList]) {
-	// запишем сходу слайсы т.к. и получаем мы их так же разом из репозитория
+	// Запишем сходу слайсы т.к. и получаем мы их так же разом из репозитория
 	likeChannel := make(chan []entities.PostLikeGetList)
 	commentChannel := make(chan []entities.PostCommentGetList)
 

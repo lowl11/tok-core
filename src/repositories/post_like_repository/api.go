@@ -117,3 +117,15 @@ func (repo *Repository) Unlike(postCode, likeAuthor string) error {
 
 	return nil
 }
+
+func (repo *Repository) DeleteByPost(postCode string) error {
+	ctx, cancel := repo.Ctx()
+	defer cancel()
+
+	filter := mongo_service.Filter().Eq("post_code", postCode).Get()
+	if _, err := repo.connection.DeleteOne(ctx, filter); err != nil {
+		return err
+	}
+
+	return nil
+}

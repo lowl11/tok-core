@@ -43,4 +43,8 @@ var (
 		TechMessage:     "Get post likes error",
 		BusinessMessage: "Произошла ошибка",
 	}
+	PostLikeDelete = &models.Error{
+		TechMessage:     "Delete post like(s) error",
+		BusinessMessage: "Произошла ошибка",
+	}
 )
