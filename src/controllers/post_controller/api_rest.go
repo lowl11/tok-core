@@ -191,3 +191,41 @@ func (controller *Controller) DeleteCommentREST(ctx echo.Context) error {
 
 	return controller.Ok(ctx, "OK")
 }
+
+func (controller *Controller) LikeCommentREST(ctx echo.Context) error {
+	session := ctx.Get("client_session").(*entities.ClientSession)
+
+	model := models.PostCommentLike{}
+	if err := ctx.Bind(&model); err != nil {
+		return controller.Error(ctx, errors.PostCommentLikeBind.With(err))
+	}
+
+	if err := controller.validateLikeComment(&model); err != nil {
+		return controller.Error(ctx, errors.PostCommentLikeValidation.With(err))
+	}
+
+	if err := controller._likeComment(session, &model); err != nil {
+		return controller.Error(ctx, err)
+	}
+
+	return controller.Ok(ctx, "OK")
+}
+
+func (controller *Controller) UnlikeCommentREST(ctx echo.Context) error {
+	session := ctx.Get("client_session").(*entities.ClientSession)
+
+	model := models.PostCommentUnlike{}
+	if err := ctx.Bind(&model); err != nil {
+		return controller.Error(ctx, errors.PostCommentUnlikeBind.With(err))
+	}
+
+	if err := controller.validateUnlikeComment(&model); err != nil {
+		return controller.Error(ctx, errors.PostCommentUnlikeValidation.With(err))
+	}
+
+	if err := controller._unlikeComment(session, &model); err != nil {
+		return controller.Error(ctx, err)
+	}
+
+	return controller.Ok(ctx, "OK")
+}

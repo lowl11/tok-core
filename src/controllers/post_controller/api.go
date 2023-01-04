@@ -90,7 +90,7 @@ func (controller *Controller) _add(session *entities.ClientSession, model *model
 			}
 		}
 
-		// завести пост в рекоммендациях (через elastic)
+		// завести пост в рекомендациях (через elastic)
 		if err := controller.feed.AddExplore(&models.PostElasticAdd{
 			Code:         postCode,
 			Text:         extendedModel.Base.Text,
@@ -221,7 +221,18 @@ func (controller *Controller) _like(session *entities.ClientSession, model *mode
 func (controller *Controller) _unlike(session *entities.ClientSession, model *models.PostUnlike) *models.Error {
 	logger := definition.Logger
 
-	if err := controller.postLikeRepo.Unlike(model.PostCode, session.Username); err != nil {
+	// проверяем существует ли запись по лайкам
+	like, err := controller.postLikeRepo.Get(model.PostCode)
+	if err != nil {
+		return errors.PostLikeGet.With(err)
+	}
+
+	// проверить вдруг кол-во лайков уже 0
+	if like != nil && like.LikesCount == 0 {
+		return nil
+	}
+
+	if err = controller.postLikeRepo.Unlike(model.PostCode, session.Username); err != nil {
 		logger.Error(err, "Unlike post error", layers.Mongo)
 		return errors.PostUnlike.With(err)
 	}
@@ -305,9 +316,9 @@ func (controller *Controller) _getComment(postCode string) (*models.PostCommentG
 
 /*
 	_addComment добавление нового комментария под постом
-	Добавляется как обычный комментарий так и "подкомментарий"
+	Добавляется, как обычный комментарий, так и "подкомментарий"
 	Уровень подкомментариев может быть максимум 1, то есть кто-то написал первый комментарий под постом
-	И тот кто ответит ему оставит "подкомментарий", это и будет последним уровнем
+	И тот кто ответит, ему оставит "подкомментарий", это и будет последним уровнем
 */
 func (controller *Controller) _addComment(session *entities.ClientSession, model *models.PostCommentAdd) (string, *models.Error) {
 	logger := definition.Logger
@@ -345,6 +356,9 @@ func (controller *Controller) _addComment(session *entities.ClientSession, model
 	return commentCode, nil
 }
 
+/*
+	_deleteComment удаление комментария или подкомментария
+*/
 func (controller *Controller) _deleteComment(session *entities.ClientSession, model *models.PostCommentDelete) *models.Error {
 	logger := definition.Logger
 
@@ -360,6 +374,10 @@ func (controller *Controller) _deleteComment(session *entities.ClientSession, mo
 
 	var authorMatch bool
 	for _, comment := range post.Comments {
+		if len(comment.SubComments) > 0 {
+			// TODO: что делать если удаляется комментарий у которого есть подкомментарии?
+		}
+
 		if session.Username == comment.CommentAuthor {
 			authorMatch = true
 			break
@@ -382,5 +400,13 @@ func (controller *Controller) _deleteComment(session *entities.ClientSession, mo
 		return errors.PostCommentDelete.With(err)
 	}
 
+	return nil
+}
+
+func (controller *Controller) _likeComment(session *entities.ClientSession, model *models.PostCommentLike) *models.Error {
+	return nil
+}
+
+func (controller *Controller) _unlikeComment(session *entities.ClientSession, model *models.PostCommentUnlike) *models.Error {
 	return nil
 }

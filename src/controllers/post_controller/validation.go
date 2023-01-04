@@ -75,3 +75,31 @@ func (controller *Controller) validateDeleteComment(model *models.PostCommentDel
 
 	return nil
 }
+
+func (controller *Controller) validateLikeComment(model *models.PostCommentLike) error {
+	if err := controller.RequiredField(model.CommentCode, "comment_code"); err != nil {
+		return err
+	}
+
+	if model.SubComment {
+		if err := controller.RequiredField(model.ParentCommentCode, "parent_comment_code"); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (controller *Controller) validateUnlikeComment(model *models.PostCommentUnlike) error {
+	if err := controller.RequiredField(model.CommentCode, "comment_code"); err != nil {
+		return err
+	}
+
+	if model.SubComment {
+		if err := controller.RequiredField(model.ParentCommentCode, "parent_comment_code"); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}

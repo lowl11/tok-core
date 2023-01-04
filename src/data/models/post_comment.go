@@ -44,3 +44,15 @@ type PostCommentDelete struct {
 	ParentCommentCode string `json:"parent_comment_code"`
 	SubComment        bool   `json:"subcomment"`
 }
+
+type PostCommentLike struct {
+	CommentCode       string `json:"comment_code"`
+	ParentCommentCode string `json:"parent_comment_code"`
+	SubComment        bool   `json:"subcomment"`
+}
+
+type PostCommentUnlike struct {
+	CommentCode       string `json:"comment_code"`
+	ParentCommentCode string `json:"parent_comment_code"`
+	SubComment        bool   `json:"subcomment"`
+}

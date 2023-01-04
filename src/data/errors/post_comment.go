@@ -20,6 +20,14 @@ var (
 		TechMessage:     "Delete post comment model bind error",
 		BusinessMessage: "Произошла ошибка",
 	}
+	PostCommentLikeBind = &models.Error{
+		TechMessage:     "Like post comment model bind error",
+		BusinessMessage: "Произошла ошибка",
+	}
+	PostCommentUnlikeBind = &models.Error{
+		TechMessage:     "Unlike post comment model bind error",
+		BusinessMessage: "Произошла ошибка",
+	}
 
 	PostCommentCreateValidation = &models.Error{
 		TechMessage:     "Create post comment model validation error",
@@ -27,6 +35,14 @@ var (
 	}
 	PostCommentDeleteValidation = &models.Error{
 		TechMessage:     "Delete post comment model validation error",
+		BusinessMessage: "Произошла ошибка",
+	}
+	PostCommentLikeValidation = &models.Error{
+		TechMessage:     "Like post comment model validation error",
+		BusinessMessage: "Произошла ошибка",
+	}
+	PostCommentUnlikeValidation = &models.Error{
+		TechMessage:     "Unlike post comment model validation error",
 		BusinessMessage: "Произошла ошибка",
 	}
 
@@ -40,6 +56,14 @@ var (
 	}
 	PostCommentDelete = &models.Error{
 		TechMessage:     "Delete post comment error",
+		BusinessMessage: "Произошла ошибка",
+	}
+	PostCommentLike = &models.Error{
+		TechMessage:     "Like post comment error",
+		BusinessMessage: "Произошла ошибка",
+	}
+	PostCommentUnlike = &models.Error{
+		TechMessage:     "Unlike post comment error",
 		BusinessMessage: "Произошла ошибка",
 	}
 )
