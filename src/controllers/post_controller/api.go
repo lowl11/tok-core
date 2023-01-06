@@ -440,10 +440,30 @@ func (controller *Controller) _deleteComment(session *entities.ClientSession, mo
 	return nil
 }
 
+/*
+	_likeComment поставить лайк комментария под постом
+*/
 func (controller *Controller) _likeComment(session *entities.ClientSession, model *models.PostCommentLike) *models.Error {
+	logger := definition.Logger
+
+	if err := controller.postCommentRepo.Like(model, session.Username); err != nil {
+		logger.Error(err, "Like post comment error", layers.Mongo)
+		return errors.PostCommentLike.With(err)
+	}
+
 	return nil
 }
 
+/*
+	_unlikeComment убрать лайк комментария под постом
+*/
 func (controller *Controller) _unlikeComment(session *entities.ClientSession, model *models.PostCommentUnlike) *models.Error {
+	logger := definition.Logger
+
+	if err := controller.postCommentRepo.Unlike(model, session.Username); err != nil {
+		logger.Error(err, "Unlike post comment error", layers.Mongo)
+		return errors.PostCommentUnlike.With(err)
+	}
+
 	return nil
 }

@@ -121,6 +121,8 @@ func setPost(server *echo.Echo, controller *post_controller.Controller) {
 	group.POST("/comment/add", controller.AddCommentREST)
 	group.GET("/comment/get", controller.GetCommentREST)
 	group.DELETE("/comment/delete", controller.DeleteCommentREST)
+	group.POST("/comment/like", controller.LikeCommentREST)
+	group.POST("/comment/unlike", controller.UnlikeCommentREST)
 
 	// explore
 	exploreGroup := group.Group("/explore")
