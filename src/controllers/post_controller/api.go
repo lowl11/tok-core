@@ -273,12 +273,26 @@ func (controller *Controller) _getLikes(session *entities.ClientSession, postCod
 		return nil, errors.PostNotFound
 	}
 
-	authorsList := array.NewWithList[string](likes.LikeAuthors...)
+	dynamicUsers, err := controller.userRepo.GetDynamicByUsernames(likes.LikeAuthors)
+	if err != nil {
+		logger.Error(err, "Get users dynamic info error", layers.Database)
+		return nil, errors.UserDynamicGet.With(err)
+	}
+
+	dynamicUsersList := type_list.NewWithList[entities.UserDynamicGet, models.UserDynamicGet](dynamicUsers...)
 
 	return &models.PostLikeGet{
-		LikesCount:  likes.LikesCount,
-		LikeAuthors: likes.LikeAuthors,
-		Liked:       authorsList.Contains(session.Username),
+		LikesCount: likes.LikesCount,
+		LikeAuthors: dynamicUsersList.Select(func(item entities.UserDynamicGet) models.UserDynamicGet {
+			return models.UserDynamicGet{
+				Username: item.Username,
+				Avatar:   item.Avatar,
+				Name:     item.Name,
+			}
+		}).Slice(),
+		Liked: dynamicUsersList.Single(func(item entities.UserDynamicGet) bool {
+			return item.Username == session.Username
+		}) != nil,
 	}, nil
 }
 

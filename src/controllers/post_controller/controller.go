@@ -10,10 +10,13 @@ import (
 	"tok-core/src/repositories/post_comment_repository"
 	"tok-core/src/repositories/post_like_repository"
 	"tok-core/src/repositories/post_repository"
+	"tok-core/src/repositories/user_repository"
 )
 
 type Controller struct {
 	controller.Base
+
+	userRepo *user_repository.Repository
 
 	postRepo         *post_repository.Repository
 	postCategoryRepo *post_category_repository.Repository
@@ -26,6 +29,8 @@ type Controller struct {
 
 func Create(apiRepositories *repositories.ApiRepositories, apiEvents *events.ApiEvents) *Controller {
 	return &Controller{
+		userRepo: apiRepositories.User,
+
 		postRepo:         apiRepositories.Post,
 		postCategoryRepo: apiRepositories.PostCategory,
 		postCommentRepo:  apiRepositories.PostComment,

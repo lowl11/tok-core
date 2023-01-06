@@ -1,9 +1,9 @@
 package models
 
 type PostLikeGet struct {
-	LikesCount  int      `json:"likes_count"`
-	LikeAuthors []string `json:"like_authors"`
-	Liked       bool     `json:"Liked"`
+	LikesCount  int              `json:"likes_count"`
+	LikeAuthors []UserDynamicGet `json:"like_authors"`
+	Liked       bool             `json:"Liked"`
 }
 
 type PostLike struct {

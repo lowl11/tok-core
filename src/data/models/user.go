@@ -5,7 +5,7 @@ type UserSubscriber struct {
 	Name     *string `json:"name"`
 	Avatar   *string `json:"avatar"`
 
-	// подписан ли авторизованный
+	// Подписан ли авторизованный
 	Subscribed bool `json:"subscribed"`
 }
 
@@ -14,6 +14,12 @@ type UserSubscriptions struct {
 	Name     *string `json:"name"`
 	Avatar   *string `json:"avatar"`
 
-	// подписан ли авторизованный
+	// Подписан ли авторизованный
 	Subscribed bool `json:"subscribed"`
+}
+
+type UserDynamicGet struct {
+	Username string  `json:"username"`
+	Avatar   *string `json:"avatar"`
+	Name     *string `json:"name"`
 }
