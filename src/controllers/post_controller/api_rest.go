@@ -2,6 +2,7 @@ package post_controller
 
 import (
 	"github.com/labstack/echo/v4"
+	"strconv"
 	"tok-core/src/data/entities"
 	"tok-core/src/data/errors"
 	"tok-core/src/data/models"
@@ -125,7 +126,12 @@ func (controller *Controller) GetLikesREST(ctx echo.Context) error {
 		return errors.PostLikeGetParam
 	}
 
-	likes, err := controller._getLikes(session, postCode)
+	page, _ := strconv.Atoi(ctx.QueryParam("page"))
+	if page == 0 {
+		page = 1
+	}
+
+	likes, err := controller._getLikes(session, postCode, page)
 	if err != nil {
 		return controller.Error(ctx, err)
 	}

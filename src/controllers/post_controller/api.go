@@ -260,7 +260,7 @@ func (controller *Controller) _unlike(session *entities.ClientSession, model *mo
 /*
 	_getLikes получить список лайков (с авторами) поста
 */
-func (controller *Controller) _getLikes(session *entities.ClientSession, postCode string) (*models.PostLikeGet, *models.Error) {
+func (controller *Controller) _getLikes(session *entities.ClientSession, postCode string, page int) (*models.PostLikeGet, *models.Error) {
 	logger := definition.Logger
 
 	likes, err := controller.postLikeRepo.Get(postCode)
@@ -281,6 +281,12 @@ func (controller *Controller) _getLikes(session *entities.ClientSession, postCod
 
 	dynamicUsersList := type_list.NewWithList[entities.UserDynamicGet, models.UserDynamicGet](dynamicUsers...)
 
+	// высчитаем с какого по какой лайк нужен
+	from := (page - 1) * 10
+	if from > dynamicUsersList.Size() {
+		from = 0
+	}
+
 	return &models.PostLikeGet{
 		LikesCount: likes.LikesCount,
 		LikeAuthors: dynamicUsersList.Select(func(item entities.UserDynamicGet) models.UserDynamicGet {
@@ -289,7 +295,7 @@ func (controller *Controller) _getLikes(session *entities.ClientSession, postCod
 				Avatar:   item.Avatar,
 				Name:     item.Name,
 			}
-		}).Slice(),
+		}).Sub(from, from+10).Slice(),
 		Liked: dynamicUsersList.Single(func(item entities.UserDynamicGet) bool {
 			return item.Username == session.Username
 		}) != nil,
