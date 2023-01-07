@@ -319,7 +319,11 @@ func (controller *Controller) _getComment(postCode string) (*models.PostCommentG
 	}
 
 	if postComments == nil {
-		return nil, errors.PostCommentNotFound
+		return &models.PostCommentGet{
+			PostCode:   postCode,
+			PostAuthor: "",
+			Comments:   make([]models.PostCommentItem, 0),
+		}, nil
 	}
 
 	commentsList := type_list.NewWithList[entities.PostCommentItem, models.PostCommentItem](postComments.Comments...)
