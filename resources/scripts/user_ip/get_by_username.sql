@@ -1,4 +1,5 @@
 select
-    ipv4_address
+    username,
+    ip_address
 from user_ips
 where username = $1;

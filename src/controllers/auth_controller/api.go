@@ -61,8 +61,8 @@ func (controller *Controller) Signup(ctx echo.Context) error {
 }
 
 /*
-	LoginByCredentials вторизация с юзернеймом и паролем
-	Возвращает: сгенерированный токен сессии по которому можно будет в дальнейшем авторизовываться
+	LoginByCredentials авторизация с юзернеймом и паролем
+	Возвращает: сгенерированный токен сессии по которому можно будет в дальнейшем авторизоваться
 */
 func (controller *Controller) LoginByCredentials(ctx echo.Context) error {
 	logger := definition.Logger
@@ -153,7 +153,7 @@ func (controller *Controller) LoginByCredentials(ctx echo.Context) error {
 		return controller.Error(ctx, errors.SubscribersGet.With(err))
 	}
 
-	// получить список подписок сесссии
+	// получить список подписок сессии
 	subscriptions, err := controller.subscriptRepo.ProfileSubscriptions(model.Username)
 	if err != nil {
 		return controller.Error(ctx, errors.SubscriptionsGet.With(err))
@@ -163,20 +163,30 @@ func (controller *Controller) LoginByCredentials(ctx echo.Context) error {
 	ipAddress := ctx.Get("ip_address").(string)
 	if model.Remember && ipAddress != "" {
 		go func() {
+			logger.Info("Going to save user IP address", layers.Auth)
+
 			// проверка существует ли уже ip адрес
-			username, err := controller.userIpRepo.GetByIpAddress(ipAddress)
+			userIp, err := controller.userIpRepo.GetByIpAddress(ipAddress)
 			if err != nil {
-				logger.Error(err, "Get user by ip address error")
+				logger.Error(err, "Get user by ip address error", layers.Database)
 				return
 			}
 
-			// не записываем если уже нашли
-			if username == model.Username {
-				return
+			// если запись найдена и ip принадлежит другому пользователю
+			if userIp != nil {
+				if userIp.Username != model.Username {
+					if err = controller.userIpRepo.DeleteByIP(userIp.IpAddress); err != nil {
+						logger.Error(err, "", layers.Database)
+						return
+					}
+				} else {
+					// если запись уже найдена, просто идем дальше
+					return
+				}
 			}
 
 			if err = controller.userIpRepo.New(model.Username, ipAddress); err != nil {
-				logger.Error(err, "Creating new bind username + ip address error")
+				logger.Error(err, "Creating new bind username + ip address error", layers.Database)
 				return
 			}
 		}()
@@ -212,6 +222,7 @@ func (controller *Controller) LoginByCredentials(ctx echo.Context) error {
 */
 func (controller *Controller) LoginByToken(ctx echo.Context) error {
 	logger := definition.Logger
+	ipAddress := ctx.Get("ip_address").(string)
 
 	// привязка модели
 	model := models.LoginByToken{}
@@ -222,6 +233,96 @@ func (controller *Controller) LoginByToken(ctx echo.Context) error {
 	// валидация модели
 	if err := controller.validateLoginByToken(&model); err != nil {
 		return controller.Error(ctx, errors.LoginValidate.With(err))
+	}
+
+	// если токен не найден, пытаемся авторизоваться через ip
+	if model.Token == "" && ipAddress != "" {
+		userIp, err := controller.userIpRepo.GetByIpAddress(ipAddress)
+		if err != nil {
+			logger.Error(err, "Get username by ip address error", layers.Database)
+			return controller.Unauthorized(ctx, errors.UserIpGetByIp.With(err))
+		}
+
+		if userIp == nil {
+			return controller.Unauthorized(ctx, errors.UserIpUserNotFound)
+		}
+
+		session, token, err := controller.clientSession.GetByUsername(userIp.Username)
+		if err != nil {
+			logger.Error(err, "Get user session error", layers.Redis)
+			return controller.Unauthorized(ctx, errors.SessionGet.With(err))
+		}
+
+		// если сессию нашли, возвращаем ее
+		if session != nil {
+			return controller.Ok(ctx, &models.ClientSessionGet{
+				Token:    token,
+				Username: session.Username,
+
+				Name: session.Name,
+				BIO:  session.BIO,
+
+				Avatar:    session.Avatar,
+				Wallpaper: session.Wallpaper,
+
+				Subscriptions: session.Subscriptions,
+			})
+		}
+
+		userByIp, err := controller.userRepo.GetByUsername(userIp.Username)
+		if err != nil {
+			logger.Error(err, "Get user by username error", layers.Database)
+			return controller.Error(ctx, errors.UserGet.With(err))
+		}
+
+		// если сессию не нашли, создадим ее
+		newSessionToken, err := controller.clientSession.Create(&models.ClientSessionCreate{
+			Username:  userByIp.Username,
+			Name:      userByIp.Name,
+			BIO:       userByIp.BIO,
+			Avatar:    userByIp.Avatar,
+			Wallpaper: userByIp.Wallpaper,
+		})
+		if err != nil {
+			logger.Error(err, "Create session error", layers.Redis)
+			return controller.Error(ctx, errors.SessionCreate.With(err))
+		}
+
+		// получение списка подписок сессии
+		subscriptions, err := controller.subscriptRepo.ProfileSubscriptions(session.Username)
+		if err != nil {
+			logger.Error(err, "Get profile subscriptions error")
+			return controller.Error(ctx, errors.SubscriptionsGet.With(err))
+		}
+
+		// получение списка подписчиков сессии
+		subscribers, err := controller.subscriptRepo.ProfileSubscribers(userByIp.Username)
+		if err != nil {
+			logger.Error(err, "Get profile subscribers error")
+			return controller.Error(ctx, errors.SubscriptionsGet.With(err))
+		}
+
+		return controller.Ok(ctx, &models.ClientSessionGet{
+			Token:    newSessionToken,
+			Username: userByIp.Username,
+
+			Name: userByIp.Name,
+			BIO:  userByIp.BIO,
+
+			Avatar:    userByIp.Avatar,
+			Wallpaper: userByIp.Wallpaper,
+
+			Subscriptions: entities.ClientSessionSubscribes{
+				SubscriberCount:   subscribers.Size(),
+				SubscriptionCount: subscriptions.Size(),
+				Subscriptions: subscriptions.Select(func(item entities.ProfileSubscription) string {
+					return item.Username
+				}).Slice(),
+				Subscribers: subscribers.Select(func(item entities.ProfileSubscriber) string {
+					return item.Username
+				}).Slice(),
+			},
+		})
 	}
 
 	// получение сессии по токену
@@ -285,7 +386,7 @@ func (controller *Controller) LoginByToken(ctx echo.Context) error {
 		sessionUpdate = true
 	}
 
-	// провряем нужно ли обновить сессию
+	// проверяем нужно ли обновить сессию
 	if sessionUpdate {
 		// обновляем сессию
 		if err = controller.clientSession.Update(session, model.Token); err != nil {
@@ -297,46 +398,6 @@ func (controller *Controller) LoginByToken(ctx echo.Context) error {
 	// обработка данных для клиента
 	return controller.Ok(ctx, &models.ClientSessionGet{
 		Token:    model.Token,
-		Username: session.Username,
-
-		Name: session.Name,
-		BIO:  session.BIO,
-
-		Avatar:    session.Avatar,
-		Wallpaper: session.Wallpaper,
-
-		Subscriptions: session.Subscriptions,
-	})
-}
-
-/*
-	LoginByIP авторизация по IP адресу
-	Если токена в куки нет, фронт попытается отправить мне запрос
-	По IP адресу попытаюсь понять есть ли юзернейм
-*/
-func (controller *Controller) LoginByIP(ctx echo.Context) error {
-	ipAddress := ctx.Get("ip_address").(string)
-
-	username, err := controller.userIpRepo.GetByIpAddress(ipAddress)
-	if err != nil {
-		return controller.Error(ctx, errors.UserIpGetByIp.With(err))
-	}
-
-	if username == "" {
-		return controller.Unauthorized(ctx, errors.UserIpUserNotFound)
-	}
-
-	session, token, err := controller.clientSession.GetByUsername(username)
-	if err != nil {
-		return controller.Error(ctx, errors.SessionGet.With(err))
-	}
-
-	if session == nil {
-		return controller.Unauthorized(ctx, errors.SessionNotFound.With(err))
-	}
-
-	return controller.Ok(ctx, &models.ClientSessionGet{
-		Token:    token,
 		Username: session.Username,
 
 		Name: session.Name,

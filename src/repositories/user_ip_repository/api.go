@@ -5,7 +5,7 @@ import (
 	"tok-core/src/data/entities"
 )
 
-func (repo *Repository) GetByUsername(username string) ([]string, error) {
+func (repo *Repository) GetByUsername(username string) ([]entities.UserIpGet, error) {
 	ctx, cancel := repo.Ctx()
 	defer cancel()
 
@@ -17,19 +17,19 @@ func (repo *Repository) GetByUsername(username string) ([]string, error) {
 	}
 	defer repo.CloseRows(rows)
 
-	list := make([]string, 0)
+	list := make([]entities.UserIpGet, 0)
 	for rows.Next() {
-		var ipAddress string
-		if err = rows.Scan(&ipAddress); err != nil {
+		entity := entities.UserIpGet{}
+		if err = rows.StructScan(&entity); err != nil {
 			return nil, err
 		}
-		list = append(list, ipAddress)
+		list = append(list, entity)
 	}
 
 	return list, nil
 }
 
-func (repo *Repository) GetByIpAddress(ipAddress string) (string, error) {
+func (repo *Repository) GetByIpAddress(ipAddress string) (*entities.UserIpGet, error) {
 	ctx, cancel := repo.Ctx()
 	defer cancel()
 
@@ -37,19 +37,19 @@ func (repo *Repository) GetByIpAddress(ipAddress string) (string, error) {
 
 	rows, err := repo.connection.QueryxContext(ctx, query, ipAddress)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	defer repo.CloseRows(rows)
 
 	if rows.Next() {
-		var username string
-		if err = rows.Scan(&username); err != nil {
-			return "", err
+		entity := entities.UserIpGet{}
+		if err = rows.StructScan(&entity); err != nil {
+			return nil, err
 		}
-		return username, nil
+		return &entity, nil
 	}
 
-	return "", nil
+	return nil, nil
 }
 
 func (repo *Repository) New(username, ipAddress string) error {
@@ -91,4 +91,23 @@ func (repo *Repository) Has(username, ipAddress string) (bool, error) {
 	defer repo.CloseRows(rows)
 
 	return rows.Next(), nil
+}
+
+func (repo *Repository) DeleteByIP(ipAddress string) error {
+	ctx, cancel := repo.Ctx()
+	defer cancel()
+
+	query := repo.Script("user_ip", "delete")
+
+	if err := repo.Transaction(repo.connection, func(tx *sqlx.Tx) error {
+		if _, err := tx.ExecContext(ctx, query, ipAddress); err != nil {
+			return err
+		}
+
+		return nil
+	}); err != nil {
+		return err
+	}
+
+	return nil
 }

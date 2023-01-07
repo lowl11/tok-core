@@ -37,10 +37,9 @@ func (controller *Controller) validateLoginByCredentials(model *models.LoginByCr
 	return nil
 }
 
-func (controller *Controller) validateLoginByToken(model *models.LoginByToken) error {
-	if err := controller.RequiredField(model.Token, "token"); err != nil {
-		return err
-	}
+func (controller *Controller) validateLoginByToken(_ *models.LoginByToken) error {
+	// Здесь должна была быть проверка на "token"
+	// но она убрана т.к. решили что если token пустой, значит авторизация будет по IP
 
 	return nil
 }
