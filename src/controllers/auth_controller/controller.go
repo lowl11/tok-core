@@ -24,8 +24,10 @@ type Controller struct {
 
 func Create(apiRepositories *repositories.ApiRepositories, apiEvents *events.ApiEvents) *Controller {
 	return &Controller{
-		authRepo:      apiRepositories.Auth,
-		userRepo:      apiRepositories.User,
+		authRepo:   apiRepositories.Auth,
+		userRepo:   apiRepositories.User,
+		userIpRepo: apiRepositories.UserIP,
+
 		subscriptRepo: apiRepositories.Subscription,
 
 		clientSession: apiEvents.ClientSession,
