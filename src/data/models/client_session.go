@@ -13,6 +13,9 @@ type ClientSessionCreate struct {
 	// images
 	Avatar    *string `json:"avatar"`
 	Wallpaper *string `json:"wallpaper"`
+
+	// subscriptions
+	Subscriptions entities.ClientSessionSubscribes `json:"subscriptions"`
 }
 
 type ClientSessionGet struct {

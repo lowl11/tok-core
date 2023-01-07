@@ -138,18 +138,6 @@ func (controller *Controller) LoginByCredentials(ctx echo.Context) error {
 		return controller.Error(ctx, errors.SessionDelete.With(err))
 	}
 
-	// создание сессии
-	var sessionToken string
-	if sessionToken, err = controller.clientSession.Create(&models.ClientSessionCreate{
-		Username:  model.Username,
-		Name:      user.Name,
-		BIO:       user.BIO,
-		Avatar:    user.Avatar,
-		Wallpaper: user.Wallpaper,
-	}); err != nil {
-		return controller.Error(ctx, errors.SessionCreate.With(err))
-	}
-
 	// получить список подписчиков сессии
 	subscribers, err := controller.subscriptRepo.ProfileSubscribers(model.Username)
 	if err != nil {
@@ -160,6 +148,30 @@ func (controller *Controller) LoginByCredentials(ctx echo.Context) error {
 	subscriptions, err := controller.subscriptRepo.ProfileSubscriptions(model.Username)
 	if err != nil {
 		return controller.Error(ctx, errors.SubscriptionsGet.With(err))
+	}
+
+	// создание сессии
+	var sessionToken string
+	if sessionToken, err = controller.clientSession.Create(&models.ClientSessionCreate{
+		Username:  model.Username,
+		Name:      user.Name,
+		BIO:       user.BIO,
+		Avatar:    user.Avatar,
+		Wallpaper: user.Wallpaper,
+
+		Subscriptions: entities.ClientSessionSubscribes{
+			SubscriberCount:   subscribers.Size(),
+			SubscriptionCount: subscriptions.Size(),
+
+			Subscribers: subscribers.Select(func(item entities.ProfileSubscriber) string {
+				return item.Username
+			}).Slice(),
+			Subscriptions: subscriptions.Select(func(item entities.ProfileSubscription) string {
+				return item.Username
+			}).Slice(),
+		},
+	}); err != nil {
+		return controller.Error(ctx, errors.SessionCreate.With(err))
 	}
 
 	// проверить нужно ли запомнить ip адрес
