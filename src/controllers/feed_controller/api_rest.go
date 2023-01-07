@@ -8,6 +8,24 @@ import (
 )
 
 /*
+	GeneralREST обертка для _general
+*/
+func (controller *Controller) GeneralREST(ctx echo.Context) error {
+	// чтение номера страницы
+	page, _ := strconv.Atoi(ctx.QueryParam("page"))
+	if page <= 0 {
+		page = 1 // номер страницы по умолчанию
+	}
+
+	list, err := controller._general(page)
+	if err != nil {
+		return controller.Error(ctx, err)
+	}
+
+	return controller.Ok(ctx, list)
+}
+
+/*
 	MainREST обертка для _main
 */
 func (controller *Controller) MainREST(ctx echo.Context) error {

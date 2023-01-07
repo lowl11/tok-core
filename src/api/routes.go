@@ -97,6 +97,7 @@ func setFeed(server *echo.Echo, controller *feed_controller.Controller) {
 	setMiddlewaresPublic(group)
 	group.GET("/main", controller.MainREST)
 	group.GET("/explore", controller.ExploreREST)
+	group.GET("/general", controller.GeneralREST)
 	group.GET("/user/:username", controller.UserREST)
 	group.GET("/category/:category_code", controller.CategoryREST)
 	group.GET("/single/:code", controller.SingleREST)
