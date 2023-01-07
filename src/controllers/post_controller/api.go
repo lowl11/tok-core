@@ -270,7 +270,11 @@ func (controller *Controller) _getLikes(session *entities.ClientSession, postCod
 	}
 
 	if likes == nil {
-		return nil, errors.PostNotFound
+		return &models.PostLikeGet{
+			LikesCount:  0,
+			LikeAuthors: make([]models.UserDynamicGet, 0),
+			Liked:       false,
+		}, nil
 	}
 
 	dynamicUsers, err := controller.userRepo.GetDynamicByUsernames(likes.LikeAuthors)
