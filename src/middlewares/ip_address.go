@@ -16,8 +16,12 @@ func IpAddress(next echo.HandlerFunc) echo.HandlerFunc {
 		fmt.Println("real ip:", ctx.Request().Header.Get("X-Real-Ip"))
 		fmt.Println("")
 
-		requestInJson, _ := json.Marshal(ctx.Request())
-		fmt.Printf("%s\n", requestInJson)
+		requestInJson, err := json.Marshal(ctx.Request())
+		if err != nil {
+			fmt.Println("parse request to json err:", err)
+		}
+
+		fmt.Printf("Request in JSON: %s\n", requestInJson)
 
 		//if strings.Contains(ipAddress, "127.0.0.1") ||
 		//	strings.Contains(ipAddress, "localhost") ||
