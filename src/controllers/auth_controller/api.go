@@ -1,6 +1,7 @@
 package auth_controller
 
 import (
+	"fmt"
 	"github.com/labstack/echo/v4"
 	"github.com/lowl11/lazylog/layers"
 	"tok-core/src/data/entities"
@@ -109,6 +110,8 @@ func (controller *Controller) LoginByCredentials(ctx echo.Context) error {
 		return controller.Error(ctx, errors.SessionGet.With(err))
 	}
 
+	logger.Info(fmt.Sprintf("Session exist: %t. Token: %s", session != nil, token))
+
 	if session != nil {
 		return controller.Ok(ctx, &models.ClientSessionGet{
 			Token:    token,
@@ -162,6 +165,7 @@ func (controller *Controller) LoginByCredentials(ctx echo.Context) error {
 	// проверить нужно ли запомнить ip адрес
 	ipAddress := ctx.Get("ip_address").(string)
 	if model.Remember && ipAddress != "" {
+		logger.Info("I am here")
 		go func() {
 			logger.Info("Going to save user IP address", layers.Auth)
 
