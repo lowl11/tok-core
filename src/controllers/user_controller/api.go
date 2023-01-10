@@ -3,6 +3,7 @@ package user_controller
 import (
 	"github.com/labstack/echo/v4"
 	"github.com/lowl11/lazy-collection/array"
+	"github.com/lowl11/lazylog/layers"
 	"tok-core/src/data/entities"
 	"tok-core/src/data/errors"
 	"tok-core/src/data/models"
@@ -25,6 +26,11 @@ func (controller *Controller) Info(ctx echo.Context) error {
 	if err != nil && err.Error() != "session not found" {
 		logger.Error(err, "Get user session error")
 		return controller.Error(ctx, errors.SessionGet.With(err))
+	}
+
+	postCount, err := controller.postRepo.CountByUser(username)
+	if err != nil {
+		logger.Error(err, "Get posts count error", layers.Database)
 	}
 
 	// у другого пользователя нет сессии, значит достаем из БД
@@ -84,6 +90,8 @@ func (controller *Controller) Info(ctx echo.Context) error {
 					return item.Username
 				}).Slice(),
 			},
+
+			PostCount: postCount,
 		})
 	}
 
@@ -130,6 +138,8 @@ func (controller *Controller) Info(ctx echo.Context) error {
 				return item.Username
 			}).Slice(),
 		},
+
+		PostCount: postCount,
 	})
 }
 

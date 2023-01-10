@@ -1,0 +1,1 @@
+select count(*) from posts where author_username = $1;

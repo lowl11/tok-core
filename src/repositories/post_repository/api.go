@@ -201,3 +201,26 @@ func (repo *Repository) GetExplore() ([]entities.PostGet, error) {
 
 	return list, nil
 }
+
+func (repo *Repository) CountByUser(username string) (int, error) {
+	ctx, cancel := repo.Ctx()
+	defer cancel()
+
+	query := repo.Script("post", "count_by_user")
+
+	rows, err := repo.connection.QueryxContext(ctx, query, username)
+	if err != nil {
+		return 0, err
+	}
+	defer repo.CloseRows(rows)
+
+	if rows.Next() {
+		var count int
+		if err = rows.Scan(&count); err != nil {
+			return 0, err
+		}
+		return count, nil
+	}
+
+	return 0, nil
+}

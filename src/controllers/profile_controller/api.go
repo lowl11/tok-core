@@ -1,7 +1,6 @@
 package profile_controller
 
 import (
-	"github.com/labstack/echo/v4"
 	"github.com/lowl11/lazy-collection/array"
 	"tok-core/src/data/entities"
 	"tok-core/src/data/errors"
@@ -12,8 +11,8 @@ import (
 /*
 	_subscribe подписка профиля на "кого-то"
 	Проверка на существование подписки
-	Создается запись в БД "кто на кого"
-	Обнолвение сессии у того кто подписался и тому на кого подписались
+	Создается, запись в БД "кто на кого"
+	Обновление сессии у того кто подписался и тому на кого подписались
 */
 func (controller *Controller) _subscribe(session *entities.ClientSession, token string, model *models.ProfileSubscribe) *models.Error {
 	logger := definition.Logger
@@ -68,35 +67,10 @@ func (controller *Controller) _subscribe(session *entities.ClientSession, token 
 }
 
 /*
-	Subscribe REST обертка для _subscribe
-*/
-func (controller *Controller) SubscribeREST(ctx echo.Context) error {
-	session := ctx.Get("client_session").(*entities.ClientSession)
-	token := ctx.Get("token").(string)
-
-	// привязка модели
-	model := models.ProfileSubscribe{}
-	if err := ctx.Bind(&model); err != nil {
-		return controller.Error(ctx, errors.SubscribeOfProfileBind.With(err))
-	}
-
-	// валидация модели
-	if err := controller.validateSubscribeProfile(&model); err != nil {
-		return controller.Error(ctx, errors.SubscribeOfProfileValidate.With(err))
-	}
-
-	if err := controller._subscribe(session, token, &model); err != nil {
-		return controller.Error(ctx, err)
-	}
-
-	return controller.Ok(ctx, "OK")
-}
-
-/*
 	_unsubscribe отписка от пользователя
 	Проверка на существование подписки
 	Удаление записи в БД "кто на кого"
-	Обнолвение сессии у того кто отписался и тому от кого отписались
+	Обновление сессии у того кто отписался и тому от кого отписались
 */
 func (controller *Controller) _unsubscribe(session *entities.ClientSession, token string, model *models.ProfileUnsubscribe) *models.Error {
 	logger := definition.Logger
@@ -161,35 +135,9 @@ func (controller *Controller) _unsubscribe(session *entities.ClientSession, toke
 }
 
 /*
-	Unsubscribe REST обертка для _unsubscribe
-*/
-func (controller *Controller) UnsubscribeREST(ctx echo.Context) error {
-	session := ctx.Get("client_session").(*entities.ClientSession)
-	token := ctx.Get("token").(string)
-
-	// привязка модели
-	model := models.ProfileUnsubscribe{}
-	if err := ctx.Bind(&model); err != nil {
-		return controller.Error(ctx, errors.SubscribeOfProfileBind.With(err))
-	}
-
-	// валидация модели
-	if err := controller.validateUnsubscribeProfile(&model); err != nil {
-		return controller.Error(ctx, errors.UnsubscribeOfProfileValidate.With(err))
-	}
-
-	// отписка
-	if err := controller._unsubscribe(session, token, &model); err != nil {
-		return controller.Error(ctx, err)
-	}
-
-	return controller.Ok(ctx, "OK")
-}
-
-/*
 	_update изменение "Имени" и "Био"
 	Изменяется запись в БД
-	Обновляется сессия
+	Обновляется, сессия
 */
 func (controller *Controller) _update(session *entities.ClientSession, token string, model *models.ProfileUpdate) *models.Error {
 	logger := definition.Logger
@@ -214,33 +162,8 @@ func (controller *Controller) _update(session *entities.ClientSession, token str
 }
 
 /*
-	Update REST обертка для _update
-*/
-func (controller *Controller) UpdateREST(ctx echo.Context) error {
-	session := ctx.Get("client_session").(*entities.ClientSession)
-	token := ctx.Get("token").(string)
-
-	// привязка модели
-	model := models.ProfileUpdate{}
-	if err := ctx.Bind(&model); err != nil {
-		return controller.Error(ctx, errors.ProfileUpdateBind.With(err))
-	}
-
-	// валидация модели
-	if err := controller.validateUpdate(&model); err != nil {
-		return controller.Error(ctx, errors.ProfileUpdateValidate.With(err))
-	}
-
-	if err := controller._update(session, token, &model); err != nil {
-		return controller.Error(ctx, err)
-	}
-
-	return controller.Ok(ctx, "OK")
-}
-
-/*
 	_updateContacts Обновление контактов профиля
-	Обновляет Телефон и Почту у пользователя
+	Обновляет, Телефон и Почту у пользователя
 */
 func (controller *Controller) _updateContacts(model *models.ProfileUpdateContact) *models.Error {
 	logger := definition.Logger
@@ -255,32 +178,10 @@ func (controller *Controller) _updateContacts(model *models.ProfileUpdateContact
 }
 
 /*
-	UpdateContacts REST обертка для _updateContacts
-*/
-func (controller *Controller) UpdateContactsREST(ctx echo.Context) error {
-	// привязка модели
-	model := models.ProfileUpdateContact{}
-	if err := ctx.Bind(&model); err != nil {
-		return controller.Error(ctx, errors.ProfileUpdateContactsBind.With(err))
-	}
-
-	// валидация модели
-	if err := controller.validateUpdateContacts(&model); err != nil {
-		return controller.Error(ctx, errors.ProfileUpdateContactsValidate.With(err))
-	}
-
-	if err := controller._updateContacts(&model); err != nil {
-		return controller.Error(ctx, err)
-	}
-
-	return controller.Ok(ctx, "OK")
-}
-
-/*
 	_uploadAvatar Загрузка аватара профиля
-	Есть валидация на расширения
-	Удаляются соседние файлы если они есть
-	Обновляется сессия
+	Есть, валидация на расширения
+	Удаляются, соседние файлы если они есть
+	Обновляется, сессия
 */
 func (controller *Controller) _uploadAvatar(session *entities.ClientSession, token string, model *models.ImageAvatar) (string, *models.Error) {
 	logger := definition.Logger
@@ -310,37 +211,10 @@ func (controller *Controller) _uploadAvatar(session *entities.ClientSession, tok
 }
 
 /*
-	UploadAvatar REST обертка для _uploadAvatar
-*/
-func (controller *Controller) UploadAvatarREST(ctx echo.Context) error {
-	session := ctx.Get("client_session").(*entities.ClientSession)
-	token := ctx.Get("token").(string)
-
-	// привязка модели
-	model := models.ImageAvatar{}
-	if err := ctx.Bind(&model); err != nil {
-		return controller.Error(ctx, errors.ProfileAvatarBind.With(err))
-	}
-
-	// валидация модели
-	if err := controller.validateUploadAvatar(&model); err != nil {
-		return controller.Error(ctx, errors.ProfileAvatarValidate.With(err))
-	}
-
-	// загрузка аватара
-	filePath, err := controller._uploadAvatar(session, token, &model)
-	if err != nil {
-		return controller.Error(ctx, err)
-	}
-
-	return controller.Ok(ctx, filePath)
-}
-
-/*
 	_uploadWallpaper Загрузка фона профиля
-	Есть валидация на расширения
-	Удаляются соседние файлы если они есть
-	Обновляется сессия
+	Есть, валидация на расширения
+	Удаляются, соседние файлы если они есть
+	Обновляется, сессия
 */
 func (controller *Controller) _uploadWallpaper(session *entities.ClientSession, token string, model *models.ImageWallpaper) (string, *models.Error) {
 	logger := definition.Logger
@@ -367,31 +241,4 @@ func (controller *Controller) _uploadWallpaper(session *entities.ClientSession, 
 	}
 
 	return filePath, nil
-}
-
-/*
-	UploadWallpaper Обертка для _uploadWallpaper
-*/
-func (controller *Controller) UploadWallpaperREST(ctx echo.Context) error {
-	session := ctx.Get("client_session").(*entities.ClientSession)
-	token := ctx.Get("token").(string)
-
-	// привязка модели
-	model := models.ImageWallpaper{}
-	if err := ctx.Bind(&model); err != nil {
-		return controller.Error(ctx, errors.ProfileWallpaperBind.With(err))
-	}
-
-	// валидация модели
-	if err := controller.validateUploadWallpaper(&model); err != nil {
-		return controller.Error(ctx, errors.ProfileWallpaperValidate.With(err))
-	}
-
-	// загрузка фона
-	filePath, err := controller._uploadWallpaper(session, token, &model)
-	if err != nil {
-		return controller.Error(ctx, err)
-	}
-
-	return controller.Ok(ctx, filePath)
 }

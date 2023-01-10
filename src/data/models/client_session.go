@@ -41,4 +41,6 @@ type UserInfoGet struct {
 	Wallpaper *string `json:"wallpaper"`
 
 	Subscriptions entities.ClientSessionSubscribes `json:"subscriptions"`
+
+	PostCount int `json:"post_count"`
 }
