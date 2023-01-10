@@ -19,7 +19,7 @@ func (controller *Controller) _general(page int) ([]models.PostGet, *models.Erro
 	logger := definition.Logger
 
 	// запрос для получения "рекомендаций"
-	posts, err := controller.feed.GetExplore("anonymous", []string{"Мемы", "Образование", "memy", "obrazovanie"}, page)
+	posts, err := controller.feed.GetExploreToday("anonymous", []string{"Мемы", "Образование", "memy", "obrazovanie"}, page)
 	if err != nil {
 		logger.Error(err, "Get list for explore error", layers.Elastic)
 		return nil, errors.PostsGetExplore.With(err)
@@ -165,7 +165,7 @@ func (controller *Controller) _explore(session *entities.ClientSession, page int
 	logger := definition.Logger
 
 	// запрос для получения "рекомендаций"
-	posts, err := controller.feed.GetExplore(session.Username, []string{"Мемы", "Образование", "memy", "obrazovanie"}, page)
+	posts, err := controller.feed.GetExploreToday(session.Username, []string{"Мемы", "Образование", "memy", "obrazovanie"}, page)
 	if err != nil {
 		logger.Error(err, "Get list for explore error", layers.Elastic)
 		return nil, errors.PostsGetExplore.With(err)

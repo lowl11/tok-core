@@ -3,11 +3,17 @@ package feed_event
 import (
 	"github.com/lowl11/lazy-collection/type_list"
 	"github.com/lowl11/lazy-elastic/es_model"
-	"strings"
 	"time"
-	"tok-core/src/data/entities"
 	"tok-core/src/data/models"
 )
+
+const (
+	AnonymousUsername = "L1RtsIGA1J5MGWcc"
+)
+
+func (event *Event) ExploreTodayExist() bool {
+	return event.client.ExistIndex(explorePrefix + time.Now().Format("02-01-2006"))
+}
 
 func (event *Event) AddExplore(post *models.PostElasticAdd) error {
 	// explore_27-12-2022
@@ -22,9 +28,9 @@ func (event *Event) AddExplore(post *models.PostElasticAdd) error {
 	return event.client.Insert(post.Code, indexName, post)
 }
 
-func (event *Event) AddListExplore(posts []models.PostElasticAdd) error {
+func (event *Event) AddListExplore(date time.Time, posts []models.PostElasticAdd) error {
 	// explore_27-12-2022
-	indexName := explorePrefix + time.Now().Format("02-01-2006")
+	indexName := explorePrefix + date.Format("02-01-2006")
 
 	// создать индекс перед записью (с проверкой на существование)
 	if err := event.client.CreateIndex(indexName, nil); err != nil {
@@ -40,7 +46,25 @@ func (event *Event) AddListExplore(posts []models.PostElasticAdd) error {
 	}).Slice())
 }
 
-func (event *Event) DeleteExplore(postCode string) error {
+func (event *Event) AddListUnauthorized(date time.Time, posts []models.PostElasticAdd) error {
+	// explore_27-12-2022
+	indexName := explorePrefix + date.Format("02-01-2006")
+
+	// создать индекс перед записью (с проверкой на существование)
+	if err := event.client.CreateIndex(indexName, nil); err != nil {
+		return err
+	}
+
+	// создать запись
+	return event.client.InsertMultiple(indexName, type_list.NewWithList[models.PostElasticAdd, es_model.InsertMultipleData](posts...).Select(func(item models.PostElasticAdd) es_model.InsertMultipleData {
+		return es_model.InsertMultipleData{
+			ID:     item.Code,
+			Object: item,
+		}
+	}).Slice())
+}
+
+func (event *Event) DeletePostExplore(postCode string) error {
 	// explore_27-12-2022
 	indexName := explorePrefix + time.Now().Format("02-01-2006")
 
@@ -48,60 +72,46 @@ func (event *Event) DeleteExplore(postCode string) error {
 	return event.client.DeleteItem(indexName, postCode)
 }
 
-func (event *Event) GetExplore(username string, keys []string, page int) ([]models.PostElasticGet, error) {
-	indexName := explorePrefix + time.Now().Format("02-01-2006")
-
-	from := (page - 1) * 10
-
-	results, err := event.search.
-		MultiMatch(indexName, strings.Join(keys, " "), exploreFields).
-		Not(event.notMyAccount(username)).
-		From(from).
-		Size(10).
-		Search()
-	if err != nil {
-		return nil, err
-	}
-
-	if len(results) == 0 {
-		// ищем во вчерашнем индексе
-		yesterdayIndexName := explorePrefix + time.Now().AddDate(0, 0, -1).Format("02-01-2006")
-
-		yesterdayResults, err := event.search.
-			MultiMatch(yesterdayIndexName, strings.Join(keys, " "), exploreFields).
-			Not(event.notMyAccount(username)).
-			Search()
-		if err != nil {
-			return nil, err
-		}
-
-		return yesterdayResults, nil
-	}
-
-	return results, nil
+func (event *Event) GetExploreToday(username string, keys []string, page int) ([]models.PostElasticGet, error) {
+	return event.getExplore(time.Now(), username, keys, page)
 }
 
-func (event *Event) FillExplore(posts []entities.PostGet) error {
-	postsList := type_list.NewWithList[entities.PostGet, models.PostElasticAdd](posts...)
-	insertList := postsList.Select(func(item entities.PostGet) models.PostElasticAdd {
-		pictureModel := &models.PostGetPicture{
-			Path:   item.Picture,
-			Width:  item.PictureWidth,
-			Height: item.PictureHeight,
-		}
+func (event *Event) GetExploreTomorrow(username string, keys []string, page int) ([]models.PostElasticGet, error) {
+	return event.getExplore(time.Now().AddDate(0, 0, 1), username, keys, page)
+}
 
-		return models.PostElasticAdd{
-			Code:         item.Code,
-			Text:         item.Text,
-			Category:     item.CategoryCode,
-			CategoryName: item.CategoryName,
-			Picture:      pictureModel,
-			Author:       item.AuthorUsername,
-			CreatedAt:    item.CreatedAt,
+func (event *Event) FillExploreToday(posts []models.PostElasticAdd) error {
+	return event.AddListExplore(time.Now(), posts)
+}
 
-			Keys: []string{item.CategoryCode, item.CategoryName},
-		}
-	})
+func (event *Event) FillExploreTomorrow(posts []models.PostElasticAdd) error {
+	return event.AddListExplore(time.Now().AddDate(0, 0, 1), posts)
+}
 
-	return event.AddListExplore(insertList.Slice())
+func (event *Event) UnauthorizedTodayExist() bool {
+	return event.client.ExistIndex(unauthorizedPrefix + time.Now().Format("02-01-2006"))
+}
+
+func (event *Event) GetUnauthorizedToday(username string, keys []string, page int) ([]models.PostElasticGet, error) {
+	return event.getUnauthorized(time.Now(), username, keys, page)
+}
+
+func (event *Event) GetUnauthorizedTomorrow(username string, keys []string, page int) ([]models.PostElasticGet, error) {
+	return event.getUnauthorized(time.Now().AddDate(0, 0, 1), username, keys, page)
+}
+
+func (event *Event) FillUnauthorizedToday(posts []models.PostElasticAdd) error {
+	return event.AddListUnauthorized(time.Now(), posts)
+}
+
+func (event *Event) FillUnauthorizedTomorrow(posts []models.PostElasticAdd) error {
+	return event.AddListUnauthorized(time.Now().AddDate(0, 0, 1), posts)
+}
+
+func (event *Event) DeletePostUnauthorized(postCode string) error {
+	// explore_27-12-2022
+	indexName := unauthorizedPrefix + time.Now().Format("02-01-2006")
+
+	// удалить запись с индекса
+	return event.client.DeleteItem(indexName, postCode)
 }
