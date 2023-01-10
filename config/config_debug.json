@@ -11,7 +11,7 @@
     	"lifetime": 5
 	},
 	"mongo": {
-		"connection": "mongodb://185.22.67.118:27017/tok"
+		"connection": "mongodb://lazy_owl:XOXmb25lTEETr@185.22.67.118:27017/tok?connectTimeoutMS=10000&authSource=tok&authMechanism=SCRAM-SHA-256&3t.uriVersion=3&3t.connection.name=tok+%281%29&3t.databases=tok&3t.alwaysShowAuthDB=true&3t.alwaysShowDBFromUserRole=true"
 	},
 	"redis": {
 		"address": "185.22.67.118:6379",

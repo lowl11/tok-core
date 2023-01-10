@@ -28,7 +28,7 @@ func (repo *Repository) GetAll() ([]entities.PostCategoryGet, error) {
 		list = append(list, item)
 	}
 
-	// ограничие списка по кол-ву
+	// ограничение списка по кол-ву
 	if len(list) > maxAllResult {
 		list = list[:maxAllResult]
 	}
@@ -57,7 +57,7 @@ func (repo *Repository) GetFirstSorted() ([]entities.PostCategoryGet, error) {
 		list = append(list, item)
 	}
 
-	// ограничие списка по кол-ву
+	// ограничение списка по кол-ву
 	if len(list) > maxAllResult {
 		list = list[:maxAllResult]
 	}
@@ -86,7 +86,7 @@ func (repo *Repository) Search(searchQuery string) ([]entities.PostCategoryGet, 
 		list = append(list, item)
 	}
 
-	// ограничие списка по кол-ву
+	// ограничение списка по кол-ву
 	if len(list) > maxSearchResult {
 		list = list[:maxSearchResult]
 	}
