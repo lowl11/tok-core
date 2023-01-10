@@ -181,26 +181,6 @@ func (controller *Controller) _delete(code string) *models.Error {
 }
 
 /*
-	_fillExplore заполнение данных для "рекомендаций"
-*/
-func (controller *Controller) _fillExplore() *models.Error {
-	logger := definition.Logger
-
-	posts, err := controller.postRepo.GetExplore()
-	if err != nil {
-		logger.Error(err, "Get explore posts error", layers.Database)
-		return errors.PostsGetExplore.With(err)
-	}
-
-	if err = controller.feed.FillExplore(posts); err != nil {
-		logger.Error(err, "Fill posts for explore error", layers.Elastic)
-		return errors.ExploreFill.With(err)
-	}
-
-	return nil
-}
-
-/*
 	_like поставить лайк для поста
 */
 func (controller *Controller) _like(session *entities.ClientSession, model *models.PostLike) *models.Error {
@@ -473,5 +453,19 @@ func (controller *Controller) _unlikeComment(session *entities.ClientSession, mo
 		return errors.PostCommentUnlike.With(err)
 	}
 
+	return nil
+}
+
+/*
+	_fillExploreFeed создание и заполнение индекса для "рекомендаций"
+*/
+func (controller *Controller) _fillExploreFeed() error {
+	return nil
+}
+
+/*
+	_fillUnauthorizedFeed создание и заполнение индекса для главной ленты "неавторизованных"
+*/
+func (controller *Controller) _fillUnauthorizedFeed() error {
 	return nil
 }

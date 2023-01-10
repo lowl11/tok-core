@@ -61,17 +61,6 @@ func (controller *Controller) DeleteREST(ctx echo.Context) error {
 }
 
 /*
-	FillExploreREST обертка для _fillExplore
-*/
-func (controller *Controller) FillExploreREST(ctx echo.Context) error {
-	if err := controller._fillExplore(); err != nil {
-		return controller.Error(ctx, err)
-	}
-
-	return controller.Ok(ctx, "OK")
-}
-
-/*
 	LikeREST обертка для _like
 */
 func (controller *Controller) LikeREST(ctx echo.Context) error {
@@ -198,6 +187,9 @@ func (controller *Controller) DeleteCommentREST(ctx echo.Context) error {
 	return controller.Ok(ctx, "OK")
 }
 
+/*
+	LikeCommentREST обертка для _likeComment
+*/
 func (controller *Controller) LikeCommentREST(ctx echo.Context) error {
 	session := ctx.Get("client_session").(*entities.ClientSession)
 
@@ -217,6 +209,9 @@ func (controller *Controller) LikeCommentREST(ctx echo.Context) error {
 	return controller.Ok(ctx, "OK")
 }
 
+/*
+	UnlikeCommentREST обертка для _unlikeComment
+*/
 func (controller *Controller) UnlikeCommentREST(ctx echo.Context) error {
 	session := ctx.Get("client_session").(*entities.ClientSession)
 
@@ -234,4 +229,26 @@ func (controller *Controller) UnlikeCommentREST(ctx echo.Context) error {
 	}
 
 	return controller.Ok(ctx, "OK")
+}
+
+/*
+	FillUnauthorizedJob обертка для _fillUnauthorizedFeed
+*/
+func (controller *Controller) FillUnauthorizedJob() error {
+	if err := controller._fillUnauthorizedFeed(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+/*
+	FillExploreJob обертка для _fillExploreFeed
+*/
+func (controller *Controller) FillExploreJob() error {
+	if err := controller._fillExploreFeed(); err != nil {
+		return err
+	}
+
+	return nil
 }

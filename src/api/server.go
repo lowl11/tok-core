@@ -1,15 +1,18 @@
 package api
 
 import (
+	"tok-core/src/controllers"
 	"tok-core/src/definition"
+	"tok-core/src/events"
+	"tok-core/src/repositories"
 )
 
-func StartServer() {
+func StartServer(apiControllers *controllers.ApiControllers, apiRepositories *repositories.ApiRepositories, apiEvents *events.ApiEvents) {
 	server := definition.Server
 	config := definition.Config.Server
 
 	// проставлять роуты
-	setRoutes(server)
+	setRoutes(server, apiControllers, apiRepositories, apiEvents)
 
 	// проставлять миддлвейры
 	setMiddlewares(server)

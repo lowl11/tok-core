@@ -9,36 +9,18 @@ import (
 	"tok-core/src/controllers/profile_controller"
 	"tok-core/src/controllers/search_controller"
 	"tok-core/src/controllers/user_controller"
-	"tok-core/src/definition"
 	"tok-core/src/events"
 	"tok-core/src/middlewares"
 	"tok-core/src/repositories"
 	"tok-core/src/services/feed_helper"
 )
 
-func setRoutes(server *echo.Echo) {
-	logger := definition.Logger
-
-	// ивенты
-	apiEvents, err := events.Get()
-	if err != nil {
-		logger.Fatal(err, "Initializing events error")
-	}
-
+func setRoutes(server *echo.Echo, apiControllers *controllers.ApiControllers, apiRepositories *repositories.ApiRepositories, apiEvents *events.ApiEvents) {
 	// проставить клиентские сессии глобально
 	middlewares.SetClientSession(apiEvents.ClientSession)
 
-	// репозитории
-	apiRepositories, err := repositories.Get(apiEvents)
-	if err != nil {
-		logger.Fatal(err, "Connecting to database error")
-	}
-
 	feed_helper.SetLikeRepository(apiRepositories.PostLike)
 	feed_helper.SetCommentRepository(apiRepositories.PostComment)
-
-	// контроллеры
-	apiControllers := controllers.Get(apiRepositories, apiEvents)
 
 	// статичные методы
 	server.GET("/health", apiControllers.Static.Health)
@@ -123,10 +105,6 @@ func setPost(server *echo.Echo, controller *post_controller.Controller) {
 	group.DELETE("/comment/delete", controller.DeleteCommentREST)
 	group.POST("/comment/like", controller.LikeCommentREST)
 	group.POST("/comment/unlike", controller.UnlikeCommentREST)
-
-	// explore
-	exploreGroup := group.Group("/explore")
-	exploreGroup.POST("/fill", controller.FillExploreREST)
 
 	// category
 	categoryGroup := group.Group("/category")
