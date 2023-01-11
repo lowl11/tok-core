@@ -230,25 +230,3 @@ func (controller *Controller) UnlikeCommentREST(ctx echo.Context) error {
 
 	return controller.Ok(ctx, "OK")
 }
-
-/*
-	FillUnauthorizedJob обертка для _fillUnauthorizedFeed
-*/
-func (controller *Controller) FillUnauthorizedJob() error {
-	if err := controller._fillUnauthorizedFeed(); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-/*
-	FillExploreJob обертка для _fillExploreFeed
-*/
-func (controller *Controller) FillExploreJob() error {
-	if err := controller._fillExploreFeed(); err != nil {
-		return err
-	}
-
-	return nil
-}

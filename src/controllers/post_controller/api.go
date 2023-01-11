@@ -463,35 +463,58 @@ func (controller *Controller) _unlikeComment(session *entities.ClientSession, mo
 func (controller *Controller) _fillExploreFeed() error {
 	/*
 		1. Проверить, существует ли сегодняшний индекс
-		2. Если его нет, ничего не делать
+		2. Если его нет, получить посты с БД
 		3. Создать завтрашний индекс получив сегодняшние посты
 	*/
 
+	var feedPosts []models.PostElasticAdd
+
 	// проверяем существует ли сегодняшний индекс
 	if !controller.feed.ExploreTodayExist() {
-		return nil
-	}
+		explorePosts, err := controller.postRepo.GetExplore()
+		if err != nil {
+			return err
+		}
 
-	// получить посты сегодняшнего индекса
-	todayPosts, err := controller.feed.GetExploreToday(feed_event.AnonymousUsername, []string{}, -1)
-	if err != nil {
-		return err
+		feedPosts = type_list.NewWithList[entities.PostGet, models.PostElasticAdd](explorePosts...).Select(func(item entities.PostGet) models.PostElasticAdd {
+			return models.PostElasticAdd{
+				Code:         item.Code,
+				Text:         item.Text,
+				Category:     item.CategoryCode,
+				CategoryName: item.CategoryName,
+				Picture: &models.PostGetPicture{
+					Path:   item.Picture,
+					Width:  item.PictureWidth,
+					Height: item.PictureHeight,
+				},
+				Author:    item.AuthorUsername,
+				CreatedAt: item.CreatedAt,
+				Keys:      []string{item.CategoryCode, item.CategoryName},
+			}
+		}).Slice()
+	} else {
+		// получить посты сегодняшнего индекса (elastic)
+		todayPosts, err := controller.feed.GetExploreToday(feed_event.AnonymousUsername, []string{}, -1)
+		if err != nil {
+			return err
+		}
+
+		feedPosts = type_list.NewWithList[models.PostElasticGet, models.PostElasticAdd](todayPosts...).Select(func(item models.PostElasticGet) models.PostElasticAdd {
+			return models.PostElasticAdd{
+				Code:         item.Code,
+				Text:         item.Text,
+				Category:     item.Category,
+				CategoryName: item.CategoryName,
+				Picture:      item.Picture,
+				Author:       item.Author,
+				CreatedAt:    item.CreatedAt,
+				Keys:         item.Keys,
+			}
+		}).Slice()
 	}
 
 	// создать завтрашний индекс с сегодняшними постами
-	fillTomorrowPosts := type_list.NewWithList[models.PostElasticGet, models.PostElasticAdd](todayPosts...).Select(func(item models.PostElasticGet) models.PostElasticAdd {
-		return models.PostElasticAdd{
-			Code:         item.Code,
-			Text:         item.Text,
-			Category:     item.Category,
-			CategoryName: item.CategoryName,
-			Picture:      item.Picture,
-			Author:       item.Author,
-			CreatedAt:    item.CreatedAt,
-			Keys:         item.Keys,
-		}
-	}).Slice()
-	if err = controller.feed.FillExploreTomorrow(fillTomorrowPosts); err != nil {
+	if err := controller.feed.FillExploreTomorrow(feedPosts); err != nil {
 		return err
 	}
 
@@ -508,31 +531,55 @@ func (controller *Controller) _fillUnauthorizedFeed() error {
 		3. Создать завтрашний индекс получив сегодняшние посты
 	*/
 
+	var feedPosts []models.PostElasticAdd
+
 	// проверяем существует ли сегодняшний индекс
 	if !controller.feed.UnauthorizedTodayExist() {
-		return nil
-	}
+		explorePosts, err := controller.postRepo.GetUnauthorized()
+		if err != nil {
+			return err
+		}
 
-	// получить посты сегодняшнего индекса
-	todayPosts, err := controller.feed.GetUnauthorizedToday(feed_event.AnonymousUsername, []string{}, -1)
-	if err != nil {
-		return err
+		feedPosts = type_list.NewWithList[entities.PostGet, models.PostElasticAdd](explorePosts...).Select(func(item entities.PostGet) models.PostElasticAdd {
+			return models.PostElasticAdd{
+				Code:         item.Code,
+				Text:         item.Text,
+				Category:     item.CategoryCode,
+				CategoryName: item.CategoryName,
+				Picture: &models.PostGetPicture{
+					Path:   item.Picture,
+					Width:  item.PictureWidth,
+					Height: item.PictureHeight,
+				},
+				Author:    item.AuthorUsername,
+				CreatedAt: item.CreatedAt,
+				Keys:      []string{item.CategoryCode, item.CategoryName},
+			}
+		}).Slice()
+	} else {
+		// получить посты сегодняшнего индекса
+		todayPosts, err := controller.feed.GetUnauthorizedToday(feed_event.AnonymousUsername, []string{}, -1)
+		if err != nil {
+			return err
+		}
+
+		// создать завтрашний индекс с сегодняшними постами
+		feedPosts = type_list.NewWithList[models.PostElasticGet, models.PostElasticAdd](todayPosts...).Select(func(item models.PostElasticGet) models.PostElasticAdd {
+			return models.PostElasticAdd{
+				Code:         item.Code,
+				Text:         item.Text,
+				Category:     item.Category,
+				CategoryName: item.CategoryName,
+				Picture:      item.Picture,
+				Author:       item.Author,
+				CreatedAt:    item.CreatedAt,
+				Keys:         item.Keys,
+			}
+		}).Slice()
 	}
 
 	// создать завтрашний индекс с сегодняшними постами
-	fillTomorrowPosts := type_list.NewWithList[models.PostElasticGet, models.PostElasticAdd](todayPosts...).Select(func(item models.PostElasticGet) models.PostElasticAdd {
-		return models.PostElasticAdd{
-			Code:         item.Code,
-			Text:         item.Text,
-			Category:     item.Category,
-			CategoryName: item.CategoryName,
-			Picture:      item.Picture,
-			Author:       item.Author,
-			CreatedAt:    item.CreatedAt,
-			Keys:         item.Keys,
-		}
-	}).Slice()
-	if err = controller.feed.FillUnauthorizedTomorrow(fillTomorrowPosts); err != nil {
+	if err := controller.feed.FillUnauthorizedTomorrow(feedPosts); err != nil {
 		return err
 	}
 
