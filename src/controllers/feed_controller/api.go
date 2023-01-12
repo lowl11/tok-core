@@ -2,9 +2,7 @@ package feed_controller
 
 import (
 	"github.com/lowl11/lazy-collection/array"
-	"github.com/lowl11/lazy-collection/set"
 	"github.com/lowl11/lazy-collection/type_list"
-	"github.com/lowl11/lazylog/layers"
 	"tok-core/src/data/entities"
 	"tok-core/src/data/errors"
 	"tok-core/src/data/models"
@@ -16,57 +14,8 @@ import (
 	_general лента на главной странице для неавторизованных
 */
 func (controller *Controller) _general(page int) ([]models.PostGet, *models.Error) {
-	logger := definition.Logger
-
-	// запрос для получения "рекомендаций"
-	posts, err := controller.feed.GetExploreToday("anonymous", []string{"Мемы", "Образование", "memy", "obrazovanie"}, page)
-	if err != nil {
-		logger.Error(err, "Get list for explore error", layers.Elastic)
-		return nil, errors.PostsGetExplore.With(err)
-	}
-
-	usernames := set.NewWithSize[string](len(posts))
-	for _, post := range posts {
-		usernames.Push(post.Author)
-	}
-
-	// получаем "имена" и "аватары" авторов
-	dynamics, err := controller.userRepo.GetDynamicByUsernames(usernames.Slice())
-	if err != nil {
-		return nil, errors.UserDynamicGet.With(err)
-	}
-
-	dynamicsArray := array.NewWithList[entities.UserDynamicGet](dynamics...)
-
-	list := make([]models.PostGet, 0, len(posts))
-	for _, item := range posts {
-		var authorName *string
-		var authorAvatar *string
-
-		dynamicUserInfo := dynamicsArray.Single(func(item entities.UserDynamicGet) bool {
-			return item.Username == item.Username
-		})
-		if dynamicUserInfo != nil {
-			authorName = dynamicUserInfo.Name
-			authorAvatar = dynamicUserInfo.Avatar
-		}
-
-		list = append(list, models.PostGet{
-			AuthorUsername: item.Author,
-			AuthorName:     authorName,
-			AuthorAvatar:   authorAvatar,
-
-			CategoryCode: item.Category,
-			CategoryName: item.CategoryName,
-
-			Code:      item.Code,
-			Text:      item.Text,
-			Picture:   item.Picture,
-			CreatedAt: item.CreatedAt,
-		})
-	}
-
-	return list, nil
+	//logger := definition.Logger
+	return nil, nil
 }
 
 /*
@@ -162,57 +111,8 @@ func (controller *Controller) _main(session *entities.ClientSession, page int) (
 	_explore лента "рекомендаций"
 */
 func (controller *Controller) _explore(session *entities.ClientSession, page int) ([]models.PostGet, *models.Error) {
-	logger := definition.Logger
-
-	// запрос для получения "рекомендаций"
-	posts, err := controller.feed.GetExploreToday(session.Username, []string{"Мемы", "Образование", "memy", "obrazovanie"}, page)
-	if err != nil {
-		logger.Error(err, "Get list for explore error", layers.Elastic)
-		return nil, errors.PostsGetExplore.With(err)
-	}
-
-	usernames := set.NewWithSize[string](len(posts))
-	for _, post := range posts {
-		usernames.Push(post.Author)
-	}
-
-	// получаем "имена" и "аватары" авторов
-	dynamics, err := controller.userRepo.GetDynamicByUsernames(usernames.Slice())
-	if err != nil {
-		return nil, errors.UserDynamicGet.With(err)
-	}
-
-	dynamicsArray := array.NewWithList[entities.UserDynamicGet](dynamics...)
-
-	list := make([]models.PostGet, 0, len(posts))
-	for _, item := range posts {
-		var authorName *string
-		var authorAvatar *string
-
-		dynamicUserInfo := dynamicsArray.Single(func(item entities.UserDynamicGet) bool {
-			return item.Username == item.Username
-		})
-		if dynamicUserInfo != nil {
-			authorName = dynamicUserInfo.Name
-			authorAvatar = dynamicUserInfo.Avatar
-		}
-
-		list = append(list, models.PostGet{
-			AuthorUsername: item.Author,
-			AuthorName:     authorName,
-			AuthorAvatar:   authorAvatar,
-
-			CategoryCode: item.Category,
-			CategoryName: item.CategoryName,
-
-			Code:      item.Code,
-			Text:      item.Text,
-			Picture:   item.Picture,
-			CreatedAt: item.CreatedAt,
-		})
-	}
-
-	return list, nil
+	//logger := definition.Logger
+	return nil, nil
 }
 
 /*

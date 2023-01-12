@@ -5,12 +5,10 @@ import (
 	"github.com/lowl11/lazy-collection/array"
 	"github.com/lowl11/lazy-collection/type_list"
 	"github.com/lowl11/lazylog/layers"
-	"time"
 	"tok-core/src/data/entities"
 	"tok-core/src/data/errors"
 	"tok-core/src/data/models"
 	"tok-core/src/definition"
-	"tok-core/src/events/feed_event"
 )
 
 /*
@@ -64,49 +62,7 @@ func (controller *Controller) _add(session *entities.ClientSession, model *model
 	}
 
 	// создание поста в рекомендациях
-	go func() {
-		// построить путь к изображению (если есть) для эластика
-		var elasticPicture *models.PostGetPicture
-		if extendedModel.ImageConfig != nil && extendedModel.ImageConfig.Path != "" {
-			postPicturePath := "/images/post/" + session.Username + "/post_" + postCode + "/" + extendedModel.ImageConfig.Path
-
-			elasticPicture = &models.PostGetPicture{
-				Path:   &postPicturePath,
-				Width:  extendedModel.ImageConfig.Width,
-				Height: extendedModel.ImageConfig.Height,
-			}
-		}
-
-		// получаем имя категории
-		var categoryName string
-		if model.CustomCategory != nil {
-			categoryName = *model.CustomCategory
-		} else {
-			category, _ := controller.postCategoryRepo.GetByCode(model.CategoryCode)
-			if category != nil {
-				categoryName = category.Name
-			} else {
-				// если вдруг не получилось найти категорию, вставляем сам код
-				categoryName = model.CategoryCode
-			}
-		}
-
-		// завести пост в рекомендациях (через elastic)
-		if err := controller.feed.AddExplore(&models.PostElasticAdd{
-			Code:         postCode,
-			Text:         extendedModel.Base.Text,
-			Category:     extendedModel.Base.CategoryCode,
-			CategoryName: categoryName,
-			Picture:      elasticPicture,
-			Author:       session.Username,
-			CreatedAt:    time.Now(),
-
-			Keys: []string{categoryName},
-		}); err != nil {
-			logger.Error(err, "Add post to explore error", layers.Elastic)
-			return
-		}
-	}()
+	// TODO: implement
 
 	return nil
 }
@@ -161,10 +117,7 @@ func (controller *Controller) _delete(code string) *models.Error {
 	}
 
 	// удаление поста по коду в эластике
-	if err = controller.feed.DeletePostExplore(code); err != nil {
-		logger.Error(err, "Delete post by code error", layers.Elastic)
-		return errors.PostDelete.With(err)
-	}
+	// TODO: implement me
 
 	// удаление комментариев и лайков поста
 	if err = controller.postCommentRepo.DeleteByPost(code); err != nil {
@@ -467,57 +420,6 @@ func (controller *Controller) _fillExploreFeed() error {
 		3. Создать завтрашний индекс получив сегодняшние посты
 	*/
 
-	var feedPosts []models.PostElasticAdd
-
-	// проверяем существует ли сегодняшний индекс
-	if !controller.feed.ExploreTodayExist() {
-		explorePosts, err := controller.postRepo.GetExplore()
-		if err != nil {
-			return err
-		}
-
-		feedPosts = type_list.NewWithList[entities.PostGet, models.PostElasticAdd](explorePosts...).Select(func(item entities.PostGet) models.PostElasticAdd {
-			return models.PostElasticAdd{
-				Code:         item.Code,
-				Text:         item.Text,
-				Category:     item.CategoryCode,
-				CategoryName: item.CategoryName,
-				Picture: &models.PostGetPicture{
-					Path:   item.Picture,
-					Width:  item.PictureWidth,
-					Height: item.PictureHeight,
-				},
-				Author:    item.AuthorUsername,
-				CreatedAt: item.CreatedAt,
-				Keys:      []string{item.CategoryCode, item.CategoryName},
-			}
-		}).Slice()
-	} else {
-		// получить посты сегодняшнего индекса (elastic)
-		todayPosts, err := controller.feed.GetExploreToday(feed_event.AnonymousUsername, []string{}, -1)
-		if err != nil {
-			return err
-		}
-
-		feedPosts = type_list.NewWithList[models.PostElasticGet, models.PostElasticAdd](todayPosts...).Select(func(item models.PostElasticGet) models.PostElasticAdd {
-			return models.PostElasticAdd{
-				Code:         item.Code,
-				Text:         item.Text,
-				Category:     item.Category,
-				CategoryName: item.CategoryName,
-				Picture:      item.Picture,
-				Author:       item.Author,
-				CreatedAt:    item.CreatedAt,
-				Keys:         item.Keys,
-			}
-		}).Slice()
-	}
-
-	// создать завтрашний индекс с сегодняшними постами
-	if err := controller.feed.FillExploreTomorrow(feedPosts); err != nil {
-		return err
-	}
-
 	return nil
 }
 
@@ -530,58 +432,6 @@ func (controller *Controller) _fillUnauthorizedFeed() error {
 		2. Если его нет, ничего не делать
 		3. Создать завтрашний индекс получив сегодняшние посты
 	*/
-
-	var feedPosts []models.PostElasticAdd
-
-	// проверяем существует ли сегодняшний индекс
-	if !controller.feed.UnauthorizedTodayExist() {
-		explorePosts, err := controller.postRepo.GetUnauthorized()
-		if err != nil {
-			return err
-		}
-
-		feedPosts = type_list.NewWithList[entities.PostGet, models.PostElasticAdd](explorePosts...).Select(func(item entities.PostGet) models.PostElasticAdd {
-			return models.PostElasticAdd{
-				Code:         item.Code,
-				Text:         item.Text,
-				Category:     item.CategoryCode,
-				CategoryName: item.CategoryName,
-				Picture: &models.PostGetPicture{
-					Path:   item.Picture,
-					Width:  item.PictureWidth,
-					Height: item.PictureHeight,
-				},
-				Author:    item.AuthorUsername,
-				CreatedAt: item.CreatedAt,
-				Keys:      []string{item.CategoryCode, item.CategoryName},
-			}
-		}).Slice()
-	} else {
-		// получить посты сегодняшнего индекса
-		todayPosts, err := controller.feed.GetUnauthorizedToday(feed_event.AnonymousUsername, []string{}, -1)
-		if err != nil {
-			return err
-		}
-
-		// создать завтрашний индекс с сегодняшними постами
-		feedPosts = type_list.NewWithList[models.PostElasticGet, models.PostElasticAdd](todayPosts...).Select(func(item models.PostElasticGet) models.PostElasticAdd {
-			return models.PostElasticAdd{
-				Code:         item.Code,
-				Text:         item.Text,
-				Category:     item.Category,
-				CategoryName: item.CategoryName,
-				Picture:      item.Picture,
-				Author:       item.Author,
-				CreatedAt:    item.CreatedAt,
-				Keys:         item.Keys,
-			}
-		}).Slice()
-	}
-
-	// создать завтрашний индекс с сегодняшними постами
-	if err := controller.feed.FillUnauthorizedTomorrow(feedPosts); err != nil {
-		return err
-	}
 
 	return nil
 }

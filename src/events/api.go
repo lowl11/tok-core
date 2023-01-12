@@ -6,7 +6,6 @@ import (
 	"time"
 	"tok-core/src/definition"
 	"tok-core/src/events/client_session_event"
-	"tok-core/src/events/feed_event"
 	"tok-core/src/events/image_event"
 	"tok-core/src/events/script_event"
 )
@@ -16,7 +15,6 @@ type ApiEvents struct {
 	Image  *image_event.Event
 
 	ClientSession *client_session_event.Event
-	Feed          *feed_event.Event
 }
 
 func Get() (*ApiEvents, error) {
@@ -45,13 +43,11 @@ func Get() (*ApiEvents, error) {
 	image := image_event.Create(config.Image.BasePath)
 
 	clientSession := client_session_event.Create(client)
-	feed := feed_event.Create(config.Elastic.Servers, config.Elastic.Username, config.Elastic.Password)
 
 	return &ApiEvents{
 		Script: script,
 		Image:  image,
 
 		ClientSession: clientSession,
-		Feed:          feed,
 	}, nil
 }

@@ -13,18 +13,6 @@ type PostAdd struct {
 	} `json:"picture"`
 }
 
-type PostElasticAdd struct {
-	Code         string          `json:"code"`
-	Text         string          `json:"text"`
-	Category     string          `json:"category"`
-	CategoryName string          `json:"category_name"`
-	Picture      *PostGetPicture `json:"picture"`
-	Author       string          `json:"author"`
-	CreatedAt    time.Time       `json:"created_at"`
-
-	Keys []string `json:"keys"`
-}
-
 type PostAddExtended struct {
 	Base        *PostAdd
 	ImageConfig *ImageConfig
@@ -46,19 +34,6 @@ type PostGet struct {
 	LikeCount    int  `json:"like_count"`
 	MyLike       bool `json:"my_like"`
 	CommentCount int  `json:"comment_count"`
-}
-
-type PostElasticGet struct {
-	Code         string          `json:"code"`
-	Text         string          `json:"text"`
-	Category     string          `json:"category"`
-	CategoryName string          `json:"category_name"`
-	Picture      *PostGetPicture `json:"picture"`
-	Author       string          `json:"author"`
-
-	Keys []string `json:"keys"`
-
-	CreatedAt time.Time `json:"created_at"`
 }
 
 type PostGetPicture struct {

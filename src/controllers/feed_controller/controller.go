@@ -3,7 +3,6 @@ package feed_controller
 import (
 	"tok-core/src/controllers/controller"
 	"tok-core/src/events"
-	"tok-core/src/events/feed_event"
 	"tok-core/src/repositories"
 	"tok-core/src/repositories/post_comment_repository"
 	"tok-core/src/repositories/post_like_repository"
@@ -18,8 +17,6 @@ type Controller struct {
 	postLikeRepo    *post_like_repository.Repository
 	postCommentRepo *post_comment_repository.Repository
 	userRepo        *user_repository.Repository
-
-	feed *feed_event.Event
 }
 
 func Create(apiRepositories *repositories.ApiRepositories, apiEvents *events.ApiEvents) *Controller {
@@ -28,7 +25,5 @@ func Create(apiRepositories *repositories.ApiRepositories, apiEvents *events.Api
 		postLikeRepo:    apiRepositories.PostLike,
 		postCommentRepo: apiRepositories.PostComment,
 		userRepo:        apiRepositories.User,
-
-		feed: apiEvents.Feed,
 	}
 }
