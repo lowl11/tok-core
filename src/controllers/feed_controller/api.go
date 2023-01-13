@@ -16,8 +16,94 @@ import (
 	_general лента на главной странице для неавторизованных
 */
 func (controller *Controller) _general(page int) ([]models.PostGet, *models.Error) {
-	//logger := definition.Logger
-	return nil, nil
+	logger := definition.Logger
+
+	// пагинация (от и до)
+	from := (page - 1) * 10
+	to := from + 10
+
+	feed, err := controller.feedRepo.Get(feed_repository.Explore)
+	if err != nil {
+		logger.Error(err, "Get feed error", layers.Mongo)
+		return nil, errors.FeedGet.With(err)
+	}
+
+	if feed == nil {
+		return nil, errors.FeedNotFound
+	}
+
+	posts := array.NewWithList[entities.FeedPost](feed.Posts...).Shuffle().Sub(from, to).Slice()
+
+	// массив с кодами постов
+	postCodes := type_list.NewWithList[entities.FeedPost, string](posts...).Select(func(item entities.FeedPost) string {
+		return item.PostCode
+	}).Slice()
+
+	// получаем лайки и комментарии постов
+	likeArray, commentArray := feed_helper.LikesAndComments(postCodes)
+
+	return type_list.NewWithList[entities.FeedPost, models.PostGet](posts...).Select(func(item entities.FeedPost) models.PostGet {
+		var picture *models.PostGetPicture
+
+		if item.Picture != nil {
+			picture = &models.PostGetPicture{
+				Path:   &item.Picture.Path,
+				Width:  item.Picture.Width,
+				Height: item.Picture.Height,
+			}
+		}
+
+		// лайки
+		var likeCount int
+
+		if likeArray != nil {
+			foundLike := likeArray.Single(func(iterator entities.PostLikeGetList) bool {
+				return iterator.PostCode == item.PostCode
+			})
+
+			if foundLike != nil {
+				likeCount = foundLike.LikesCount
+			}
+		}
+
+		// комментарии
+		var commentCount int
+
+		if commentArray != nil {
+			foundComment := commentArray.Single(func(iterator entities.PostCommentGetList) bool {
+				return iterator.PostCode == item.PostCode
+			})
+
+			if foundComment != nil {
+				commentCount = foundComment.CommentsCount
+			}
+		}
+
+		// категория поста
+		var categoryName string
+		category := controller.category.Get(item.PostCategory)
+		if category != nil {
+			categoryName = category.Name
+		}
+
+		return models.PostGet{
+			AuthorUsername: item.AuthorUsername,
+			AuthorName:     item.AuthorName,
+			AuthorAvatar:   item.AuthorAvatar,
+
+			CategoryCode: item.PostCategory,
+			CategoryName: categoryName,
+
+			Code:      item.PostCode,
+			Text:      item.PostText,
+			Picture:   picture,
+			CreatedAt: item.CreatedAt,
+
+			LikeCount:    likeCount,
+			MyLike:       false,
+			CommentCount: commentCount,
+		}
+	}).Slice(), nil
 }
 
 /*
