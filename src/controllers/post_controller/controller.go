@@ -4,6 +4,7 @@ import (
 	"tok-core/src/controllers/controller"
 	"tok-core/src/events"
 	"tok-core/src/events/image_event"
+	"tok-core/src/events/post_category_event"
 	"tok-core/src/repositories"
 	"tok-core/src/repositories/category_count_repository"
 	"tok-core/src/repositories/feed_repository"
@@ -29,7 +30,8 @@ type Controller struct {
 	userInterestRepo  *user_interest_repository.Repository
 	feedRepo          *feed_repository.Repository
 
-	image *image_event.Event
+	image    *image_event.Event
+	category *post_category_event.Event
 }
 
 func Create(apiRepositories *repositories.ApiRepositories, apiEvents *events.ApiEvents) *Controller {
@@ -45,6 +47,7 @@ func Create(apiRepositories *repositories.ApiRepositories, apiEvents *events.Api
 		userInterestRepo:  apiRepositories.UserInterest,
 		feedRepo:          apiRepositories.Feed,
 
-		image: apiEvents.Image,
+		image:    apiEvents.Image,
+		category: apiEvents.PostCategory,
 	}
 }

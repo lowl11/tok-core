@@ -95,6 +95,7 @@ func (controller *Controller) _add(session *entities.ClientSession, model *model
 			return errors.PostCategoryCreate.With(err)
 		} else {
 			customCategory = &categoryCode
+			controller.category.Add(categoryCode, *extendedModel.Base.CustomCategory)
 		}
 	}
 
