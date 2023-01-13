@@ -12,6 +12,7 @@ import (
 	"tok-core/src/events"
 	"tok-core/src/middlewares"
 	"tok-core/src/repositories"
+	"tok-core/src/services/category_helper"
 	"tok-core/src/services/feed_helper"
 )
 
@@ -21,6 +22,7 @@ func setRoutes(server *echo.Echo, apiControllers *controllers.ApiControllers, ap
 
 	feed_helper.SetLikeRepository(apiRepositories.PostLike)
 	feed_helper.SetCommentRepository(apiRepositories.PostComment)
+	category_helper.Load(apiEvents.PostCategory, apiRepositories.PostCategory)
 
 	// статичные методы
 	server.GET("/health", apiControllers.Static.Health)

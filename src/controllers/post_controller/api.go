@@ -113,11 +113,28 @@ func (controller *Controller) _add(session *entities.ClientSession, model *model
 
 	// создание поста в рекомендациях
 	go func() {
+		var feedPostPicture *entities.FeedPostPicture
+
+		if extendedModel.ImageConfig != nil {
+			feedPostPicture = &entities.FeedPostPicture{
+				Path:   extendedModel.ImageConfig.Path,
+				Width:  extendedModel.ImageConfig.Width,
+				Height: extendedModel.ImageConfig.Height,
+			}
+		}
+
 		feedPost := &entities.FeedPost{
 			PostCode:     postCode,
 			PostCategory: model.CategoryCode,
-			PostAuthor:   session.Username,
-			CreatedAt:    time.Now(),
+
+			AuthorUsername: session.Username,
+			AuthorName:     session.Name,
+			AuthorAvatar:   session.Avatar,
+
+			PostText: model.Text,
+			Picture:  feedPostPicture,
+
+			CreatedAt: time.Now(),
 		}
 
 		if err := controller.feedRepo.AddPostExist(feed_repository.Explore, feedPost); err != nil {
@@ -503,11 +520,28 @@ func (controller *Controller) _fillExploreFeed() error {
 
 	if err = controller.feedRepo.AddPostListExist(feed_repository.Explore, type_list.NewWithList[entities.PostGet, entities.FeedPost](list...).Select(
 		func(item entities.PostGet) entities.FeedPost {
+			var picture *entities.FeedPostPicture
+
+			if item.Picture != nil {
+				picture = &entities.FeedPostPicture{
+					Path:   *item.Picture,
+					Width:  item.PictureWidth,
+					Height: item.PictureHeight,
+				}
+			}
+
 			return entities.FeedPost{
 				PostCode:     item.Code,
 				PostCategory: item.CategoryCode,
-				PostAuthor:   item.AuthorUsername,
-				CreatedAt:    item.CreatedAt,
+
+				AuthorUsername: item.AuthorUsername,
+				AuthorName:     item.AuthorName,
+				AuthorAvatar:   item.AuthorAvatar,
+
+				PostText: item.Text,
+				Picture:  picture,
+
+				CreatedAt: item.CreatedAt,
 			}
 		}).Slice()); err != nil {
 		return err
@@ -543,11 +577,28 @@ func (controller *Controller) _fillUnauthorizedFeed() error {
 
 	if err = controller.feedRepo.AddPostListExist(feed_repository.Unauthorized, type_list.NewWithList[entities.PostGet, entities.FeedPost](list...).Select(
 		func(item entities.PostGet) entities.FeedPost {
+			var picture *entities.FeedPostPicture
+
+			if item.Picture != nil {
+				picture = &entities.FeedPostPicture{
+					Path:   *item.Picture,
+					Width:  item.PictureWidth,
+					Height: item.PictureHeight,
+				}
+			}
+
 			return entities.FeedPost{
 				PostCode:     item.Code,
 				PostCategory: item.CategoryCode,
-				PostAuthor:   item.AuthorUsername,
-				CreatedAt:    item.CreatedAt,
+
+				AuthorUsername: item.AuthorUsername,
+				AuthorName:     item.AuthorName,
+				AuthorAvatar:   item.AuthorAvatar,
+
+				PostText: item.Text,
+				Picture:  picture,
+
+				CreatedAt: item.CreatedAt,
 			}
 		}).Slice()); err != nil {
 		return err
