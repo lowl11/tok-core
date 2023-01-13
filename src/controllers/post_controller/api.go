@@ -481,10 +481,37 @@ func (controller *Controller) _unlikeComment(session *entities.ClientSession, mo
 */
 func (controller *Controller) _fillExploreFeed() error {
 	/*
-		1. Проверить, существует ли сегодняшний индекс
-		2. Если его нет, получить посты с БД
-		3. Создать завтрашний индекс получив сегодняшние посты
+		1. Проверить, существует ли запись в feeds
+		2. Если его нет, получить посты с БД за последний месяц и записать
 	*/
+
+	feed, err := controller.feedRepo.Get(feed_repository.Explore)
+	if err != nil {
+		return err
+	}
+
+	// если фида есть и он не пустой, ничего не делать
+	if feed != nil && feed.Count > 0 {
+		return nil
+	}
+
+	// если фида нет или он пустой, вытащить посты с БД и добавить в коллекцию
+	list, err := controller.postRepo.GetExplore()
+	if err != nil {
+		return err
+	}
+
+	if err = controller.feedRepo.AddPostListExist(feed_repository.Explore, type_list.NewWithList[entities.PostGet, entities.FeedPost](list...).Select(
+		func(item entities.PostGet) entities.FeedPost {
+			return entities.FeedPost{
+				PostCode:     item.Code,
+				PostCategory: item.CategoryCode,
+				PostAuthor:   item.AuthorUsername,
+				CreatedAt:    item.CreatedAt,
+			}
+		}).Slice()); err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -494,10 +521,37 @@ func (controller *Controller) _fillExploreFeed() error {
 */
 func (controller *Controller) _fillUnauthorizedFeed() error {
 	/*
-		1. Проверить, существует ли сегодняшний индекс
-		2. Если его нет, ничего не делать
-		3. Создать завтрашний индекс получив сегодняшние посты
+		1. Проверить, существует ли запись в feeds
+		2. Если его нет, получить посты с БД за последний месяц и записать
 	*/
+
+	feed, err := controller.feedRepo.Get(feed_repository.Unauthorized)
+	if err != nil {
+		return err
+	}
+
+	// если фида есть и он не пустой, ничего не делать
+	if feed != nil && feed.Count > 0 {
+		return nil
+	}
+
+	// если фида нет или он пустой, вытащить посты с БД и добавить в коллекцию
+	list, err := controller.postRepo.GetUnauthorized()
+	if err != nil {
+		return err
+	}
+
+	if err = controller.feedRepo.AddPostListExist(feed_repository.Unauthorized, type_list.NewWithList[entities.PostGet, entities.FeedPost](list...).Select(
+		func(item entities.PostGet) entities.FeedPost {
+			return entities.FeedPost{
+				PostCode:     item.Code,
+				PostCategory: item.CategoryCode,
+				PostAuthor:   item.AuthorUsername,
+				CreatedAt:    item.CreatedAt,
+			}
+		}).Slice()); err != nil {
+		return err
+	}
 
 	return nil
 }

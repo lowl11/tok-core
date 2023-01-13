@@ -105,6 +105,25 @@ func (repo *Repository) AddPost(feedName string, entity *entities.FeedPost) erro
 	return nil
 }
 
+func (repo *Repository) AddPostListExist(feedName string, list []entities.FeedPost) error {
+	feed, err := repo.Get(feedName)
+	if err != nil {
+		return err
+	}
+
+	if feed != nil {
+		if err = repo.AddPostList(feedName, list); err != nil {
+			return err
+		}
+	} else {
+		if err = repo.CreateWithList(feedName, list); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 func (repo *Repository) AddPostList(feedName string, list []entities.FeedPost) error {
 	ctx, cancel := repo.Ctx()
 	defer cancel()
