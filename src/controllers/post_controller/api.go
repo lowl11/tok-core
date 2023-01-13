@@ -113,13 +113,19 @@ func (controller *Controller) _add(session *entities.ClientSession, model *model
 
 	// создание поста в рекомендациях
 	go func() {
-		if err := controller.feedRepo.AddPostExist(feed_repository.Explore, &entities.FeedPost{
+		feedPost := &entities.FeedPost{
 			PostCode:     postCode,
 			PostCategory: model.CategoryCode,
 			PostAuthor:   session.Username,
 			CreatedAt:    time.Now(),
-		}); err != nil {
+		}
+
+		if err := controller.feedRepo.AddPostExist(feed_repository.Explore, feedPost); err != nil {
 			logger.Error(err, "Add post to explore feed error", layers.Mongo)
+		}
+
+		if err := controller.feedRepo.AddPostExist(feed_repository.Unauthorized, feedPost); err != nil {
+			logger.Error(err, "Add post to unauthorized feed error", layers.Mongo)
 		}
 	}()
 
@@ -150,8 +156,16 @@ func (controller *Controller) _delete(code string) *models.Error {
 		return errors.PostDelete.With(err)
 	}
 
-	// удаление поста по коду в эластике
-	// TODO: implement me
+	// удаление поста по коду в рекомендациях
+	go func() {
+		if err = controller.feedRepo.RemovePost(feed_repository.Explore, code); err != nil {
+			logger.Error(err, "Remove post to explore feed error", layers.Mongo)
+		}
+
+		if err = controller.feedRepo.RemovePost(feed_repository.Unauthorized, code); err != nil {
+			logger.Error(err, "Remove post to unauthorized feed error", layers.Mongo)
+		}
+	}()
 
 	// уменьшаем кол-во постов в категории
 	go func() {
