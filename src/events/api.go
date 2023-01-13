@@ -28,7 +28,7 @@ func Get() (*ApiEvents, error) {
 	})
 
 	// ping redis
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 	defer cancel()
 
 	if err := client.Ping(ctx).Err(); err != nil {

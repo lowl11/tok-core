@@ -7,10 +7,12 @@ type PostLikeGet struct {
 }
 
 type PostLike struct {
-	PostCode   string `json:"post_code"`
-	PostAuthor string `json:"post_author"`
+	PostCode     string `json:"post_code"`
+	PostAuthor   string `json:"post_author"`
+	PostCategory string `json:"post_category"`
 }
 
 type PostUnlike struct {
-	PostCode string `json:"post_code"`
+	PostCode     string `json:"post_code"`
+	PostCategory string `json:"post_category"`
 }

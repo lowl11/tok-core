@@ -8,6 +8,16 @@ var (
 		BusinessMessage: "Категория публикации не найдена",
 	}
 
+	PostCategoryCreateBind = &models.Error{
+		TechMessage:     "Create post category bind model error",
+		BusinessMessage: "Произошла ошибка при создании категории",
+	}
+
+	PostCategoryCreateValidate = &models.Error{
+		TechMessage:     "Create post category bind model error",
+		BusinessMessage: "Произошла ошибка при создании категории",
+	}
+
 	PostCategoryCreate = &models.Error{
 		TechMessage:     "Create post category error",
 		BusinessMessage: "Произошла ошибка при создании категории",

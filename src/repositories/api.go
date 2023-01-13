@@ -5,11 +5,14 @@ import (
 	"tok-core/src/definition"
 	"tok-core/src/events"
 	"tok-core/src/repositories/auth_repository"
+	"tok-core/src/repositories/category_count_repository"
+	"tok-core/src/repositories/feed_repository"
 	"tok-core/src/repositories/post_category_repository"
 	"tok-core/src/repositories/post_comment_repository"
 	"tok-core/src/repositories/post_like_repository"
 	"tok-core/src/repositories/post_repository"
 	"tok-core/src/repositories/subscription_repository"
+	"tok-core/src/repositories/user_interest_repository"
 	"tok-core/src/repositories/user_ip_repository"
 	"tok-core/src/repositories/user_repository"
 	"tok-core/src/services/mongo_service"
@@ -33,6 +36,11 @@ type ApiRepositories struct {
 	Post         *post_repository.Repository
 	PostComment  *post_comment_repository.Repository
 	PostLike     *post_like_repository.Repository
+
+	CategoryCount *category_count_repository.Repository
+	UserInterest  *user_interest_repository.Repository
+
+	Feed *feed_repository.Repository
 }
 
 func Get(apiEvents *events.ApiEvents) (*ApiRepositories, error) {
@@ -60,5 +68,10 @@ func Get(apiEvents *events.ApiEvents) (*ApiRepositories, error) {
 		Post:         post_repository.Create(connectionPostgres, apiEvents),
 		PostComment:  post_comment_repository.Create(connectionMongo, postCommentCollection),
 		PostLike:     post_like_repository.Create(connectionMongo, postLikeCollection),
+
+		CategoryCount: category_count_repository.Create(connectionMongo),
+		UserInterest:  user_interest_repository.Create(connectionMongo),
+
+		Feed: feed_repository.Create(connectionMongo),
 	}, nil
 }

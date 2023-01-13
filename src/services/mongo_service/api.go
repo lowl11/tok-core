@@ -14,7 +14,7 @@ func NewConnection(databaseName string) (*mongo.Database, error) {
 	config := definition.Config.Mongo
 	logger := definition.Logger
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()
 
 	client, err := mongo.Connect(ctx, options.Client().ApplyURI(config.Connection))

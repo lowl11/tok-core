@@ -1,6 +1,7 @@
 package post_controller
 
 import (
+	"fmt"
 	"github.com/google/uuid"
 	"github.com/lowl11/lazy-collection/array"
 	"github.com/lowl11/lazy-collection/type_list"
@@ -10,6 +11,46 @@ import (
 	"tok-core/src/data/models"
 	"tok-core/src/definition"
 )
+
+/*
+	_categories возвращает список всех категорий
+*/
+func (controller *Controller) _categories() ([]models.PostCategoryGet, *models.Error) {
+	logger := definition.Logger
+
+	// получение списка всех категорий
+	categories, err := controller.postCategoryRepo.GetAll()
+	if err != nil {
+		logger.Error(err, "Get all post categories error")
+		return nil, errors.PostCategoryGetList.With(err)
+	}
+
+	// обработка списка категорий для клиента
+	list := make([]models.PostCategoryGet, 0, len(categories))
+	for _, item := range categories {
+		list = append(list, models.PostCategoryGet{
+			Code: item.Code,
+			Name: item.Name,
+		})
+	}
+
+	return list, nil
+}
+
+/*
+	_addCategory создать категорию, код категории генерируется сам
+*/
+func (controller *Controller) _addCategory(name string) (string, *models.Error) {
+	logger := definition.Logger
+
+	code, err := controller.postCategoryRepo.Create(name)
+	if err != nil {
+		logger.Error(err, "Create post category error", layers.Database)
+		return "", errors.PostCategoryCreate.With(err)
+	}
+
+	return code, nil
+}
 
 /*
 	_add создание нового поста
@@ -61,35 +102,30 @@ func (controller *Controller) _add(session *entities.ClientSession, model *model
 		return errors.PostCreate.With(err)
 	}
 
+	// увеличиваем кол-во постов в категории
+	go func() {
+		categoryCount, err := controller.categoryCountRepo.Get(model.CategoryCode)
+		if err != nil {
+			logger.Error(err, "Get category count error", layers.Mongo)
+			return
+		}
+
+		if categoryCount == nil {
+			if err = controller.categoryCountRepo.Create(model.CategoryCode); err != nil {
+				logger.Error(err, "Create category count error", layers.Mongo)
+				return
+			}
+		} else {
+			if err = controller.categoryCountRepo.Increment(model.CategoryCode); err != nil {
+				logger.Error(err, "Increment categories count error", layers.Mongo)
+			}
+		}
+	}()
+
 	// создание поста в рекомендациях
 	// TODO: implement
 
 	return nil
-}
-
-/*
-	_categories возвращает список всех категорий
-*/
-func (controller *Controller) _categories() ([]models.PostCategoryGet, *models.Error) {
-	logger := definition.Logger
-
-	// получение списка всех категорий
-	categories, err := controller.postCategoryRepo.GetAll()
-	if err != nil {
-		logger.Error(err, "Get all post categories error")
-		return nil, errors.PostCategoryGetList.With(err)
-	}
-
-	// обработка списка категорий для клиента
-	list := make([]models.PostCategoryGet, 0, len(categories))
-	for _, item := range categories {
-		list = append(list, models.PostCategoryGet{
-			Code: item.Code,
-			Name: item.Name,
-		})
-	}
-
-	return list, nil
 }
 
 /*
@@ -119,17 +155,21 @@ func (controller *Controller) _delete(code string) *models.Error {
 	// удаление поста по коду в эластике
 	// TODO: implement me
 
-	// удаление комментариев и лайков поста
-	if err = controller.postCommentRepo.DeleteByPost(code); err != nil {
-		logger.Error(err, "Delete post comments error", layers.Mongo)
-		return errors.PostCommentDelete.With(err)
-	}
+	// уменьшаем кол-во постов в категории
+	go func() {
+		categoryCount, err := controller.categoryCountRepo.Get(code)
+		if err != nil {
+			logger.Error(err, "Get category count error", layers.Mongo)
+			return
+		}
 
-	// удаление лайков поста
-	if err = controller.postLikeRepo.DeleteByPost(code); err != nil {
-		logger.Error(err, "Delete post likes error", layers.Mongo)
-		return errors.PostLikeDelete.With(err)
-	}
+		if categoryCount != nil && categoryCount.Count > 0 {
+			if err = controller.categoryCountRepo.Decrement(code); err != nil {
+				logger.Error(err, "Decrement categories count error", layers.Mongo)
+				return
+			}
+		}
+	}()
 
 	return nil
 }
@@ -163,6 +203,25 @@ func (controller *Controller) _like(session *entities.ClientSession, model *mode
 		}
 	}
 
+	// запись интереса пользователя
+	go func() {
+		interest, err := controller.userInterest.Get(session.Username)
+		if err != nil {
+			logger.Error(err, "Get user interest error", layers.Mongo)
+			return
+		}
+
+		if interest == nil {
+			if err = controller.userInterest.Create(session.Username, model.PostCategory); err != nil {
+				logger.Error(err, "Create user interest error", layers.Mongo)
+			}
+		} else {
+			if err = controller.userInterest.IncreaseCategory(session.Username, model.PostCategory); err != nil {
+				logger.Error(err, "Increase user category interest error", layers.Mongo)
+			}
+		}
+	}()
+
 	return nil
 }
 
@@ -187,6 +246,34 @@ func (controller *Controller) _unlike(session *entities.ClientSession, model *mo
 		logger.Error(err, "Unlike post error", layers.Mongo)
 		return errors.PostUnlike.With(err)
 	}
+
+	// запись интереса пользователя
+	go func() {
+		interest, err := controller.userInterest.Get(session.Username)
+		if err != nil {
+			logger.Error(err, "Get user interest error", layers.Mongo)
+			return
+		}
+
+		// если записи нет, то и уменьшать не нужно
+		if interest == nil {
+			return
+		}
+
+		interestCategory := array.NewWithList[entities.UserInterestCategory](interest.Categories...).Single(func(item entities.UserInterestCategory) bool {
+			return item.CategoryCode == model.PostCategory
+		})
+
+		// если категории нет, то и уменьшать не нужно
+		if interestCategory == nil || interestCategory.Interest <= 0 {
+			fmt.Println("i am here")
+			return
+		}
+
+		if err = controller.userInterest.DecreaseCategory(session.Username, model.PostCategory); err != nil {
+			logger.Error(err, "Decrease user category interest error", layers.Mongo)
+		}
+	}()
 
 	return nil
 }

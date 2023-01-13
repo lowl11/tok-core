@@ -2,6 +2,14 @@ package post_controller
 
 import "tok-core/src/data/models"
 
+func (controller *Controller) validateAddCategory(model *models.PostCategoryAdd) error {
+	if err := controller.RequiredField(model.Name, "name"); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (controller *Controller) validatePostCreate(model *models.PostAdd) error {
 	if model.CustomCategory == nil {
 		if err := controller.RequiredField(model.CategoryCode, "category"); err != nil {
@@ -35,11 +43,19 @@ func (controller *Controller) validateLike(model *models.PostLike) error {
 		return err
 	}
 
+	if err := controller.RequiredField(model.PostCategory, "post_category"); err != nil {
+		return err
+	}
+
 	return nil
 }
 
 func (controller *Controller) validateUnlike(model *models.PostUnlike) error {
 	if err := controller.RequiredField(model.PostCode, "post_code"); err != nil {
+		return err
+	}
+
+	if err := controller.RequiredField(model.PostCategory, "post_category"); err != nil {
 		return err
 	}
 

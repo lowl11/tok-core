@@ -9,6 +9,39 @@ import (
 )
 
 /*
+	CategoriesREST обертка для _categories
+*/
+func (controller *Controller) CategoriesREST(ctx echo.Context) error {
+	list, err := controller._categories()
+	if err != nil {
+		return controller.Error(ctx, err)
+	}
+
+	return controller.Ok(ctx, list)
+}
+
+/*
+	AddCategoryREST обертка для _addCategory
+*/
+func (controller *Controller) AddCategoryREST(ctx echo.Context) error {
+	model := models.PostCategoryAdd{}
+	if err := ctx.Bind(&model); err != nil {
+		return controller.Error(ctx, errors.PostCategoryCreateBind.With(err))
+	}
+
+	if err := controller.validateAddCategory(&model); err != nil {
+		return controller.Error(ctx, errors.PostCategoryCreateValidate.With(err))
+	}
+
+	code, err := controller._addCategory(model.Name)
+	if err != nil {
+		return controller.Error(ctx, err)
+	}
+
+	return controller.Ok(ctx, code)
+}
+
+/*
 	AddREST обертка для _add
 */
 func (controller *Controller) AddREST(ctx echo.Context) error {
@@ -30,18 +63,6 @@ func (controller *Controller) AddREST(ctx echo.Context) error {
 	}
 
 	return controller.Ok(ctx, "OK")
-}
-
-/*
-	CategoriesREST обертка для _categories
-*/
-func (controller *Controller) CategoriesREST(ctx echo.Context) error {
-	list, err := controller._categories()
-	if err != nil {
-		return controller.Error(ctx, err)
-	}
-
-	return controller.Ok(ctx, list)
 }
 
 /*
