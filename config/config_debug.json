@@ -21,6 +21,6 @@
 		"crypt_key": "NGNhYjgzMDcxNjhhZjQ0NzBlMDliODJj"
 	},
 	"image": {
-		"base": "/Users/lazy_owl/Desktop"
+		"base": "/var/www/cdn/images"
 	}
 }

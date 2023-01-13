@@ -13,6 +13,6 @@ type Repository struct {
 func Create(connection *mongo.Database) *Repository {
 	return &Repository{
 		Base:       repository_mongo.CreateBase(),
-		connection: connection.Collection(""),
+		connection: connection.Collection("feeds"),
 	}
 }
