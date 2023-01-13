@@ -1,15 +1,16 @@
 package post_controller
 
 import (
-	"fmt"
 	"github.com/google/uuid"
 	"github.com/lowl11/lazy-collection/array"
 	"github.com/lowl11/lazy-collection/type_list"
 	"github.com/lowl11/lazylog/layers"
+	"time"
 	"tok-core/src/data/entities"
 	"tok-core/src/data/errors"
 	"tok-core/src/data/models"
 	"tok-core/src/definition"
+	"tok-core/src/repositories/feed_repository"
 )
 
 /*
@@ -90,6 +91,7 @@ func (controller *Controller) _add(session *entities.ClientSession, model *model
 	var customCategory *string
 	if model.CustomCategory != nil {
 		if categoryCode, err := controller.postCategoryRepo.Create(*extendedModel.Base.CustomCategory); err != nil {
+			logger.Error(err, "Create post category error", layers.Database)
 			return errors.PostCategoryCreate.With(err)
 		} else {
 			customCategory = &categoryCode
@@ -98,32 +100,28 @@ func (controller *Controller) _add(session *entities.ClientSession, model *model
 
 	// создание поста
 	if err := controller.postRepo.Create(extendedModel, session.Username, postCode, picturePath, customCategory); err != nil {
-		logger.Error(err, "Create post error")
+		logger.Error(err, "Create post error", layers.Database)
 		return errors.PostCreate.With(err)
 	}
 
 	// увеличиваем кол-во постов в категории
 	go func() {
-		categoryCount, err := controller.categoryCountRepo.Get(model.CategoryCode)
-		if err != nil {
-			logger.Error(err, "Get category count error", layers.Mongo)
-			return
-		}
-
-		if categoryCount == nil {
-			if err = controller.categoryCountRepo.Create(model.CategoryCode); err != nil {
-				logger.Error(err, "Create category count error", layers.Mongo)
-				return
-			}
-		} else {
-			if err = controller.categoryCountRepo.Increment(model.CategoryCode); err != nil {
-				logger.Error(err, "Increment categories count error", layers.Mongo)
-			}
+		if err := controller.categoryCountRepo.IncrementExist(model.CategoryCode); err != nil {
+			logger.Error(err, "Increment categories count error", layers.Mongo)
 		}
 	}()
 
 	// создание поста в рекомендациях
-	// TODO: implement
+	go func() {
+		if err := controller.feedRepo.AddPostExist(feed_repository.Explore, &entities.FeedPost{
+			PostCode:     postCode,
+			PostCategory: model.CategoryCode,
+			PostAuthor:   session.Username,
+			CreatedAt:    time.Now(),
+		}); err != nil {
+			logger.Error(err, "Add post to explore feed error", layers.Mongo)
+		}
+	}()
 
 	return nil
 }
@@ -205,20 +203,8 @@ func (controller *Controller) _like(session *entities.ClientSession, model *mode
 
 	// запись интереса пользователя
 	go func() {
-		interest, err := controller.userInterest.Get(session.Username)
-		if err != nil {
-			logger.Error(err, "Get user interest error", layers.Mongo)
-			return
-		}
-
-		if interest == nil {
-			if err = controller.userInterest.Create(session.Username, model.PostCategory); err != nil {
-				logger.Error(err, "Create user interest error", layers.Mongo)
-			}
-		} else {
-			if err = controller.userInterest.IncreaseCategory(session.Username, model.PostCategory); err != nil {
-				logger.Error(err, "Increase user category interest error", layers.Mongo)
-			}
+		if err = controller.userInterestRepo.IncreaseCategoryExist(session.Username, model.PostCategory); err != nil {
+			logger.Error(err, "Increase user category interest error", layers.Mongo)
 		}
 	}()
 
@@ -249,28 +235,7 @@ func (controller *Controller) _unlike(session *entities.ClientSession, model *mo
 
 	// запись интереса пользователя
 	go func() {
-		interest, err := controller.userInterest.Get(session.Username)
-		if err != nil {
-			logger.Error(err, "Get user interest error", layers.Mongo)
-			return
-		}
-
-		// если записи нет, то и уменьшать не нужно
-		if interest == nil {
-			return
-		}
-
-		interestCategory := array.NewWithList[entities.UserInterestCategory](interest.Categories...).Single(func(item entities.UserInterestCategory) bool {
-			return item.CategoryCode == model.PostCategory
-		})
-
-		// если категории нет, то и уменьшать не нужно
-		if interestCategory == nil || interestCategory.Interest <= 0 {
-			fmt.Println("i am here")
-			return
-		}
-
-		if err = controller.userInterest.DecreaseCategory(session.Username, model.PostCategory); err != nil {
+		if err = controller.userInterestRepo.DecreaseCategoryExist(session.Username, model.PostCategory); err != nil {
 			logger.Error(err, "Decrease user category interest error", layers.Mongo)
 		}
 	}()

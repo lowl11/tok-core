@@ -6,6 +6,7 @@ import (
 	"tok-core/src/events/image_event"
 	"tok-core/src/repositories"
 	"tok-core/src/repositories/category_count_repository"
+	"tok-core/src/repositories/feed_repository"
 	"tok-core/src/repositories/post_category_repository"
 	"tok-core/src/repositories/post_comment_repository"
 	"tok-core/src/repositories/post_like_repository"
@@ -25,7 +26,8 @@ type Controller struct {
 	postLikeRepo     *post_like_repository.Repository
 
 	categoryCountRepo *category_count_repository.Repository
-	userInterest      *user_interest_repository.Repository
+	userInterestRepo  *user_interest_repository.Repository
+	feedRepo          *feed_repository.Repository
 
 	image *image_event.Event
 }
@@ -40,7 +42,8 @@ func Create(apiRepositories *repositories.ApiRepositories, apiEvents *events.Api
 		postLikeRepo:     apiRepositories.PostLike,
 
 		categoryCountRepo: apiRepositories.CategoryCount,
-		userInterest:      apiRepositories.UserInterest,
+		userInterestRepo:  apiRepositories.UserInterest,
+		feedRepo:          apiRepositories.Feed,
 
 		image: apiEvents.Image,
 	}

@@ -50,6 +50,25 @@ func (repo *Repository) Create(categoryCode string) error {
 	return nil
 }
 
+func (repo *Repository) IncrementExist(categoryCode string) error {
+	categoryCount, err := repo.Get(categoryCode)
+	if err != nil {
+		return err
+	}
+
+	if categoryCount != nil {
+		if err = repo.Increment(categoryCode); err != nil {
+			return err
+		}
+	} else {
+		if err = repo.Create(categoryCode); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 func (repo *Repository) Increment(categoryCode string) error {
 	repo.mutex.Lock()
 	defer repo.mutex.Unlock()

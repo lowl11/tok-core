@@ -1,6 +1,7 @@
 package user_interest_repository
 
 import (
+	"github.com/lowl11/lazy-collection/array"
 	"go.mongodb.org/mongo-driver/bson"
 	"tok-core/src/data/entities"
 	"tok-core/src/services/mongo_service"
@@ -50,6 +51,25 @@ func (repo *Repository) Create(username, categoryCode string) error {
 	return nil
 }
 
+func (repo *Repository) IncreaseCategoryExist(username, categoryCode string) error {
+	interest, err := repo.Get(username)
+	if err != nil {
+		return err
+	}
+
+	if interest != nil {
+		if err = repo.IncreaseCategory(username, categoryCode); err != nil {
+			return err
+		}
+	} else {
+		if err = repo.Create(username, categoryCode); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 func (repo *Repository) IncreaseCategory(username, categoryCode string) error {
 	ctx, cancel := repo.Ctx()
 	defer cancel()
@@ -61,6 +81,33 @@ func (repo *Repository) IncreaseCategory(username, categoryCode string) error {
 			"categories.$.interest": increaseInterest,
 		},
 	}); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (repo *Repository) DecreaseCategoryExist(username, categoryCode string) error {
+	interest, err := repo.Get(username)
+	if err != nil {
+		return err
+	}
+
+	// если записи нет, то и уменьшать не нужно
+	if interest == nil {
+		return nil
+	}
+
+	interestCategory := array.NewWithList[entities.UserInterestCategory](interest.Categories...).Single(func(item entities.UserInterestCategory) bool {
+		return item.CategoryCode == categoryCode
+	})
+
+	// если категории нет, то и уменьшать не нужно
+	if interestCategory == nil || interestCategory.Interest <= 0 {
+		return nil
+	}
+
+	if err = repo.DecreaseCategory(username, categoryCode); err != nil {
 		return err
 	}
 

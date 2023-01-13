@@ -6,6 +6,11 @@ import (
 	"tok-core/src/services/mongo_service"
 )
 
+const (
+	Explore      = "explore"
+	Unauthorized = "unauthorized"
+)
+
 func (repo *Repository) Get(feedName string) (*entities.FeedGet, error) {
 	ctx, cancel := repo.Ctx()
 	defer cancel()
@@ -59,6 +64,25 @@ func (repo *Repository) CreateWithList(feedName string, posts []entities.FeedPos
 
 	if _, err := repo.connection.InsertOne(ctx, entity); err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func (repo *Repository) AddPostExist(feedName string, entity *entities.FeedPost) error {
+	feed, err := repo.Get(feedName)
+	if err != nil {
+		return err
+	}
+
+	if feed != nil {
+		if err = repo.AddPost(feedName, entity); err != nil {
+			return err
+		}
+	} else {
+		if err = repo.Create(feedName, entity); err != nil {
+			return err
+		}
 	}
 
 	return nil
