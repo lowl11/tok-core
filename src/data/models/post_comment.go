@@ -10,7 +10,8 @@ type PostCommentItem struct {
 	LikeAuthors   []string  `json:"like_authors"`
 	CreatedAt     time.Time `json:"created_at"`
 
-	SubComments []PostSubCommentItem `json:"subcomments"`
+	SubCommentsSize int                  `json:"subcomments_size"`
+	SubComments     []PostSubCommentItem `json:"subcomments"`
 }
 
 type PostSubCommentItem struct {
@@ -26,6 +27,12 @@ type PostCommentGet struct {
 	PostCode   string            `json:"post_code"`
 	PostAuthor string            `json:"post_author"`
 	Comments   []PostCommentItem `json:"comments"`
+}
+
+type PostSubcommentGet struct {
+	PostCode    string               `json:"post_code"`
+	PostAuthor  string               `json:"post_author"`
+	Subcomments []PostSubCommentItem `json:"subcomments"`
 }
 
 type PostCommentAdd struct {

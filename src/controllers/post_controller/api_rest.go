@@ -169,9 +169,10 @@ func (controller *Controller) GetCommentREST(ctx echo.Context) error {
 */
 func (controller *Controller) GetSubcommentREST(ctx echo.Context) error {
 	postCode := ctx.Param("code")
+	commentCode := ctx.QueryParam("comment")
 	page, _ := strconv.Atoi(ctx.QueryParam("page"))
 
-	comments, err := controller._getSubcomment(postCode, page)
+	comments, err := controller._getSubcomment(postCode, commentCode, page)
 	if err != nil {
 		return controller.Error(ctx, err)
 	}

@@ -336,8 +336,8 @@ func (controller *Controller) _getLikes(session *entities.ClientSession, postCod
 func (controller *Controller) _getComment(postCode string, page int) (*models.PostCommentGet, *models.Error) {
 	logger := definition.Logger
 
-	//from := (page-1)*10
-	//to := from + 10
+	from := (page - 1) * 15
+	to := from + 15
 
 	postComments, err := controller.postCommentRepo.GetByPost(postCode)
 	if err != nil {
@@ -370,17 +370,18 @@ func (controller *Controller) _getComment(postCode string, page int) (*models.Po
 				LikeAuthors:   item.LikeAuthors,
 				CreatedAt:     item.CreatedAt,
 
-				SubComments: subCommentsList.Select(func(item entities.PostSubCommentItem) models.PostSubCommentItem {
-					return models.PostSubCommentItem{
-						CommentCode:   item.CommentCode,
-						CommentAuthor: item.CommentAuthor,
-						CommentText:   item.CommentText,
-						LikesCount:    item.LikesCount,
-						LikeAuthors:   item.LikeAuthors,
-					}
-				}).Slice(),
+				SubCommentsSize: subCommentsList.Size(),
+				//SubComments: subCommentsList.Select(func(item entities.PostSubCommentItem) models.PostSubCommentItem {
+				//	return models.PostSubCommentItem{
+				//		CommentCode:   item.CommentCode,
+				//		CommentAuthor: item.CommentAuthor,
+				//		CommentText:   item.CommentText,
+				//		LikesCount:    item.LikesCount,
+				//		LikeAuthors:   item.LikeAuthors,
+				//	}
+				//}).Slice(),
 			}
-		}).Slice(),
+		}).Sub(from, to).Slice(),
 	}
 
 	return item, nil
@@ -389,8 +390,11 @@ func (controller *Controller) _getComment(postCode string, page int) (*models.Po
 /*
 	_getSubcomment получение подкомментариев под родительским комментарием
 */
-func (controller *Controller) _getSubcomment(postCode string, page int) (*models.PostCommentGet, *models.Error) {
+func (controller *Controller) _getSubcomment(postCode, commentCode string, page int) (*models.PostSubcommentGet, *models.Error) {
 	logger := definition.Logger
+
+	from := (page - 1) * 15
+	to := from + 15
 
 	postComments, err := controller.postCommentRepo.GetByPost(postCode)
 	if err != nil {
@@ -399,41 +403,41 @@ func (controller *Controller) _getSubcomment(postCode string, page int) (*models
 	}
 
 	if postComments == nil {
-		return &models.PostCommentGet{
-			PostCode:   postCode,
-			PostAuthor: "",
-			Comments:   make([]models.PostCommentItem, 0),
+		return &models.PostSubcommentGet{
+			PostCode:    postCode,
+			PostAuthor:  "",
+			Subcomments: make([]models.PostSubCommentItem, 0),
 		}, nil
 	}
 
 	commentsList := type_list.NewWithList[entities.PostCommentItem, models.PostCommentItem](postComments.Comments...)
+	subcomments := commentsList.Single(func(item entities.PostCommentItem) bool {
+		return item.CommentCode == commentCode
+	}).SubComments
 
-	item := &models.PostCommentGet{
+	if subcomments == nil {
+		return &models.PostSubcommentGet{
+			PostCode:    postCode,
+			PostAuthor:  "",
+			Subcomments: make([]models.PostSubCommentItem, 0),
+		}, nil
+	}
+
+	subCommentsList := type_list.NewWithList[entities.PostSubCommentItem, models.PostSubCommentItem](subcomments...)
+
+	item := &models.PostSubcommentGet{
 		PostCode:   postComments.PostCode,
 		PostAuthor: postComments.PostAuthor,
 
-		Comments: commentsList.Select(func(item entities.PostCommentItem) models.PostCommentItem {
-			subCommentsList := type_list.NewWithList[entities.PostSubCommentItem, models.PostSubCommentItem](item.SubComments...)
-
-			return models.PostCommentItem{
+		Subcomments: subCommentsList.Select(func(item entities.PostSubCommentItem) models.PostSubCommentItem {
+			return models.PostSubCommentItem{
 				CommentCode:   item.CommentCode,
 				CommentAuthor: item.CommentAuthor,
 				CommentText:   item.CommentText,
 				LikesCount:    item.LikesCount,
 				LikeAuthors:   item.LikeAuthors,
-				CreatedAt:     item.CreatedAt,
-
-				SubComments: subCommentsList.Select(func(item entities.PostSubCommentItem) models.PostSubCommentItem {
-					return models.PostSubCommentItem{
-						CommentCode:   item.CommentCode,
-						CommentAuthor: item.CommentAuthor,
-						CommentText:   item.CommentText,
-						LikesCount:    item.LikesCount,
-						LikeAuthors:   item.LikeAuthors,
-					}
-				}).Slice(),
 			}
-		}).Slice(),
+		}).Sub(from, to).Slice(),
 	}
 
 	return item, nil
