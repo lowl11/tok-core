@@ -153,9 +153,25 @@ func (controller *Controller) GetLikesREST(ctx echo.Context) error {
 	GetCommentREST обертка для _getComment
 */
 func (controller *Controller) GetCommentREST(ctx echo.Context) error {
-	postCode := ctx.QueryParam("code")
+	postCode := ctx.Param("code")
+	page, _ := strconv.Atoi(ctx.QueryParam("page"))
 
-	comments, err := controller._getComment(postCode)
+	comments, err := controller._getComment(postCode, page)
+	if err != nil {
+		return controller.Error(ctx, err)
+	}
+
+	return controller.Ok(ctx, comments)
+}
+
+/*
+	GetSubcommentREST обертка для _getSubcomment
+*/
+func (controller *Controller) GetSubcommentREST(ctx echo.Context) error {
+	postCode := ctx.Param("code")
+	page, _ := strconv.Atoi(ctx.QueryParam("page"))
+
+	comments, err := controller._getSubcomment(postCode, page)
 	if err != nil {
 		return controller.Error(ctx, err)
 	}

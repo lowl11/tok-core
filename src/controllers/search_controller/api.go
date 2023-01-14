@@ -13,7 +13,7 @@ import (
 
 /*
 	Smart поиск по нескольким типам данных
-	Комбинируются несколько типов данных и отдаются клиенту в перемешке
+	Комбинируются, несколько типов данных и отдаются клиенту в перемешку
 */
 func (controller *Controller) Smart(ctx echo.Context) error {
 	logger := definition.Logger

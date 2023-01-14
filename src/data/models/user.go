@@ -22,4 +22,7 @@ type UserDynamicGet struct {
 	Username string  `json:"username"`
 	Avatar   *string `json:"avatar"`
 	Name     *string `json:"name"`
+
+	// Подписан ли авторизованный
+	Subscribed *bool `json:"subscribed,omitempty"`
 }

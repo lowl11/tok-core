@@ -312,10 +312,16 @@ func (controller *Controller) _getLikes(session *entities.ClientSession, postCod
 	return &models.PostLikeGet{
 		LikesCount: likes.LikesCount,
 		LikeAuthors: dynamicUsersList.Select(func(item entities.UserDynamicGet) models.UserDynamicGet {
+			var mySubscription bool
+			if array.NewWithList[string](session.Subscriptions.Subscriptions...).Contains(item.Username) {
+				mySubscription = true
+			}
+
 			return models.UserDynamicGet{
-				Username: item.Username,
-				Avatar:   item.Avatar,
-				Name:     item.Name,
+				Username:   item.Username,
+				Avatar:     item.Avatar,
+				Name:       item.Name,
+				Subscribed: &mySubscription,
 			}
 		}).Sub(from, from+10).Slice(),
 		Liked: dynamicUsersList.Single(func(item entities.UserDynamicGet) bool {
@@ -325,9 +331,65 @@ func (controller *Controller) _getLikes(session *entities.ClientSession, postCod
 }
 
 /*
-	_getComment получение всего дерева комментариев под постом
+	_getComment получение комментариев под постом
 */
-func (controller *Controller) _getComment(postCode string) (*models.PostCommentGet, *models.Error) {
+func (controller *Controller) _getComment(postCode string, page int) (*models.PostCommentGet, *models.Error) {
+	logger := definition.Logger
+
+	//from := (page-1)*10
+	//to := from + 10
+
+	postComments, err := controller.postCommentRepo.GetByPost(postCode)
+	if err != nil {
+		logger.Error(err, "Get comments list error", layers.Mongo)
+		return nil, errors.PostCommentGet.With(err)
+	}
+
+	if postComments == nil {
+		return &models.PostCommentGet{
+			PostCode:   postCode,
+			PostAuthor: "",
+			Comments:   make([]models.PostCommentItem, 0),
+		}, nil
+	}
+
+	commentsList := type_list.NewWithList[entities.PostCommentItem, models.PostCommentItem](postComments.Comments...)
+
+	item := &models.PostCommentGet{
+		PostCode:   postComments.PostCode,
+		PostAuthor: postComments.PostAuthor,
+
+		Comments: commentsList.Select(func(item entities.PostCommentItem) models.PostCommentItem {
+			subCommentsList := type_list.NewWithList[entities.PostSubCommentItem, models.PostSubCommentItem](item.SubComments...)
+
+			return models.PostCommentItem{
+				CommentCode:   item.CommentCode,
+				CommentAuthor: item.CommentAuthor,
+				CommentText:   item.CommentText,
+				LikesCount:    item.LikesCount,
+				LikeAuthors:   item.LikeAuthors,
+				CreatedAt:     item.CreatedAt,
+
+				SubComments: subCommentsList.Select(func(item entities.PostSubCommentItem) models.PostSubCommentItem {
+					return models.PostSubCommentItem{
+						CommentCode:   item.CommentCode,
+						CommentAuthor: item.CommentAuthor,
+						CommentText:   item.CommentText,
+						LikesCount:    item.LikesCount,
+						LikeAuthors:   item.LikeAuthors,
+					}
+				}).Slice(),
+			}
+		}).Slice(),
+	}
+
+	return item, nil
+}
+
+/*
+	_getSubcomment получение подкомментариев под родительским комментарием
+*/
+func (controller *Controller) _getSubcomment(postCode string, page int) (*models.PostCommentGet, *models.Error) {
 	logger := definition.Logger
 
 	postComments, err := controller.postCommentRepo.GetByPost(postCode)

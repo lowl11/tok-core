@@ -103,7 +103,8 @@ func setPost(server *echo.Echo, controller *post_controller.Controller) {
 
 	// comments
 	group.POST("/comment/add", controller.AddCommentREST)
-	group.GET("/comment/get", controller.GetCommentREST)
+	group.GET("/comment/get/:code", controller.GetCommentREST)
+	group.GET("/comment/get/:code/sub", controller.GetSubcommentREST)
 	group.DELETE("/comment/delete", controller.DeleteCommentREST)
 	group.POST("/comment/like", controller.LikeCommentREST)
 	group.POST("/comment/unlike", controller.UnlikeCommentREST)
