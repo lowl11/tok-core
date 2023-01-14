@@ -78,12 +78,14 @@ func setUser(server *echo.Echo, controller *user_controller.Controller) {
 }
 
 func setFeed(server *echo.Echo, controller *feed_controller.Controller) {
+	openGroup := server.Group("/api/v1/feed")
+	openGroup.GET("/general", controller.GeneralREST)
+
 	group := server.Group("/api/v1/feed")
 
 	setMiddlewaresPublic(group)
 	group.GET("/main", controller.MainREST)
 	group.GET("/explore", controller.ExploreREST)
-	group.GET("/general", controller.GeneralREST)
 	group.GET("/user/:username", controller.UserREST)
 	group.GET("/category/:category_code", controller.CategoryREST)
 	group.GET("/single/:code", controller.SingleREST)
