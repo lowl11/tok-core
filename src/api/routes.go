@@ -5,6 +5,7 @@ import (
 	"tok-core/src/controllers"
 	"tok-core/src/controllers/auth_controller"
 	"tok-core/src/controllers/feed_controller"
+	"tok-core/src/controllers/notification_controller"
 	"tok-core/src/controllers/post_controller"
 	"tok-core/src/controllers/profile_controller"
 	"tok-core/src/controllers/search_controller"
@@ -36,6 +37,7 @@ func setRoutes(server *echo.Echo, apiControllers *controllers.ApiControllers, ap
 	setFeed(server, apiControllers.Feed)
 	setPost(server, apiControllers.Post)
 	setSearch(server, apiControllers.Search)
+	setNotification(server, apiControllers.Notification)
 }
 
 func setAuth(server *echo.Echo, controller *auth_controller.Controller) {
@@ -121,4 +123,13 @@ func setSearch(server *echo.Echo, controller *search_controller.Controller) {
 	group.POST("/user", controller.User)
 	group.POST("/category", controller.Category)
 	group.POST("/smart", controller.Smart)
+}
+
+func setNotification(server *echo.Echo, controller *notification_controller.Controller) {
+	group := server.Group("/api/v1/notify")
+
+	setMiddlewaresPublic(group)
+
+	group.GET("/get/count", controller.GetCountREST)
+	group.GET("/get/info", controller.GetInfoREST)
 }

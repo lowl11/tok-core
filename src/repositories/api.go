@@ -7,6 +7,7 @@ import (
 	"tok-core/src/repositories/auth_repository"
 	"tok-core/src/repositories/category_count_repository"
 	"tok-core/src/repositories/feed_repository"
+	"tok-core/src/repositories/notification_repository"
 	"tok-core/src/repositories/post_category_repository"
 	"tok-core/src/repositories/post_comment_repository"
 	"tok-core/src/repositories/post_like_repository"
@@ -22,8 +23,9 @@ import (
 const (
 	databaseName = "tok"
 
-	postCommentCollection = "post_comments"
-	postLikeCollection    = "post_likes"
+	postCommentCollection  = "post_comments"
+	postLikeCollection     = "post_likes"
+	notificationCollection = "notifications"
 )
 
 type ApiRepositories struct {
@@ -41,6 +43,8 @@ type ApiRepositories struct {
 	UserInterest  *user_interest_repository.Repository
 
 	Feed *feed_repository.Repository
+
+	Notification *notification_repository.Repository
 }
 
 func Get(apiEvents *events.ApiEvents) (*ApiRepositories, error) {
@@ -73,5 +77,7 @@ func Get(apiEvents *events.ApiEvents) (*ApiRepositories, error) {
 		UserInterest:  user_interest_repository.Create(connectionMongo),
 
 		Feed: feed_repository.Create(connectionMongo),
+
+		Notification: notification_repository.Create(connectionMongo, notificationCollection),
 	}, nil
 }
