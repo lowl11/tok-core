@@ -21,11 +21,11 @@ func Token(next echo.HandlerFunc) echo.HandlerFunc {
 
 		// чтение и проверка логина
 		username := ctx.Request().Header.Get("username")
-		if token == "" {
+		if username == "" {
 			errorObject := &models.Response{
 				Status:       "ERROR",
 				Message:      "Произошла ошибка",
-				InnerMessage: "Token is required",
+				InnerMessage: "Username is required",
 			}
 			return ctx.JSON(http.StatusUnauthorized, errorObject)
 		}

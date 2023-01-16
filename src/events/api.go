@@ -7,6 +7,7 @@ import (
 	"tok-core/src/definition"
 	"tok-core/src/events/client_session_event"
 	"tok-core/src/events/image_event"
+	"tok-core/src/events/notification_event"
 	"tok-core/src/events/post_category_event"
 	"tok-core/src/events/script_event"
 )
@@ -18,6 +19,7 @@ type ApiEvents struct {
 	ClientSession *client_session_event.Event
 
 	PostCategory *post_category_event.Event
+	Notification *notification_event.Event
 }
 
 func Get() (*ApiEvents, error) {
@@ -48,6 +50,7 @@ func Get() (*ApiEvents, error) {
 	clientSession := client_session_event.Create(client)
 
 	postCategory := post_category_event.Create()
+	notification := notification_event.Create()
 
 	return &ApiEvents{
 		Script: script,
@@ -56,5 +59,6 @@ func Get() (*ApiEvents, error) {
 		ClientSession: clientSession,
 
 		PostCategory: postCategory,
+		Notification: notification,
 	}, nil
 }

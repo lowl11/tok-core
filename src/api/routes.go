@@ -25,6 +25,9 @@ func setRoutes(server *echo.Echo, apiControllers *controllers.ApiControllers, ap
 	feed_helper.SetCommentRepository(apiRepositories.PostComment)
 	category_helper.Load(apiEvents.PostCategory, apiRepositories.PostCategory)
 
+	// костыль потому что не подключен RMQ
+	apiEvents.Notification.SetRepo(apiRepositories.Notification)
+
 	// статичные методы
 	server.GET("/health", apiControllers.Static.Health)
 	server.RouteNotFound("*", apiControllers.Static.RouteNotFound)
@@ -132,6 +135,7 @@ func setNotification(server *echo.Echo, controller *notification_controller.Cont
 
 	setMiddlewaresPublic(group)
 
+	group.POST("/read", controller.ReadREST)
 	group.GET("/get/count", controller.GetCountREST)
 	group.GET("/get/info", controller.GetInfoREST)
 }

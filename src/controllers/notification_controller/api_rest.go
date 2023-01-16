@@ -2,19 +2,40 @@ package notification_controller
 
 import (
 	"github.com/labstack/echo/v4"
+	"tok-core/src/data/entities"
 	"tok-core/src/data/errors"
+	"tok-core/src/data/models"
 )
+
+/*
+	ReadREST обертка для _getCount
+*/
+func (controller *Controller) ReadREST(ctx echo.Context) error {
+	session := ctx.Get("client_session").(*entities.ClientSession)
+
+	model := models.NotificationRead{}
+	if err := ctx.Bind(&model); err != nil {
+		return controller.Error(ctx, errors.NotificationReadBind.With(err))
+	}
+
+	if err := controller.validationRead(&model); err != nil {
+		return controller.Error(ctx, errors.NotificationReadValidation.With(err))
+	}
+
+	if err := controller._read(session.Username, model.ActionKeys); err != nil {
+		return controller.Error(ctx, err)
+	}
+
+	return controller.Ok(ctx, "OK")
+}
 
 /*
 	GetInfoREST обертка для _getInfo
 */
 func (controller *Controller) GetInfoREST(ctx echo.Context) error {
-	username := ctx.Param("username")
-	if username == "" {
-		return controller.Error(ctx, errors.NotificationGetInfoParam)
-	}
+	session := ctx.Get("client_session").(*entities.ClientSession)
 
-	info, err := controller._getInfo(username)
+	info, err := controller._getInfo(session.Username)
 	if err != nil {
 		return controller.Error(ctx, err)
 	}
@@ -26,12 +47,9 @@ func (controller *Controller) GetInfoREST(ctx echo.Context) error {
 	GetCountREST обертка для _getCount
 */
 func (controller *Controller) GetCountREST(ctx echo.Context) error {
-	username := ctx.Param("username")
-	if username == "" {
-		return controller.Error(ctx, errors.NotificationGetCountParam)
-	}
+	session := ctx.Get("client_session").(*entities.ClientSession)
 
-	count, err := controller._getCount(username)
+	count, err := controller._getCount(session.Username)
 	if err != nil {
 		return controller.Error(ctx, err)
 	}

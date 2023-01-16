@@ -107,3 +107,20 @@ func (repo *Repository) ReadItem(username, actionKey string) error {
 
 	return nil
 }
+
+func (repo *Repository) ReadItemList(username string, actionKeys []string) error {
+	ctx, cancel := repo.Ctx()
+	defer cancel()
+
+	filter := mongo_service.Filter().Eq("username", username).Get()
+
+	if _, err := repo.connection.UpdateOne(ctx, filter, bson.M{
+		"$inc": bson.M{
+			"new_actions_count": -1 * len(actionKeys),
+		},
+	}); err != nil {
+		return err
+	}
+
+	return nil
+}

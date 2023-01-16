@@ -9,8 +9,10 @@ import (
 	"tok-core/src/data/entities"
 	"tok-core/src/data/errors"
 	"tok-core/src/data/models"
+	"tok-core/src/data/notification_actions"
 	"tok-core/src/definition"
 	"tok-core/src/repositories/feed_repository"
+	"tok-core/src/services/action_helper"
 )
 
 /*
@@ -233,8 +235,15 @@ func (controller *Controller) _like(session *entities.ClientSession, model *mode
 		}
 	}
 
-	// запись интереса пользователя
 	go func() {
+		// отправляем уведомление
+		if err = controller.notification.Push(action_helper.PostLike, session.Username, &notification_actions.PostLike{
+			PostCode: model.PostCode,
+		}); err != nil {
+			logger.Error(err, "Sending notification error", layers.Rabbit)
+		}
+
+		// запись интереса пользователя
 		if err = controller.userInterestRepo.IncreaseCategoryExist(session.Username, model.PostCategory); err != nil {
 			logger.Error(err, "Increase user category interest error", layers.Mongo)
 		}

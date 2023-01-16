@@ -3,12 +3,13 @@ package errors
 import "tok-core/src/data/models"
 
 var (
-	NotificationGetInfoParam = &models.Error{
-		TechMessage:     "Username required",
+	NotificationReadBind = &models.Error{
+		TechMessage:     "Read notifications model bind error",
 		BusinessMessage: "Произошла ошибка",
 	}
-	NotificationGetCountParam = &models.Error{
-		TechMessage:     "Username required",
+
+	NotificationReadValidation = &models.Error{
+		TechMessage:     "Read notifications model validation error",
 		BusinessMessage: "Произошла ошибка",
 	}
 
@@ -16,9 +17,12 @@ var (
 		TechMessage:     "Get notifications info error",
 		BusinessMessage: "Произошла ошибка",
 	}
-
 	NotificationGetCount = &models.Error{
 		TechMessage:     "Get notifications count error",
+		BusinessMessage: "Произошла ошибка",
+	}
+	NotificationRead = &models.Error{
+		TechMessage:     "Read notifications error",
 		BusinessMessage: "Произошла ошибка",
 	}
 )
