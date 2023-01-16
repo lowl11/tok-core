@@ -355,6 +355,24 @@ func (controller *Controller) _getComment(postCode string, page int) (*models.Po
 
 	commentsList := type_list.NewWithList[entities.PostCommentItem, models.PostCommentItem](postComments.Comments...)
 
+	usernames := make([]string, 0, commentsList.Size())
+	commentsList.Each(func(item entities.PostCommentItem) {
+		usernames = append(usernames, item.CommentAuthor)
+	})
+
+	usersDynamic, err := controller.userRepo.GetDynamicByUsernames(usernames)
+	if err != nil {
+		return nil, errors.UserDynamicGet.With(err)
+	}
+
+	userList := type_list.NewWithList[entities.UserDynamicGet, models.UserDynamicGet](usersDynamic...).Select(func(item entities.UserDynamicGet) models.UserDynamicGet {
+		return models.UserDynamicGet{
+			Username: item.Username,
+			Name:     item.Name,
+			Avatar:   item.Avatar,
+		}
+	})
+
 	item := &models.PostCommentGet{
 		PostCode:   postComments.PostCode,
 		PostAuthor: postComments.PostAuthor,
@@ -364,22 +382,13 @@ func (controller *Controller) _getComment(postCode string, page int) (*models.Po
 
 			return models.PostCommentItem{
 				CommentCode:   item.CommentCode,
-				CommentAuthor: item.CommentAuthor,
+				CommentAuthor: userList.Single(func(user models.UserDynamicGet) bool { return user.Username == item.CommentAuthor }),
 				CommentText:   item.CommentText,
 				LikesCount:    item.LikesCount,
 				LikeAuthors:   item.LikeAuthors,
 				CreatedAt:     item.CreatedAt,
 
 				SubCommentsSize: subCommentsList.Size(),
-				//SubComments: subCommentsList.Select(func(item entities.PostSubCommentItem) models.PostSubCommentItem {
-				//	return models.PostSubCommentItem{
-				//		CommentCode:   item.CommentCode,
-				//		CommentAuthor: item.CommentAuthor,
-				//		CommentText:   item.CommentText,
-				//		LikesCount:    item.LikesCount,
-				//		LikeAuthors:   item.LikeAuthors,
-				//	}
-				//}).Slice(),
 			}
 		}).Sub(from, to).Slice(),
 	}
@@ -425,6 +434,24 @@ func (controller *Controller) _getSubcomment(postCode, commentCode string, page 
 
 	subCommentsList := type_list.NewWithList[entities.PostSubCommentItem, models.PostSubCommentItem](subcomments...)
 
+	usernames := make([]string, 0, commentsList.Size())
+	commentsList.Each(func(item entities.PostCommentItem) {
+		usernames = append(usernames, item.CommentAuthor)
+	})
+
+	usersDynamic, err := controller.userRepo.GetDynamicByUsernames(usernames)
+	if err != nil {
+		return nil, errors.UserDynamicGet.With(err)
+	}
+
+	userList := type_list.NewWithList[entities.UserDynamicGet, models.UserDynamicGet](usersDynamic...).Select(func(item entities.UserDynamicGet) models.UserDynamicGet {
+		return models.UserDynamicGet{
+			Username: item.Username,
+			Name:     item.Name,
+			Avatar:   item.Avatar,
+		}
+	})
+
 	item := &models.PostSubcommentGet{
 		PostCode:   postComments.PostCode,
 		PostAuthor: postComments.PostAuthor,
@@ -432,7 +459,7 @@ func (controller *Controller) _getSubcomment(postCode, commentCode string, page 
 		Subcomments: subCommentsList.Select(func(item entities.PostSubCommentItem) models.PostSubCommentItem {
 			return models.PostSubCommentItem{
 				CommentCode:   item.CommentCode,
-				CommentAuthor: item.CommentAuthor,
+				CommentAuthor: userList.Single(func(user models.UserDynamicGet) bool { return user.Username == item.CommentAuthor }),
 				CommentText:   item.CommentText,
 				LikesCount:    item.LikesCount,
 				LikeAuthors:   item.LikeAuthors,

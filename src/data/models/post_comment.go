@@ -3,24 +3,23 @@ package models
 import "time"
 
 type PostCommentItem struct {
-	CommentCode   string    `json:"comment_code"`
-	CommentAuthor string    `json:"comment_author"`
-	CommentText   string    `json:"comment_text"`
-	LikesCount    int       `json:"likes_count"`
-	LikeAuthors   []string  `json:"like_authors"`
-	CreatedAt     time.Time `json:"created_at"`
+	CommentCode   string          `json:"comment_code"`
+	CommentAuthor *UserDynamicGet `json:"comment_author"`
+	CommentText   string          `json:"comment_text"`
+	LikesCount    int             `json:"likes_count"`
+	LikeAuthors   []string        `json:"like_authors"`
+	CreatedAt     time.Time       `json:"created_at"`
 
-	SubCommentsSize int                  `json:"subcomments_size"`
-	SubComments     []PostSubCommentItem `json:"subcomments"`
+	SubCommentsSize int `json:"subcomments_size"`
 }
 
 type PostSubCommentItem struct {
-	CommentCode   string    `json:"comment_code"`
-	CommentAuthor string    `json:"comment_author"`
-	CommentText   string    `json:"comment_text"`
-	LikesCount    int       `json:"likes_count"`
-	LikeAuthors   []string  `json:"like_authors"`
-	CreatedAt     time.Time `json:"created_at"`
+	CommentCode   string          `json:"comment_code"`
+	CommentAuthor *UserDynamicGet `json:"comment_author"`
+	CommentText   string          `json:"comment_text"`
+	LikesCount    int             `json:"likes_count"`
+	LikeAuthors   []string        `json:"like_authors"`
+	CreatedAt     time.Time       `json:"created_at"`
 }
 
 type PostCommentGet struct {
