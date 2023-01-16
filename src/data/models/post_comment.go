@@ -7,7 +7,7 @@ type PostCommentItem struct {
 	CommentAuthor *UserDynamicGet `json:"comment_author"`
 	CommentText   string          `json:"comment_text"`
 	LikesCount    int             `json:"likes_count"`
-	LikeAuthors   []string        `json:"like_authors"`
+	MyLike        bool            `json:"my_like"`
 	CreatedAt     time.Time       `json:"created_at"`
 
 	SubCommentsSize int `json:"subcomments_size"`
@@ -18,7 +18,7 @@ type PostSubCommentItem struct {
 	CommentAuthor *UserDynamicGet `json:"comment_author"`
 	CommentText   string          `json:"comment_text"`
 	LikesCount    int             `json:"likes_count"`
-	LikeAuthors   []string        `json:"like_authors"`
+	MyLike        bool            `json:"my_like"`
 	CreatedAt     time.Time       `json:"created_at"`
 }
 

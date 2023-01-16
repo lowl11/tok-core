@@ -153,10 +153,12 @@ func (controller *Controller) GetLikesREST(ctx echo.Context) error {
 	GetCommentREST обертка для _getComment
 */
 func (controller *Controller) GetCommentREST(ctx echo.Context) error {
+	session := ctx.Get("client_session").(*entities.ClientSession)
+
 	postCode := ctx.Param("code")
 	page, _ := strconv.Atoi(ctx.QueryParam("page"))
 
-	comments, err := controller._getComment(postCode, page)
+	comments, err := controller._getComment(session, postCode, page)
 	if err != nil {
 		return controller.Error(ctx, err)
 	}
@@ -168,11 +170,13 @@ func (controller *Controller) GetCommentREST(ctx echo.Context) error {
 	GetSubcommentREST обертка для _getSubcomment
 */
 func (controller *Controller) GetSubcommentREST(ctx echo.Context) error {
+	session := ctx.Get("client_session").(*entities.ClientSession)
+
 	postCode := ctx.Param("code")
 	commentCode := ctx.QueryParam("comment")
 	page, _ := strconv.Atoi(ctx.QueryParam("page"))
 
-	comments, err := controller._getSubcomment(postCode, commentCode, page)
+	comments, err := controller._getSubcomment(session, postCode, commentCode, page)
 	if err != nil {
 		return controller.Error(ctx, err)
 	}

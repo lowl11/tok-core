@@ -333,7 +333,7 @@ func (controller *Controller) _getLikes(session *entities.ClientSession, postCod
 /*
 	_getComment получение комментариев под постом
 */
-func (controller *Controller) _getComment(postCode string, page int) (*models.PostCommentGet, *models.Error) {
+func (controller *Controller) _getComment(session *entities.ClientSession, postCode string, page int) (*models.PostCommentGet, *models.Error) {
 	logger := definition.Logger
 
 	from := (page - 1) * 15
@@ -385,7 +385,7 @@ func (controller *Controller) _getComment(postCode string, page int) (*models.Po
 				CommentAuthor: userList.Single(func(user models.UserDynamicGet) bool { return user.Username == item.CommentAuthor }),
 				CommentText:   item.CommentText,
 				LikesCount:    item.LikesCount,
-				LikeAuthors:   item.LikeAuthors,
+				MyLike:        array.NewWithList[string](item.LikeAuthors...).Contains(session.Username),
 				CreatedAt:     item.CreatedAt,
 
 				SubCommentsSize: subCommentsList.Size(),
@@ -399,7 +399,7 @@ func (controller *Controller) _getComment(postCode string, page int) (*models.Po
 /*
 	_getSubcomment получение подкомментариев под родительским комментарием
 */
-func (controller *Controller) _getSubcomment(postCode, commentCode string, page int) (*models.PostSubcommentGet, *models.Error) {
+func (controller *Controller) _getSubcomment(session *entities.ClientSession, postCode, commentCode string, page int) (*models.PostSubcommentGet, *models.Error) {
 	logger := definition.Logger
 
 	from := (page - 1) * 15
@@ -462,7 +462,7 @@ func (controller *Controller) _getSubcomment(postCode, commentCode string, page 
 				CommentAuthor: userList.Single(func(user models.UserDynamicGet) bool { return user.Username == item.CommentAuthor }),
 				CommentText:   item.CommentText,
 				LikesCount:    item.LikesCount,
-				LikeAuthors:   item.LikeAuthors,
+				MyLike:        array.NewWithList[string](item.LikeAuthors...).Contains(session.Username),
 			}
 		}).Sub(from, to).Slice(),
 	}
