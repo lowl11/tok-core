@@ -54,6 +54,25 @@ func (repo *Repository) GetCount(username string) (*entities.NotificationGetCoun
 	return nil, nil
 }
 
+func (repo *Repository) AddItemExist(username string, item *entities.NotificationAction) error {
+	count, err := repo.GetCount(username)
+	if err != nil {
+		return err
+	}
+
+	if count != nil {
+		if err = repo.AddItem(username, item); err != nil {
+			return err
+		}
+	} else {
+		if err = repo.Create(username, item); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 func (repo *Repository) Create(username string, item *entities.NotificationAction) error {
 	ctx, cancel := repo.Ctx()
 	defer cancel()

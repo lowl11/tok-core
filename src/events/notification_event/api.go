@@ -15,7 +15,7 @@ func (event *Event) SetRepo(notification *notification_repository.Repository) {
 func (event *Event) Push(code, username string, action interfaces.INotificationAction) error {
 	actionKey := uuid.New().String()
 
-	if err := event.notification.Create(username, &entities.NotificationAction{
+	if err := event.notification.AddItemExist(username, &entities.NotificationAction{
 		Username:   username,
 		Status:     "new",
 		ActionKey:  actionKey,
