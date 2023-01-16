@@ -22,9 +22,9 @@ func (controller *Controller) _general(page int) ([]models.PostGet, *models.Erro
 	from := (page - 1) * 10
 	to := from + 10
 
-	feed, err := controller.feedRepo.Get(feed_repository.Explore)
+	feed, err := controller.feedRepo.Get(feed_repository.Unauthorized)
 	if err != nil {
-		logger.Error(err, "Get feed error", layers.Mongo)
+		logger.Error(err, "Get unauthorized feed error", layers.Mongo)
 		return nil, errors.FeedGet.With(err)
 	}
 
@@ -207,7 +207,7 @@ func (controller *Controller) _explore(session *entities.ClientSession, page int
 
 	feed, err := controller.feedRepo.Get(feed_repository.Explore)
 	if err != nil {
-		logger.Error(err, "Get feed error", layers.Mongo)
+		logger.Error(err, "Get explore feed error", layers.Mongo)
 		return nil, errors.FeedGet.With(err)
 	}
 
