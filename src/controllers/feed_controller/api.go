@@ -32,6 +32,10 @@ func (controller *Controller) _general(page int) ([]models.PostGet, *models.Erro
 		return nil, errors.FeedNotFound
 	}
 
+	if to > len(feed.Posts) {
+		return make([]models.PostGet, 0), nil
+	}
+
 	posts := array.NewWithList[entities.FeedPost](feed.Posts...).Shuffle().Sub(from, to).Slice()
 
 	// массив с кодами постов
