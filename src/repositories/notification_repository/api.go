@@ -2,12 +2,13 @@ package notification_repository
 
 import (
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	"time"
 	"tok-core/src/data/entities"
 	"tok-core/src/services/mongo_service"
 )
 
-func (repo *Repository) GetInfo(username string) ([]entities.NotificationGet, error) {
+func (repo *Repository) GetInfo(username string, from int) ([]entities.NotificationGet, error) {
 	ctx, cancel := repo.Ctx()
 	defer cancel()
 
@@ -15,7 +16,9 @@ func (repo *Repository) GetInfo(username string) ([]entities.NotificationGet, er
 		"$ne": username,
 	}).Get()
 
-	cursor, err := repo.connection.Find(ctx, filter)
+	opts := options.Find().SetSkip(int64(from)).SetLimit(10)
+
+	cursor, err := repo.connection.Find(ctx, filter, opts)
 	if err != nil {
 		return nil, err
 	}

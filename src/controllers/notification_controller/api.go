@@ -25,10 +25,12 @@ func (controller *Controller) _read(username string, keys []string) *models.Erro
 	return nil
 }
 
-func (controller *Controller) _getInfo(username string) ([]models.NotificationGet, *models.Error) {
+func (controller *Controller) _getInfo(username string, page int) ([]models.NotificationGet, *models.Error) {
 	logger := definition.Logger
 
-	notifications, err := controller.notificationRepo.GetInfo(username)
+	from := (page * 10) - 1
+
+	notifications, err := controller.notificationRepo.GetInfo(username, from)
 	if err != nil {
 		logger.Error(err, "Get notifications info error", layers.Mongo)
 		return nil, errors.NotificationGetInfo.With(err)

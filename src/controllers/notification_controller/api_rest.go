@@ -2,6 +2,7 @@ package notification_controller
 
 import (
 	"github.com/labstack/echo/v4"
+	"strconv"
 	"tok-core/src/data/entities"
 	"tok-core/src/data/errors"
 	"tok-core/src/data/models"
@@ -34,8 +35,12 @@ func (controller *Controller) ReadREST(ctx echo.Context) error {
 */
 func (controller *Controller) GetInfoREST(ctx echo.Context) error {
 	session := ctx.Get("client_session").(*entities.ClientSession)
+	page, _ := strconv.Atoi(ctx.QueryParam("page"))
+	if page == 0 {
+		page = 1
+	}
 
-	info, err := controller._getInfo(session.Username)
+	info, err := controller._getInfo(session.Username, page)
 	if err != nil {
 		return controller.Error(ctx, err)
 	}
