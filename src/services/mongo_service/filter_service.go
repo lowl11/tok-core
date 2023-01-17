@@ -1,6 +1,8 @@
 package mongo_service
 
-import "go.mongodb.org/mongo-driver/bson"
+import (
+	"go.mongodb.org/mongo-driver/bson"
+)
 
 type FilterService struct {
 	isAnd      bool

@@ -25,22 +25,29 @@ func (controller *Controller) _read(username string, keys []string) *models.Erro
 	return nil
 }
 
-func (controller *Controller) _getInfo(username string) (*models.NotificationGetInfo, *models.Error) {
+func (controller *Controller) _getInfo(username string) ([]models.NotificationGet, *models.Error) {
 	logger := definition.Logger
 
-	info, err := controller.notificationRepo.GetInfo(username)
+	notifications, err := controller.notificationRepo.GetInfo(username)
 	if err != nil {
 		logger.Error(err, "Get notifications info error", layers.Mongo)
 		return nil, errors.NotificationGetInfo.With(err)
 	}
 
-	usernames := make([]string, 0, len(info.Actions))
-	array.NewWithList[entities.NotificationAction](info.Actions...).Each(func(item entities.NotificationAction) {
+	notificationsLength := len(notifications)
+	usernames := make([]string, 0, notificationsLength)
+	postCodes := make([]string, 0, notificationsLength)
+
+	array.NewWithList[entities.NotificationGet](notifications...).Each(func(item entities.NotificationGet) {
 		usernames = append(usernames, item.Username)
+		if item.ActionBody != nil && item.ActionBody.PostCode != nil {
+			postCodes = append(postCodes, *item.ActionBody.PostCode)
+		}
 	})
 
 	userDynamic, err := controller.userRepo.GetDynamicByUsernames(usernames)
 	if err != nil {
+		logger.Error(err, "Get users by usernames error", layers.Mongo)
 		return nil, errors.UserDynamicGet.With(err)
 	}
 	userList := type_list.NewWithList[entities.UserDynamicGet, models.UserDynamicGet](userDynamic...).Select(func(item entities.UserDynamicGet) models.UserDynamicGet {
@@ -51,41 +58,46 @@ func (controller *Controller) _getInfo(username string) (*models.NotificationGet
 		}
 	})
 
-	return &models.NotificationGetInfo{
-		Username:        info.Username,
-		NewActionsCount: info.NewActionsCount,
-		Actions: type_list.NewWithList[entities.NotificationAction, models.NotificationAction](info.Actions...).Select(func(item entities.NotificationAction) models.NotificationAction {
-			return models.NotificationAction{
-				Status:     item.Status,
-				User:       userList.Single(func(userInfo models.UserDynamicGet) bool { return userInfo.Username == item.Username }),
-				ActionKey:  item.ActionKey,
-				ActionCode: item.ActionCode,
-				ActionBody: item.ActionBody,
-				CreatedAt:  item.CreatedAt,
-			}
-		}).Slice(),
-	}, nil
+	posts, err := controller.postRepo.GetByCodeList(postCodes)
+	if err != nil {
+		logger.Error(err, "Get posts by codes error", layers.Mongo)
+		return nil, errors.PostsGetByCode.With(err)
+	}
+
+	postList := type_list.NewWithList[entities.PostGet, models.NotificationPostGet](posts...).Select(func(item entities.PostGet) models.NotificationPostGet {
+		return models.NotificationPostGet{
+			Code:  item.Code,
+			Image: item.Picture,
+			Text:  item.Text,
+		}
+	})
+
+	return type_list.NewWithList[entities.NotificationGet, models.NotificationGet](notifications...).Select(func(item entities.NotificationGet) models.NotificationGet {
+		var post *models.NotificationPostGet
+		if item.ActionBody != nil && item.ActionBody.PostCode != nil {
+			post = postList.Single(func(postItem models.NotificationPostGet) bool { return postItem.Code == *item.ActionBody.PostCode })
+		}
+
+		return models.NotificationGet{
+			Status:     item.Status,
+			User:       userList.Single(func(userItem models.UserDynamicGet) bool { return userItem.Username == item.Username }),
+			ActionKey:  item.ActionKey,
+			ActionCode: item.ActionCode,
+			ActionBody: &models.NotificationBody{
+				Post: post,
+			},
+		}
+	}).Slice(), nil
 }
 
-func (controller *Controller) _getCount(username string) (*models.NotificationGetCount, *models.Error) {
+func (controller *Controller) _getCount(username string) (int, *models.Error) {
 	logger := definition.Logger
 
 	count, err := controller.notificationRepo.GetCount(username)
 	if err != nil {
 		logger.Error(err, "Get notifications count error", layers.Mongo)
-		return nil, errors.NotificationGetCount.With(err)
+		return 0, errors.NotificationGetCount.With(err)
 	}
 
-	if count == nil {
-		logger.Warn("Notification count not found", layers.Mongo)
-		return &models.NotificationGetCount{
-			Username:        username,
-			NewActionsCount: 0,
-		}, nil
-	}
-
-	return &models.NotificationGetCount{
-		Username:        count.Username,
-		NewActionsCount: count.NewActionsCount,
-	}, nil
+	return count, nil
 }

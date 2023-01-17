@@ -9,7 +9,6 @@ import (
 	"tok-core/src/data/entities"
 	"tok-core/src/data/errors"
 	"tok-core/src/data/models"
-	"tok-core/src/data/notification_actions"
 	"tok-core/src/definition"
 	"tok-core/src/repositories/feed_repository"
 	"tok-core/src/services/action_helper"
@@ -237,8 +236,8 @@ func (controller *Controller) _like(session *entities.ClientSession, model *mode
 
 	go func() {
 		// отправляем уведомление
-		if err = controller.notification.Push(action_helper.PostLike, session.Username, &notification_actions.PostLike{
-			PostCode: model.PostCode,
+		if err = controller.notification.Push(action_helper.PostLike, session.Username, &entities.NotificationBody{
+			PostCode: &model.PostCode,
 		}); err != nil {
 			logger.Error(err, "Sending notification error", layers.Rabbit)
 		}

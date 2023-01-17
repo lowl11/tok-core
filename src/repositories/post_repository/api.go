@@ -159,6 +159,31 @@ func (repo *Repository) GetByCode(code string) (*entities.PostGet, error) {
 	return nil, nil
 }
 
+func (repo *Repository) GetByCodeList(postCodes []string) ([]entities.PostGet, error) {
+	ctx, cancel := repo.Ctx()
+	defer cancel()
+
+	// скрипт
+	query := repo.Script("post", "get_by_code_list")
+
+	rows, err := repo.connection.QueryxContext(ctx, query, pq.Array(postCodes))
+	if err != nil {
+		return nil, err
+	}
+	defer repo.CloseRows(rows)
+
+	list := make([]entities.PostGet, 0)
+	for rows.Next() {
+		item := entities.PostGet{}
+		if err = rows.StructScan(&item); err != nil {
+			return nil, err
+		}
+		list = append(list, item)
+	}
+
+	return list, nil
+}
+
 func (repo *Repository) DeleteByCode(code string) error {
 	ctx, cancel := repo.Ctx()
 	defer cancel()

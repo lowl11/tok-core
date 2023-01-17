@@ -2,11 +2,12 @@ package notification_repository
 
 import (
 	"go.mongodb.org/mongo-driver/bson"
+	"time"
 	"tok-core/src/data/entities"
 	"tok-core/src/services/mongo_service"
 )
 
-func (repo *Repository) GetInfo(username string) (*entities.NotificationGetInfo, error) {
+func (repo *Repository) GetInfo(username string) ([]entities.NotificationGet, error) {
 	ctx, cancel := repo.Ctx()
 	defer cancel()
 
@@ -19,91 +20,46 @@ func (repo *Repository) GetInfo(username string) (*entities.NotificationGetInfo,
 	defer repo.CloseCursor(cursor)
 	defer repo.LogError(cursor.Err())
 
-	if cursor.Next(ctx) {
-		item := entities.NotificationGetInfo{}
+	list := make([]entities.NotificationGet, 0)
+	for cursor.Next(ctx) {
+		item := entities.NotificationGet{}
 		if err = cursor.Decode(&item); err != nil {
 			return nil, err
 		}
-		return &item, nil
+		list = append(list, item)
 	}
 
-	return nil, nil
+	return list, nil
 }
 
-func (repo *Repository) GetCount(username string) (*entities.NotificationGetCount, error) {
+func (repo *Repository) GetCount(username string) (int, error) {
 	ctx, cancel := repo.Ctx()
 	defer cancel()
 
-	filter := mongo_service.Filter().Eq("username", username).Get()
+	filter := mongo_service.Filter().Eq("username", username).Eq("status", "new").Get()
 
-	cursor, err := repo.connection.Find(ctx, filter)
+	count, err := repo.connection.CountDocuments(ctx, filter)
 	if err != nil {
-		return nil, err
-	}
-	defer repo.CloseCursor(cursor)
-	defer repo.LogError(cursor.Err())
-
-	if cursor.Next(ctx) {
-		item := entities.NotificationGetCount{}
-		if err = cursor.Decode(&item); err != nil {
-			return nil, err
-		}
-		return &item, nil
+		return 0, err
 	}
 
-	return nil, nil
+	return int(count), nil
 }
 
-func (repo *Repository) AddItemExist(username string, item *entities.NotificationAction) error {
-	count, err := repo.GetCount(username)
-	if err != nil {
-		return err
-	}
-
-	if count != nil {
-		if err = repo.AddItem(username, item); err != nil {
-			return err
-		}
-	} else {
-		if err = repo.Create(username, item); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-func (repo *Repository) Create(username string, item *entities.NotificationAction) error {
+func (repo *Repository) Create(username, actionKey, actionCode string, body *entities.NotificationBody) error {
 	ctx, cancel := repo.Ctx()
 	defer cancel()
 
 	entity := &entities.NotificationCreate{
-		Username:        username,
-		NewActionsCount: 1,
-		Actions:         []entities.NotificationAction{*item},
+		Username:   username,
+		Status:     "new",
+		ActionKey:  actionKey,
+		ActionCode: actionCode,
+		ActionBody: body,
+		CreatedAt:  time.Now(),
 	}
 
 	if _, err := repo.connection.InsertOne(ctx, entity); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (repo *Repository) AddItem(username string, item *entities.NotificationAction) error {
-	ctx, cancel := repo.Ctx()
-	defer cancel()
-
-	filter := mongo_service.Filter().Eq("username", username).Get()
-
-	if _, err := repo.connection.UpdateOne(ctx, filter, bson.M{
-		"$push": bson.M{
-			"actions": item,
-		},
-		"$inc": bson.M{
-			"new_actions_count": 1,
-		},
-	}); err != nil {
 		return err
 	}
 
@@ -114,11 +70,11 @@ func (repo *Repository) ReadItem(username, actionKey string) error {
 	ctx, cancel := repo.Ctx()
 	defer cancel()
 
-	filter := mongo_service.Filter().Eq("username", username).Eq("actions.action_key", actionKey).Get()
+	filter := mongo_service.Filter().Eq("username", username).Eq("action_key", actionKey).Get()
 
 	if _, err := repo.connection.UpdateOne(ctx, filter, bson.M{
-		"$inc": bson.M{
-			"new_actions_count": -1,
+		"$set": bson.M{
+			"status": "read",
 		},
 	}); err != nil {
 		return err
@@ -131,11 +87,13 @@ func (repo *Repository) ReadItemList(username string, actionKeys []string) error
 	ctx, cancel := repo.Ctx()
 	defer cancel()
 
-	filter := mongo_service.Filter().Eq("username", username).Get()
+	filter := mongo_service.Filter().Eq("username", username).Eq("action_key", bson.M{
+		"$in": actionKeys,
+	}).Get()
 
 	if _, err := repo.connection.UpdateOne(ctx, filter, bson.M{
-		"$inc": bson.M{
-			"new_actions_count": -1 * len(actionKeys),
+		"$set": bson.M{
+			"status": "read",
 		},
 	}); err != nil {
 		return err
