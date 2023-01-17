@@ -235,16 +235,25 @@ func (controller *Controller) _like(session *entities.ClientSession, model *mode
 	}
 
 	go func() {
-		// отправляем уведомление
-		if err = controller.notification.Push(action_helper.PostLike, model.PostAuthor, session.Username, &entities.NotificationBody{
-			PostCode: &model.PostCode,
-		}); err != nil {
-			logger.Error(err, "Sending notification error", layers.Rabbit)
-		}
-
 		// запись интереса пользователя
 		if err = controller.userInterestRepo.IncreaseCategoryExist(session.Username, model.PostCategory); err != nil {
 			logger.Error(err, "Increase user category interest error", layers.Mongo)
+		}
+
+		post, err := controller.postRepo.GetByCode(model.PostCode)
+		if err != nil {
+			return
+		}
+
+		if post == nil {
+			return
+		}
+
+		// отправляем уведомление
+		if err = controller.notification.Push(action_helper.PostLike, post.AuthorUsername, session.Username, &entities.NotificationBody{
+			PostCode: &model.PostCode,
+		}); err != nil {
+			logger.Error(err, "Sending notification error", layers.Rabbit)
 		}
 	}()
 

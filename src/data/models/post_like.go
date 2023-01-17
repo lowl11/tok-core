@@ -8,7 +8,6 @@ type PostLikeGet struct {
 
 type PostLike struct {
 	PostCode     string `json:"post_code"`
-	PostAuthor   string `json:"post_author"`
 	PostCategory string `json:"post_category"`
 }
 

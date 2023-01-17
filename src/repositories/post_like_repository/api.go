@@ -68,7 +68,6 @@ func (repo *Repository) Create(model *models.PostLike, likeAuthor string) error 
 
 	if _, err := repo.connection.InsertOne(ctx, &entities.PostLikeCreate{
 		PostCode:    model.PostCode,
-		PostAuthor:  model.PostAuthor,
 		LikesCount:  1,
 		LikeAuthors: []string{likeAuthor},
 	}); err != nil {
