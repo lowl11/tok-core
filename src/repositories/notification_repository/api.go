@@ -46,17 +46,18 @@ func (repo *Repository) GetCount(username string) (int, error) {
 	return int(count), nil
 }
 
-func (repo *Repository) Create(username, actionKey, actionCode string, body *entities.NotificationBody) error {
+func (repo *Repository) Create(username, actionAuthor, actionKey, actionCode string, body *entities.NotificationBody) error {
 	ctx, cancel := repo.Ctx()
 	defer cancel()
 
 	entity := &entities.NotificationCreate{
-		Username:   username,
-		Status:     "new",
-		ActionKey:  actionKey,
-		ActionCode: actionCode,
-		ActionBody: body,
-		CreatedAt:  time.Now(),
+		Username:     username,
+		Status:       "new",
+		ActionAuthor: actionAuthor,
+		ActionKey:    actionKey,
+		ActionCode:   actionCode,
+		ActionBody:   body,
+		CreatedAt:    time.Now(),
 	}
 
 	if _, err := repo.connection.InsertOne(ctx, entity); err != nil {

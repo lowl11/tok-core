@@ -236,7 +236,7 @@ func (controller *Controller) _like(session *entities.ClientSession, model *mode
 
 	go func() {
 		// отправляем уведомление
-		if err = controller.notification.Push(action_helper.PostLike, session.Username, &entities.NotificationBody{
+		if err = controller.notification.Push(action_helper.PostLike, model.PostAuthor, session.Username, &entities.NotificationBody{
 			PostCode: &model.PostCode,
 		}); err != nil {
 			logger.Error(err, "Sending notification error", layers.Rabbit)

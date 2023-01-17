@@ -79,10 +79,11 @@ func (controller *Controller) _getInfo(username string) ([]models.NotificationGe
 		}
 
 		return models.NotificationGet{
-			Status:     item.Status,
-			User:       userList.Single(func(userItem models.UserDynamicGet) bool { return userItem.Username == item.Username }),
-			ActionKey:  item.ActionKey,
-			ActionCode: item.ActionCode,
+			Status:       item.Status,
+			User:         userList.Single(func(userItem models.UserDynamicGet) bool { return userItem.Username == item.Username }),
+			ActionAuthor: item.ActionAuthor,
+			ActionKey:    item.ActionKey,
+			ActionCode:   item.ActionCode,
 			ActionBody: &models.NotificationBody{
 				Post: post,
 			},

@@ -5,12 +5,13 @@ import (
 )
 
 type NotificationGet struct {
-	Status     string            `json:"status"`
-	User       *UserDynamicGet   `json:"user"`
-	ActionKey  string            `json:"action_key"`
-	ActionCode string            `json:"action_code"`
-	ActionBody *NotificationBody `json:"action_body"`
-	CreatedAt  time.Time         `json:"created_at"`
+	Status       string            `json:"status"`
+	User         *UserDynamicGet   `json:"user"`
+	ActionAuthor string            `json:"action_author"`
+	ActionKey    string            `json:"action_key"`
+	ActionCode   string            `json:"action_code"`
+	ActionBody   *NotificationBody `json:"action_body"`
+	CreatedAt    time.Time         `json:"created_at"`
 }
 
 type NotificationRead struct {
