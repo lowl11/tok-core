@@ -11,7 +11,9 @@ func (repo *Repository) GetInfo(username string) ([]entities.NotificationGet, er
 	ctx, cancel := repo.Ctx()
 	defer cancel()
 
-	filter := mongo_service.Filter().Eq("username", username).Get()
+	filter := mongo_service.Filter().Eq("username", username).Eq("action_author", bson.M{
+		"$ne": username,
+	}).Get()
 
 	cursor, err := repo.connection.Find(ctx, filter)
 	if err != nil {
@@ -36,7 +38,9 @@ func (repo *Repository) GetCount(username string) (int, error) {
 	ctx, cancel := repo.Ctx()
 	defer cancel()
 
-	filter := mongo_service.Filter().Eq("username", username).Eq("status", "new").Get()
+	filter := mongo_service.Filter().Eq("username", username).Eq("status", "new").Eq("action_author", bson.M{
+		"$ne": username,
+	}).Get()
 
 	count, err := repo.connection.CountDocuments(ctx, filter)
 	if err != nil {
