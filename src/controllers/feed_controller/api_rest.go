@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"tok-core/src/data/entities"
 	"tok-core/src/data/errors"
+	"tok-core/src/events/client_session_event"
 )
 
 /*
@@ -35,6 +36,15 @@ func (controller *Controller) MainREST(ctx echo.Context) error {
 	page, _ := strconv.Atoi(ctx.QueryParam("page"))
 	if page <= 0 {
 		page = 1 // номер страницы по умолчанию
+	}
+
+	if session != nil && session.Username == client_session_event.CommonUsername {
+		list, err := controller._general(page)
+		if err != nil {
+			return controller.Error(ctx, err)
+		}
+
+		return controller.Ok(ctx, list)
 	}
 
 	list, err := controller._main(session, page)
