@@ -79,6 +79,8 @@ func (controller *Controller) LoginByCredentials(ctx echo.Context) error {
 		return controller.Error(ctx, errors.LoginValidate.With(err))
 	}
 
+	model.Username = controller.preprocessUsername(model.Username)
+
 	// получить пользователя
 	user, err := controller.userRepo.GetByUsername(model.Username)
 	if err != nil {

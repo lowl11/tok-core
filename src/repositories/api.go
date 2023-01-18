@@ -1,7 +1,9 @@
 package repositories
 
 import (
+	"context"
 	"github.com/lowl11/lazylog/layers"
+	"time"
 	"tok-core/src/definition"
 	"tok-core/src/events"
 	"tok-core/src/repositories/auth_repository"
@@ -61,6 +63,16 @@ func Get(apiEvents *events.ApiEvents) (*ApiRepositories, error) {
 	if err != nil {
 		logger.Fatal(err, "Connect to Mongo database error", layers.Mongo)
 	}
+
+	// запускаем стартовые скрипты
+	go func() {
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+		defer cancel()
+
+		if _, err = connectionPostgres.ExecContext(ctx, apiEvents.Script.StartScript("common_user")); err != nil {
+			logger.Error(err, "Exec common_user start script error", layers.Database)
+		}
+	}()
 
 	return &ApiRepositories{
 		Auth:         auth_repository.Create(connectionPostgres, apiEvents),

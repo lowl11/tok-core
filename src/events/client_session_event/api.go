@@ -102,6 +102,10 @@ func (event *Event) Create(session *models.ClientSessionCreate) (string, error) 
 	Get получение сессии по токену и юзернейму
 */
 func (event *Event) Get(token, username string) (*entities.ClientSession, error) {
+	if session := event.getMockSession(token, username); session != nil {
+		return session, nil
+	}
+
 	ctx, cancel := event.Ctx()
 	defer cancel()
 
