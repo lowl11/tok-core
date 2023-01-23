@@ -16,7 +16,7 @@ func (repo *Repository) GetInfo(username string, from int) ([]entities.Notificat
 		"$ne": username,
 	}).Get()
 
-	opts := options.Find().SetSkip(int64(from)).SetLimit(10)
+	opts := options.Find().SetSkip(int64(from)).SetLimit(10).SetSort(bson.D{{"created_at", -1}})
 
 	cursor, err := repo.connection.Find(ctx, filter, opts)
 	if err != nil {
