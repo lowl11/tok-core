@@ -89,6 +89,7 @@ func (controller *Controller) _getInfo(username string, page int) ([]models.Noti
 			ActionBody: &models.NotificationBody{
 				Post: post,
 			},
+			CreatedAt: item.CreatedAt,
 		}
 	}).Slice(), nil
 }
