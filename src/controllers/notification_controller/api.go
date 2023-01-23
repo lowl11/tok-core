@@ -28,7 +28,7 @@ func (controller *Controller) _read(username string, keys []string) *models.Erro
 func (controller *Controller) _getInfo(username string, page int) ([]models.NotificationGet, *models.Error) {
 	logger := definition.Logger
 
-	from := (page * 10) - 1
+	from := (page - 1) * 10
 
 	notifications, err := controller.notificationRepo.GetInfo(username, from)
 	if err != nil {

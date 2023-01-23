@@ -36,7 +36,7 @@ func (controller *Controller) ReadREST(ctx echo.Context) error {
 func (controller *Controller) GetInfoREST(ctx echo.Context) error {
 	session := ctx.Get("client_session").(*entities.ClientSession)
 	page, _ := strconv.Atoi(ctx.QueryParam("page"))
-	if page == 0 {
+	if page <= 0 {
 		page = 1
 	}
 
