@@ -498,32 +498,12 @@ func (controller *Controller) _addComment(session *entities.ClientSession, model
 
 	commentCode := uuid.New().String()
 
-	// если клиент говорит что это первый коммент под постом
-	// нужно проверить существует ли под этот пост запись
-	if model.FirstComment {
-		comment, err := controller.postCommentRepo.GetByPost(model.PostCode)
-		if err != nil {
-			return "", errors.PostCommentGet.With(err)
-		}
-
-		if comment != nil {
-			model.FirstComment = false
-		}
-	}
-
 	// комментарий у поста может быть первым и не первым
 	// если комментарий первый то значит записи в Mongo у поста нет (для комментариев)
 	// значит, нужно создать его чтобы в дальнейшем в него писать
-	if model.FirstComment {
-		if err := controller.postCommentRepo.Create(model, session.Username, commentCode); err != nil {
-			logger.Error(err, "Create new post comment error", layers.Mongo)
-			return "", errors.PostCommentCreate.With(err)
-		}
-	} else {
-		if err := controller.postCommentRepo.Append(model, session.Username, commentCode); err != nil {
-			logger.Error(err, "Create new post comment error", layers.Mongo)
-			return "", errors.PostCommentCreate.With(err)
-		}
+	if err := controller.postCommentRepo.AppendExist(model, session.Username, commentCode); err != nil {
+		logger.Error(err, "Create new post/Append exist post comment error", layers.Mongo)
+		return "", errors.PostCommentCreate.With(err)
 	}
 
 	return commentCode, nil
@@ -535,7 +515,7 @@ func (controller *Controller) _addComment(session *entities.ClientSession, model
 func (controller *Controller) _deleteComment(session *entities.ClientSession, model *models.PostCommentDelete) *models.Error {
 	logger := definition.Logger
 
-	post, err := controller.postCommentRepo.GetByCode(model.CommentCode, model.SubComment)
+	post, err := controller.postCommentRepo.GetByCode(model.CommentCode)
 	if err != nil {
 		logger.Error(err, "Get post comment error", layers.Mongo)
 		return errors.PostCommentGet.With(err)

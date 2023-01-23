@@ -9,16 +9,11 @@ import (
 	"tok-core/src/services/mongo_service"
 )
 
-func (repo *Repository) GetByCode(commentCode string, subComment bool) (*entities.PostCommentGet, error) {
+func (repo *Repository) GetByCode(postCode string) (*entities.PostCommentGet, error) {
 	ctx, cancel := repo.Ctx()
 	defer cancel()
 
-	var filter bson.M
-	if subComment {
-		filter = mongo_service.Filter().Eq("comments.subcomments.comment_code", commentCode).Get()
-	} else {
-		filter = mongo_service.Filter().Eq("comments.comment_code", commentCode).Get()
-	}
+	filter := mongo_service.Filter().Eq("post_code", postCode).Get()
 
 	result := repo.connection.FindOne(ctx, filter)
 	if result.Err() != nil {
@@ -85,6 +80,25 @@ func (repo *Repository) GetByList(postCodes []string) ([]entities.PostCommentGet
 	}
 
 	return list, nil
+}
+
+func (repo *Repository) AppendExist(model *models.PostCommentAdd, commentAuthor, commentCode string) error {
+	postComments, err := repo.GetByCode(model.PostCode)
+	if err != nil {
+		return err
+	}
+
+	if postComments == nil {
+		if err = repo.Create(model, commentAuthor, commentCode); err != nil {
+			return err
+		}
+	} else {
+		if err = repo.Append(model, commentAuthor, commentCode); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func (repo *Repository) Create(model *models.PostCommentAdd, commentAuthor, commentCode string) error {

@@ -40,9 +40,8 @@ type PostCommentAdd struct {
 
 	CommentText string `json:"comment_text"`
 
-	// если комментарий не первый в посте
+	// Если комментарий не первый в посте
 	ParentCommentCode string `json:"parent_comment_code"`
-	FirstComment      bool   `json:"first_comment"`
 }
 
 type PostCommentDelete struct {
