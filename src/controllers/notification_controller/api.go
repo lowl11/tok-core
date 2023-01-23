@@ -41,7 +41,7 @@ func (controller *Controller) _getInfo(username string, page int) ([]models.Noti
 	postCodes := make([]string, 0, notificationsLength)
 
 	array.NewWithList[entities.NotificationGet](notifications...).Each(func(item entities.NotificationGet) {
-		usernames = append(usernames, item.Username)
+		usernames = append(usernames, item.ActionAuthor)
 		if item.ActionBody != nil && item.ActionBody.PostCode != nil {
 			postCodes = append(postCodes, *item.ActionBody.PostCode)
 		}
@@ -82,7 +82,7 @@ func (controller *Controller) _getInfo(username string, page int) ([]models.Noti
 
 		return models.NotificationGet{
 			Status:       item.Status,
-			User:         userList.Single(func(userItem models.UserDynamicGet) bool { return userItem.Username == item.Username }),
+			User:         userList.Single(func(userItem models.UserDynamicGet) bool { return userItem.Username == item.ActionAuthor }),
 			ActionAuthor: item.ActionAuthor,
 			ActionKey:    item.ActionKey,
 			ActionCode:   item.ActionCode,
