@@ -37,6 +37,33 @@ func (repo *Repository) GetInfo(username string, from int) ([]entities.Notificat
 	return list, nil
 }
 
+func (repo *Repository) GetUnreadInfo(username string) ([]entities.NotificationGet, error) {
+	ctx, cancel := repo.Ctx()
+	defer cancel()
+
+	filter := mongo_service.Filter().Eq("username", username).Eq("status", "new").Eq("action_author", bson.M{
+		"$ne": username,
+	}).Get()
+
+	cursor, err := repo.connection.Find(ctx, filter)
+	if err != nil {
+		return nil, err
+	}
+	defer repo.CloseCursor(cursor)
+	defer repo.LogError(cursor.Err())
+
+	list := make([]entities.NotificationGet, 0)
+	for cursor.Next(ctx) {
+		item := entities.NotificationGet{}
+		if err = cursor.Decode(&item); err != nil {
+			return nil, err
+		}
+		list = append(list, item)
+	}
+
+	return list, nil
+}
+
 func (repo *Repository) GetCount(username string) (int, error) {
 	ctx, cancel := repo.Ctx()
 	defer cancel()

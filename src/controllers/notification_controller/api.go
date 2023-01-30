@@ -10,14 +10,21 @@ import (
 	"tok-core/src/definition"
 )
 
-func (controller *Controller) _read(username string, keys []string) *models.Error {
+func (controller *Controller) _read(username string) *models.Error {
 	logger := definition.Logger
 
-	if keys == nil || len(keys) == 0 {
-		return nil
+	// get keys
+	notifications, err := controller.notificationRepo.GetUnreadInfo(username)
+	if err != nil {
+		logger.Error(err, "Get unread notifications error", layers.Mongo)
+		return errors.NotificationGetInfo.With(err)
 	}
 
-	if err := controller.notificationRepo.ReadItemList(username, keys); err != nil {
+	keys := type_list.NewWithList[entities.NotificationGet, string](notifications...).Select(func(item entities.NotificationGet) string {
+		return item.ActionKey
+	}).Slice()
+
+	if err = controller.notificationRepo.ReadItemList(username, keys); err != nil {
 		logger.Error(err, "Read notification actions error", layers.Mongo)
 		return errors.NotificationRead.With(err)
 	}

@@ -23,7 +23,7 @@ func (controller *Controller) ReadREST(ctx echo.Context) error {
 		return controller.Error(ctx, errors.NotificationReadValidation.With(err))
 	}
 
-	if err := controller._read(session.Username, model.ActionKeys); err != nil {
+	if err := controller._read(session.Username); err != nil {
 		return controller.Error(ctx, err)
 	}
 

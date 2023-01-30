@@ -14,9 +14,7 @@ type NotificationGet struct {
 	CreatedAt    time.Time         `json:"created_at"`
 }
 
-type NotificationRead struct {
-	ActionKeys []string `json:"action_keys"`
-}
+type NotificationRead struct{}
 
 type NotificationPostGet struct {
 	Code  string  `json:"code"`
