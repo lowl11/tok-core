@@ -135,7 +135,6 @@ func setNotification(server *echo.Echo, controller *notification_controller.Cont
 
 	setMiddlewaresPublic(group)
 
-	group.POST("/read", controller.ReadREST)
 	group.GET("/get/count", controller.GetCountREST)
 	group.GET("/get/info", controller.GetInfoREST)
 }

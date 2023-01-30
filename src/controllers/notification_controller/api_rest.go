@@ -4,31 +4,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"strconv"
 	"tok-core/src/data/entities"
-	"tok-core/src/data/errors"
-	"tok-core/src/data/models"
 )
-
-/*
-	ReadREST обертка для _getCount
-*/
-func (controller *Controller) ReadREST(ctx echo.Context) error {
-	session := ctx.Get("client_session").(*entities.ClientSession)
-
-	model := models.NotificationRead{}
-	if err := ctx.Bind(&model); err != nil {
-		return controller.Error(ctx, errors.NotificationReadBind.With(err))
-	}
-
-	if err := controller.validationRead(&model); err != nil {
-		return controller.Error(ctx, errors.NotificationReadValidation.With(err))
-	}
-
-	if err := controller._read(session.Username); err != nil {
-		return controller.Error(ctx, err)
-	}
-
-	return controller.Ok(ctx, "OK")
-}
 
 /*
 	GetInfoREST обертка для _getInfo

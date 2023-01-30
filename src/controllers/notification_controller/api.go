@@ -81,6 +81,12 @@ func (controller *Controller) _getInfo(username string, page int) ([]models.Noti
 		}
 	})
 
+	go func() {
+		if err = controller._read(username); err != nil {
+			return
+		}
+	}()
+
 	return type_list.NewWithList[entities.NotificationGet, models.NotificationGet](notifications...).Select(func(item entities.NotificationGet) models.NotificationGet {
 		var post *models.NotificationPostGet
 		if item.ActionBody != nil && item.ActionBody.PostCode != nil {
