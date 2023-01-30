@@ -6,6 +6,7 @@ import (
 	"tok-core/src/data/errors"
 	"tok-core/src/data/models"
 	"tok-core/src/definition"
+	"tok-core/src/services/action_helper"
 )
 
 /*
@@ -62,6 +63,12 @@ func (controller *Controller) _subscribe(session *entities.ClientSession, token 
 			return errors.SessionUpdate.With(err)
 		}
 	}
+
+	go func() {
+		if err = controller.notification.Push(action_helper.Subscribe, anotherSession.Username, session.Username, nil); err != nil {
+			logger.Error(err, "Push notification error", "Notifications")
+		}
+	}()
 
 	return nil
 }

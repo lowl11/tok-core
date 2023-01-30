@@ -1,5 +1,6 @@
 package action_helper
 
 const (
-	PostLike = "post_like"
+	PostLike  = "post_like"
+	Subscribe = "subscribe"
 )
