@@ -126,7 +126,7 @@ func (repo *Repository) ReadItemList(username string, actionKeys []string) error
 		"$in": actionKeys,
 	}).Get()
 
-	if _, err := repo.connection.UpdateOne(ctx, filter, bson.M{
+	if _, err := repo.connection.UpdateMany(ctx, filter, bson.M{
 		"$set": bson.M{
 			"status": "read",
 		},
