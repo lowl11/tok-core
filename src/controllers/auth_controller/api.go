@@ -175,6 +175,7 @@ func (controller *Controller) LoginByCredentials(ctx echo.Context) error {
 
 	// проверить нужно ли запомнить ip адрес
 	ipAddress := ctx.Get("ip_address").(string)
+	logger.Info("IP Address from controller:", ipAddress)
 	if model.Remember && ipAddress != "" {
 		logger.Info("Login by credentials. IP address: " + ipAddress)
 		go func() {

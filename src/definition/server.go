@@ -17,4 +17,5 @@ func initServer() {
 	Server.Use(middleware.Secure())
 	Server.Use(middleware.RecoverWithConfig(middleware.DefaultRecoverConfig))
 	Server.Use(middlewares.Timeout())
+	Server.Use(middlewares.IpAddress)
 }
