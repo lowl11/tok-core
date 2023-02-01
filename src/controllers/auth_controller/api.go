@@ -105,6 +105,41 @@ func (controller *Controller) LoginByCredentials(ctx echo.Context) error {
 		return controller.Error(ctx, errors.LoginPassword)
 	}
 
+	// проверить нужно ли запомнить ip адрес
+	ipAddress := ctx.Get("ip_address").(string)
+	logger.Info("IP Address from controller:", ipAddress)
+	if model.Remember && ipAddress != "" {
+		logger.Info("Login by credentials. IP address: " + ipAddress)
+		go func() {
+			logger.Info("Going to save user IP address", layers.Auth)
+
+			// проверка существует ли уже ip адрес
+			userIp, err := controller.userIpRepo.GetByIpAddress(ipAddress)
+			if err != nil {
+				logger.Error(err, "Get user by ip address error", layers.Database)
+				return
+			}
+
+			// если запись найдена и ip принадлежит другому пользователю
+			if userIp != nil {
+				if userIp.Username != model.Username {
+					if err = controller.userIpRepo.DeleteByIP(userIp.IpAddress); err != nil {
+						logger.Error(err, "", layers.Database)
+						return
+					}
+				} else {
+					// если запись уже найдена, просто идем дальше
+					return
+				}
+			}
+
+			if err = controller.userIpRepo.New(model.Username, ipAddress); err != nil {
+				logger.Error(err, "Creating new bind username + ip address error", layers.Database)
+				return
+			}
+		}()
+	}
+
 	// проверка существует ли уже сессия у пользователя
 	session, token, err := controller.clientSession.GetByUsername(model.Username)
 	if err != nil && err.Error() != "session not found" {
@@ -171,41 +206,6 @@ func (controller *Controller) LoginByCredentials(ctx echo.Context) error {
 		},
 	}); err != nil {
 		return controller.Error(ctx, errors.SessionCreate.With(err))
-	}
-
-	// проверить нужно ли запомнить ip адрес
-	ipAddress := ctx.Get("ip_address").(string)
-	logger.Info("IP Address from controller:", ipAddress)
-	if model.Remember && ipAddress != "" {
-		logger.Info("Login by credentials. IP address: " + ipAddress)
-		go func() {
-			logger.Info("Going to save user IP address", layers.Auth)
-
-			// проверка существует ли уже ip адрес
-			userIp, err := controller.userIpRepo.GetByIpAddress(ipAddress)
-			if err != nil {
-				logger.Error(err, "Get user by ip address error", layers.Database)
-				return
-			}
-
-			// если запись найдена и ip принадлежит другому пользователю
-			if userIp != nil {
-				if userIp.Username != model.Username {
-					if err = controller.userIpRepo.DeleteByIP(userIp.IpAddress); err != nil {
-						logger.Error(err, "", layers.Database)
-						return
-					}
-				} else {
-					// если запись уже найдена, просто идем дальше
-					return
-				}
-			}
-
-			if err = controller.userIpRepo.New(model.Username, ipAddress); err != nil {
-				logger.Error(err, "Creating new bind username + ip address error", layers.Database)
-				return
-			}
-		}()
 	}
 
 	// обработка данных для клиента
